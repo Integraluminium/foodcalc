@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO shopping_tour_items (tour_id, ingredient_id)\n            VALUES ($1, $2)\n            ON CONFLICT (tour_id, ingredient_id) DO NOTHING\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "44ead78ab3e5347135b5bb30f09da9bdab898afde2390075eb2bfaeb2d32ad48"
+}

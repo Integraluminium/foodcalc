@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT DISTINCT g.id, g.name, g.is_personal\n            FROM user_group_roles ugr\n            JOIN groups g ON ugr.group_id = g.id\n            WHERE ugr.user_id = $1\n            ORDER BY g.is_personal DESC, g.name\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "is_personal",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "8c8e057effddc2fc7675dc247f9155d976df99dcb6ff63d9f1e063a5424b3c7b"
+}

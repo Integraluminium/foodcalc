@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectConfigService">
+    <option name="keyComment" value="false" />
+    <option name="sorting" value="true" />
+    <option name="previewLocale" value="de" />
+    <option name="modules">
+      <map>
+        <entry key="frontend">
+          <value>
+            <ProjectConfigModuleState>
+              <option name="id" value="frontend" />
+              <option name="pathTemplate" value="$PROJECT_DIR$/frontend/spa-frontend/src/locales/{locale}/{pathNamespace}.json" />
+              <option name="fileCodec" value="JSON" />
+              <option name="fileTemplate" value="[{fileKey}]" />
+              <option name="keyTemplate" value="{pathNamespace::[^:]+}:{fileKey:.}" />
+              <option name="rootDirectory" value="$PROJECT_DIR$/frontend/spa-frontend/src" />
+              <option name="defaultKeyPrefixes">
+                <set />
+              </option>
+              <option name="editorFlavorTemplate" value="t('{i18nKey}')" />
+              <option name="editorRules">
+                <list>
+                  <EditorRuleState>
+                    <option name="id" value="i18next-t" />
+                    <option name="languages">
+                      <set>
+                        <option value="JAVASCRIPT" />
+                        <option value="TYPESCRIPT" />
+                      </set>
+                    </option>
+                    <option name="triggerKind" value="CALL_ARGUMENT" />
+                    <option name="priority" value="0" />
+                    <option name="excludeRule" value="false" />
+                    <option name="constraints">
+                      <list>
+                        <EditorRuleConstraintState>
+                          <option name="type" value="CALLABLE_NAME" />
+                          <option name="value" value="t" />
+                          <option name="matchMode" value="EXACT" />
+                          <option name="negated" value="false" />
+                        </EditorRuleConstraintState>
+                        <EditorRuleConstraintState>
+                          <option name="type" value="ARGUMENT_INDEX" />
+                          <option name="value" value="0" />
+                          <option name="matchMode" value="EXACT" />
+                          <option name="negated" value="false" />
+                        </EditorRuleConstraintState>
+                      </list>
+                    </option>
+                  </EditorRuleState>
+                </list>
+              </option>
+            </ProjectConfigModuleState>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

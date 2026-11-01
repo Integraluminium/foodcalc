@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO recipes (name, comment, group_id, kind)\n            VALUES ($1, $2, $3, $4::text::recipe_kind)\n            RETURNING recipe_id as id, name, comment, group_id, weighed_in,\n                     kind as \"kind: RecipeKind\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "comment",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "group_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "weighed_in",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "kind: RecipeKind",
+        "type_info": {
+          "Custom": {
+            "name": "recipe_kind",
+            "kind": {
+              "Enum": [
+                "meal",
+                "component"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text",
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0fad82c89200b7f7d5a3b57efe30f8288b1eaeaff89100b012eb63d09715a9c7"
+}

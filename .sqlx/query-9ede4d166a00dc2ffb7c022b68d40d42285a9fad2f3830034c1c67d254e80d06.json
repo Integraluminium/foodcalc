@@ -1,0 +1,106 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                em.meal_id,\n                em.event_id,\n                em.recipe_id,\n                r.name as \"name!\",\n                COALESCE(r.weighed_in, false) as \"weighed_in!\",\n                em.place_id,\n                COALESCE(p.name, '') as \"place!\",\n                em.start_time,\n                em.end_time,\n                em.comment,\n                em.servings,\n                em.energy_per_serving as \"energy_per_serving!\",\n                COALESCE(round(rs.weight * em.energy_per_serving * em.servings / NULLIF(rs.energy, 0), 2), 0) as \"weight!\",\n                CASE WHEN rs.weight > 0 THEN (rs.energy / NULLIF(rs.weight * 1000, 0))::float8 END as \"energy_kj_per_g?\",\n                (SELECT COALESCE(SUM(ei.price), 0)\n                    FROM event_ingredients_before_prep_time_resolve ei\n                    WHERE ei.meal_id = em.meal_id) as \"price!\"\n            FROM event_meals em\n            LEFT JOIN recipes r ON em.recipe_id = r.recipe_id\n            LEFT JOIN places p ON em.place_id = p.place_id\n            LEFT JOIN recipe_stats rs ON em.recipe_id = rs.recipe_id\n            WHERE em.event_id = $1\n            ORDER BY em.start_time\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "meal_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "event_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "recipe_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "name!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "weighed_in!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "place_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "place!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "start_time",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "end_time",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "comment",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "servings",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "energy_per_serving!",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 12,
+        "name": "weight!",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 13,
+        "name": "energy_kj_per_g?",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 14,
+        "name": "price!",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      false,
+      null,
+      false,
+      false,
+      true,
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "9ede4d166a00dc2ffb7c022b68d40d42285a9fad2f3830034c1c67d254e80d06"
+}

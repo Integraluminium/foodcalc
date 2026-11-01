@@ -1,0 +1,90 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import AppShell from './components/layout/AppShell'
+import RequireAuth from './components/layout/RequireAuth'
+import LoginPage from './pages/LoginPage'
+import PlaceholderPage from './pages/PlaceholderPage'
+import { ApiError } from './api'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Never retry client errors (4xx) — e.g. validation failures or
+      // 401s — only transient/server issues.
+      retry: (failureCount, error) => {
+        if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+          return false
+        }
+        return failureCount < 2
+      },
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            element={
+              <RequireAuth>
+                <AppShell />
+              </RequireAuth>
+            }
+          >
+            <Route path="/" element={<Navigate to="/events" replace />} />
+            <Route
+              path="/ingredients"
+              element={
+                <PlaceholderPage
+                  title="Ingredients"
+                  phase="Phase 1"
+                  hint="Zutaten mit Energie kJ/g, Quellen (Händler/Packung/Preis) und Eigenschaften/Allergenen."
+                />
+              }
+            />
+            <Route
+              path="/recipes"
+              element={
+                <PlaceholderPage
+                  title="Recipes"
+                  phase="Phase 1"
+                  hint="Gerichte & Komponenten mit Zutaten, Sub-Komponenten, Arbeitsschritten und Energie-Basiswerten."
+                />
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <PlaceholderPage
+                  title="Events"
+                  phase="Phase 2"
+                  hint="Mahlzeitenplanung mit Energie-Zielwerten pro Portion, Preisen und Tagesgruppierung."
+                />
+              }
+            />
+            <Route
+              path="/inventories"
+              element={
+                <PlaceholderPage
+                  title="Inventories"
+                  phase="Phase 3"
+                  hint="Lager und Bestände, Zuordnung zu Events."
+                />
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <PlaceholderPage title="Nicht gefunden" phase="—" hint="Diese URL existiert nicht." />
+              }
+            />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  )
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO recipes (name, comment, group_id, weighed_in, kind)\n            VALUES ($1, $2, $3, $4, $5::text::recipe_kind)\n            RETURNING recipe_id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "recipe_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text",
+        "Int4",
+        "Bool",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "fe9afcda56ae71a4f2f4566fd9be96481c91126faa8071a135ca5b65ed90274c"
+}

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO shopping_tour_completed (tour_id, completed_at)\n                VALUES ($1, now())\n                ON CONFLICT (tour_id) DO NOTHING\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "35dee6622ddffe211daae639b85eb6f423e46026c791a898bbca6e6555d85318"
+}

@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT s.ingredient_source_id, s.ingredient_id, i.name AS ingredient_name, s.url\n                FROM ingredient_sources s\n                JOIN ingredients i ON i.ingredient_id = s.ingredient_id\n                WHERE s.store_id = $1 AND s.url IS NOT NULL AND s.url <> ''\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "ingredient_source_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "ingredient_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "ingredient_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "url",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "90e602061e83200887ade94a074d14026d81e0906cd320063cbb9ce6af18abb0"
+}

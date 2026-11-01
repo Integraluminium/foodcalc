@@ -1,0 +1,59 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH RECURSIVE walk(path, node_id, parent_weight, depth) AS (\n                SELECT $1::text, $2::int, NULL::numeric, 0\n                UNION ALL\n                SELECT w.path || '.' || m.child_id, m.child_id, m.weight, w.depth + 1\n                FROM walk w\n                JOIN meta_recipes m ON m.parent_id = w.node_id\n                WHERE w.depth < 10\n                  AND position('.' || m.child_id::text || '.' IN w.path || '.') = 0\n            )\n            SELECT walk.path AS \"acc!\",\n                   ri.ingredient_id AS \"ingredient_id!\",\n                   i.name AS ingredient,\n                   (ri.amount * w.weight) AS \"weight?\",\n                   ri.amount AS \"amount!\",\n                   ri.unit_id AS \"unit_id!\",\n                   u.name AS unit_name\n            FROM walk\n            JOIN recipe_ingredients ri ON ri.recipe_id = walk.node_id\n            LEFT JOIN ingredients i ON i.ingredient_id = ri.ingredient_id\n            LEFT JOIN weights w\n              ON w.ingredient_id = ri.ingredient_id AND w.unit_id = ri.unit_id\n            LEFT JOIN units u ON u.unit_id = ri.unit_id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "acc!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "ingredient_id!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "ingredient",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "weight?",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 4,
+        "name": "amount!",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 5,
+        "name": "unit_id!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "unit_name",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null,
+      false,
+      true,
+      null,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "ca190957f9a79a4eab01c5efcabdc988a53c29bcf162369fccb15e85de977dbe"
+}

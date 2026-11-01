@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH RECURSIVE walk(path, node_id, parent_weight, depth) AS (\n                SELECT $1::text, $2::int, NULL::numeric, 0\n                UNION ALL\n                SELECT w.path || '.' || m.child_id, m.child_id, m.weight, w.depth + 1\n                FROM walk w\n                JOIN meta_recipes m ON m.parent_id = w.node_id\n                WHERE w.depth < 10\n                  AND position('.' || m.child_id::text || '.' IN w.path || '.') = 0\n            )\n            SELECT path AS \"path!\", node_id AS \"node_id!\", parent_weight\n            FROM walk\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "path!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "node_id!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "parent_weight",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "5e59e4a1bb83ac2faae6b8203a0a860a93edc39f1fa263189a14e7a0cf49d506"
+}

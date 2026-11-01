@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT value FROM app_settings WHERE key = 'groups.default_member_roles'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "value",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "aeee9b2643d5ac95210e20a60b2e6f38afc97f42a6b4cd1f3e7191c46d3c8fe5"
+}

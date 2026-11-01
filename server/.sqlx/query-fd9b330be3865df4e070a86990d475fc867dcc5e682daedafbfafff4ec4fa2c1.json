@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO meta_recipes (parent_id, child_id, weight)\n            SELECT $1, child_id, weight FROM meta_recipes WHERE parent_id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fd9b330be3865df4e070a86990d475fc867dcc5e682daedafbfafff4ec4fa2c1"
+}

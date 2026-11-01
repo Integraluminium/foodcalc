@@ -1,0 +1,63 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH matching_recipes AS (\n                SELECT r.recipe_id, r.name, r.comment, r.group_id, r.weighed_in, r.kind,\n                       COUNT(DISTINCT ri.ingredient_id) as matching_ingredients,\n                       (SELECT COUNT(DISTINCT ingredient_id)\n                        FROM recipe_ingredients\n                        WHERE recipe_id = r.recipe_id) as total_ingredients\n                FROM recipes r\n                JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id\n                WHERE ri.ingredient_id = ANY($1)\n                GROUP BY r.recipe_id, r.name, r.comment, r.weighed_in\n            )\n            SELECT\n                recipe_id as id,\n                name,\n                comment,\n                group_id,\n                weighed_in,\n                kind as \"kind: RecipeKind\"\n            FROM matching_recipes\n            ORDER BY \n                matching_ingredients::float / total_ingredients DESC,\n                name ASC\n            LIMIT $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "comment",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "group_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "weighed_in",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "kind: RecipeKind",
+        "type_info": {
+          "Custom": {
+            "name": "recipe_kind",
+            "kind": {
+              "Enum": [
+                "meal",
+                "component"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4Array",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "55b8817c2c11b5da9f61d9ada393563f81f30a4a197b23717dfeac904941c7b4"
+}

@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT recipe_id as id, name, comment, group_id, weighed_in,\n                   kind as \"kind: RecipeKind\"\n            FROM recipes\n            WHERE group_id IN (\n                SELECT group_id FROM user_group_roles WHERE user_id = $1\n            )\n            ORDER BY name\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "comment",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "group_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "weighed_in",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "kind: RecipeKind",
+        "type_info": {
+          "Custom": {
+            "name": "recipe_kind",
+            "kind": {
+              "Enum": [
+                "meal",
+                "component"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "7566a8d714853b0f2de3493bf3d7804fe9f33d10b7480c1a09dc06c1a2851e79"
+}
