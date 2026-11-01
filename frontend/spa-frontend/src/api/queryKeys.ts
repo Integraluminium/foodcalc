@@ -6,4 +6,19 @@ export const queryKeys = {
   auth: {
     me: ['auth', 'me'] as const,
   },
+  recipes: {
+    list: (filters: { kind?: string; search?: string }) =>
+      ['recipes', 'list', filters] as const,
+    detail: (id: number) => ['recipes', 'detail', id] as const,
+  },
+  ingredients: {
+    list: (search: string) => ['ingredients', 'list', search] as const,
+    detail: (id: number) => ['ingredients', 'detail', id] as const,
+  },
+  master: {
+    groups: ['master', 'groups'] as const,
+    stores: ['master', 'stores'] as const,
+    units: ['master', 'units'] as const,
+    properties: ['master', 'properties'] as const,
+  },
 } as const

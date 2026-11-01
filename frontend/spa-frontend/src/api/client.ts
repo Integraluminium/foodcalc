@@ -33,6 +33,19 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler
 }
 
+/** Builds `?a=1&b=2` from a params object, skipping undefined/empty values. */
+export function buildQuery(
+  params?: Record<string, string | number | undefined>,
+): string {
+  if (!params) return ''
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== '') search.set(key, String(value))
+  }
+  const query = search.toString()
+  return query ? `?${query}` : ''
+}
+
 type RequestOptions = Omit<RequestInit, 'body' | 'method' | 'headers'> & {
   body?: unknown
   headers?: Record<string, string>
