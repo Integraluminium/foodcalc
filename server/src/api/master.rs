@@ -24,3 +24,8 @@ pub async fn properties(State(state): State<MyAppState>) -> Response {
 pub async fn places(State(state): State<MyAppState>) -> Response {
     respond(master::get_available_event_places(&state).await)
 }
+
+/// Places where meals are served (event meal picker).
+pub async fn places(State(state): State<MyAppState>) -> Response {
+    respond(state.events().get_places().await)
+}

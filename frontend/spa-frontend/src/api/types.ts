@@ -158,3 +158,114 @@ export interface IngredientDetail {
   weights: IngredientWeight[]
   properties: Property[]
 }
+
+// ---------------------------------------------------------------------------
+// Events & meal planning (Phase 2)
+// ---------------------------------------------------------------------------
+
+export interface EventListItem {
+  id: number
+  name: string
+  comment: string | null
+  /** Budget as BigDecimal string. */
+  budget: Decimal | null
+  group_id: number
+  meal_count: number
+  /** Total ingredient cost as BigDecimal string. */
+  total_cost: Decimal
+  /** RFC 3339, null when the event has no meals yet. */
+  first_meal: string | null
+  last_meal: string | null
+}
+
+export interface Event {
+  id: number
+  name: string
+  comment: string | null
+  budget: Decimal | null
+  group_id: number
+}
+
+/** A planned meal with the planner aggregates (scaled weight, density, price). */
+export interface PlannerMeal {
+  meal_id: number
+  event_id: number
+  recipe_id: number
+  name: string
+  weighed_in: boolean
+  place_id: number
+  place: string
+  start_time: string
+  end_time: string
+  comment: string | null
+  servings: number
+  /** Planned energy per portion (kJ) — the scaling input. */
+  energy_per_serving: Decimal
+  /** Total cooked weight in kg implied by energy_per_serving × servings. */
+  weight: Decimal
+  /** Recipe energy density (kJ/g) — null when nothing is resolvable. */
+  energy_kj_per_g: number | null
+  /** Total ingredient cost under the event's source overrides. */
+  price: Decimal
+}
+
+export interface EventDetail {
+  event: Event
+  meals: PlannerMeal[]
+  total_cost: Decimal
+}
+
+export interface Place {
+  id: number
+  name: string
+  comment: string | null
+}
+
+export interface ShoppingTour {
+  id: number
+  event_id: number
+  tour_date: string
+  store_id: number
+  store_name: string | null
+}
+
+export interface ShoppingListItem {
+  event_id: number
+  event_name: string
+  ingredient_id: number
+  ingredient_name: string
+  /** Total kg to buy for this ingredient on the tour. */
+  weight: Decimal
+  /** Energy in kJ (weight × kJ/g × 1000). */
+  energy: Decimal
+  price: Decimal | null
+  tour_id: number | null
+  category: string | null
+}
+
+export interface TourWithItems extends ShoppingTour {
+  items: ShoppingListItem[]
+  /** Sum of item prices; null when any item has no priced source. */
+  total_price: Decimal | null
+}
+
+export interface IngredientWithoutTour {
+  ingredient_id: number
+  ingredient_name: string
+  weight: Decimal | null
+  store_name: string
+}
+
+export interface ShoppingList {
+  tours: TourWithItems[]
+  without_tour: IngredientWithoutTour[]
+}
+
+export interface SourceOverride {
+  event_id: number
+  ingredient_id: number
+  source_id: number
+  ingredient_name: string
+  store_id: number
+  store_name: string
+}

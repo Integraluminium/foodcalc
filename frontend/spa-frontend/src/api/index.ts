@@ -1,5 +1,6 @@
 export { ApiError, api, buildQuery, setUnauthorizedHandler } from './client'
 export { authApi } from './endpoints/auth'
+export { eventsApi } from './endpoints/events'
 export { ingredientsApi } from './endpoints/ingredients'
 export { masterApi } from './endpoints/master'
 export { recipesApi } from './endpoints/recipes'

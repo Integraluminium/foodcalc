@@ -4,6 +4,8 @@ import AppShell from './components/layout/AppShell'
 import RequireAuth from './components/layout/RequireAuth'
 import LoginPage from './pages/LoginPage'
 import PlaceholderPage from './pages/PlaceholderPage'
+import EventsPage from './pages/EventsPage'
+import EventDetailPage from './pages/EventDetailPage'
 import RecipesPage from './pages/RecipesPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
 import IngredientsPage from './pages/IngredientsPage'
@@ -53,13 +55,11 @@ export default function App() {
             />
             <Route
               path="/events"
-              element={
-                <PlaceholderPage
-                  title="Events"
-                  phase="Phase 2"
-                  hint="Mahlzeitenplanung mit Energie-Zielwerten pro Portion, Preisen und Tagesgruppierung."
-                />
-              }
+              element={<EventsPage />}
+            />
+            <Route
+              path="/events/:eventId"
+              element={<EventDetailPage />}
             />
             <Route
               path="/inventories"
