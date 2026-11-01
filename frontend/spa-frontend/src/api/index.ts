@@ -1,4 +1,7 @@
-export { ApiError, api, setUnauthorizedHandler } from './client'
+export { ApiError, api, buildQuery, setUnauthorizedHandler } from './client'
 export { authApi } from './endpoints/auth'
+export { ingredientsApi } from './endpoints/ingredients'
+export { masterApi } from './endpoints/master'
+export { recipesApi } from './endpoints/recipes'
 export { queryKeys } from './queryKeys'
 export type * from './types'

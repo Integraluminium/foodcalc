@@ -4,6 +4,9 @@ import AppShell from './components/layout/AppShell'
 import RequireAuth from './components/layout/RequireAuth'
 import LoginPage from './pages/LoginPage'
 import PlaceholderPage from './pages/PlaceholderPage'
+import RecipesPage from './pages/RecipesPage'
+import RecipeDetailPage from './pages/RecipeDetailPage'
+import IngredientsPage from './pages/IngredientsPage'
 import { ApiError } from './api'
 
 const queryClient = new QueryClient({
@@ -37,24 +40,16 @@ export default function App() {
           >
             <Route path="/" element={<Navigate to="/events" replace />} />
             <Route
-              path="/ingredients"
-              element={
-                <PlaceholderPage
-                  title="Ingredients"
-                  phase="Phase 1"
-                  hint="Zutaten mit Energie kJ/g, Quellen (Händler/Packung/Preis) und Eigenschaften/Allergenen."
-                />
-              }
+              path="/recipes"
+              element={<RecipesPage />}
             />
             <Route
-              path="/recipes"
-              element={
-                <PlaceholderPage
-                  title="Recipes"
-                  phase="Phase 1"
-                  hint="Gerichte & Komponenten mit Zutaten, Sub-Komponenten, Arbeitsschritten und Energie-Basiswerten."
-                />
-              }
+              path="/recipes/:recipeId"
+              element={<RecipeDetailPage />}
+            />
+            <Route
+              path="/ingredients"
+              element={<IngredientsPage />}
             />
             <Route
               path="/events"

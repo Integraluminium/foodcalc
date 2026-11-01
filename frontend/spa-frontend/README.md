@@ -36,6 +36,24 @@ otherwise debug builds auto-login the `test` user on localhost.
 DTO conventions: backend `BigDecimal` → string, `OffsetDateTime` → RFC3339
 string, ids → `number` (i32).
 
+## Implemented screens (Phase 1)
+
+- `/recipes` — filterable list (Gerichte / Komponenten / Alle, Suche),
+  create dialog. `/recipes/:id` — full editor: Zutaten, Sub-Komponenten
+  (Gerichte und Komponenten frei kombinierbar), Arbeitsschritte
+  (Dauer fix + Dauer pro kg), Energie-Stats (Gesamtgewicht, kJ,
+  kJ/g = Skalierungsbasis für Portionen), klonen/löschen.
+- `/ingredients` — list with energy kJ/g and source badge; drawer editor
+  with Basisdaten, Quellen (Händler/Packung/Preis), Eigenschaften/Allergene
+  und Einheitsgewichten (kg pro Einheit, Basis für Einkaufslisten).
+- Master data pickers (groups, stores, units, properties) via
+  `hooks/queries/useMasterData` with 10 min stale time.
+
+Backend endpoints used: `/api/auth/*`, `/api/groups`, `/api/recipes`,
+`/api/recipes/{id}/ingredients|steps|sub-recipes`, `/api/recipes/{id}/clone`,
+`/api/ingredients`, `/api/ingredients/{id}/sources|weights|properties`,
+`/api/stores`, `/api/units`, `/api/properties`.
+
 ## Production
 
 The built SPA is served by the axum server under `/app/` (phase 5 of the
