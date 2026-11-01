@@ -1,0 +1,64 @@
+/*
+ * Design tokens for the Foodcalc SPA (dark theme).
+ *
+ * This is the only file that defines raw colors/typography — components
+ * reference the CSS custom properties below, so a retheme never touches
+ * component code.
+ */
+:root {
+  /* Surfaces */
+  --bg-app: #0b1120;
+  --bg-sidebar: #0a0f1c;
+  --bg-surface: #0f172b; /* main content area */
+  --bg-card: #131d33; /* panels, tables */
+  --bg-elevated: #1a2745; /* hover rows, headers */
+  --bg-input: #0d1526;
+
+  /* Borders */
+  --border: #223050;
+  --border-strong: #33436b;
+
+  /* Text */
+  --text-primary: #e8ecf4;
+  --text-secondary: #9aa5bd;
+  --text-muted: #657089;
+
+  /* Accents */
+  --accent: #3b82f6;
+  --accent-strong: #2563eb;
+  --accent-soft: rgba(59, 130, 246, 0.16);
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.14);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.14);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+
+  /* Shape & depth */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 3px rgba(2, 6, 23, 0.5);
+  --shadow-overlay: 0 12px 32px rgba(2, 6, 23, 0.65);
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --transition-fast: 120ms ease;
+}

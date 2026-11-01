@@ -1,0 +1,73 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background:
+    radial-gradient(
+      1200px 600px at 20% -10%,
+      rgba(59, 130, 246, 0.12),
+      transparent 60%
+    ),
+    var(--bg-app);
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: var(--space-2);
+}
+
+.brandMark {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.title {
+  font-size: var(--text-lg);
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.error {
+  color: var(--danger);
+  font-size: var(--text-sm);
+  background: var(--danger-soft);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
