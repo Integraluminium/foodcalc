@@ -35,3 +35,11 @@ export function useProperties() {
     staleTime: MASTER_STALE_MS,
   })
 }
+
+export function usePlaces() {
+  return useQuery({
+    queryKey: queryKeys.master.places,
+    queryFn: masterApi.places,
+    staleTime: MASTER_STALE_MS,
+  })
+}

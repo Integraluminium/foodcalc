@@ -54,6 +54,32 @@ Backend endpoints used: `/api/auth/*`, `/api/groups`, `/api/recipes`,
 `/api/ingredients`, `/api/ingredients/{id}/sources|weights|properties`,
 `/api/stores`, `/api/units`, `/api/properties`.
 
+## Implemented screens (Phase 2)
+
+- `/events` — list with Zeitraum, Mahlzeiten-Anzahl, Kosten vs. Budget,
+  create dialog, client-side search.
+- `/events/:id` — header with Budget-Fortschrittsbalken und Export-Buttons
+  (Rezepte-PDF, Allergene, Labels) plus two tabs:
+  - **Speiseplan**: Mahlzeiten nach Tag gruppiert, je Mahlzeit Zeit, Ort,
+    Portionen, **kJ/Portion** (Energie-Skalierungseingabe), kJ/g-Dichte,
+    kalkuliertes Gesamtgewicht, €/Portion und Kosten; Bearbeiten/Duplizieren/
+    Löschen/Rezept-PDF pro Zeile; Plan-Dialog mit **Live-Vorschau der
+    Kochmenge** aus der Rezept-Energie-Dichte.
+  - **Einkäufe**: Touren (Store + Datum) mit Positionen (Kategorie, Menge,
+    Preis), Tour-Total, Text-Export; „Ohne Tour"-Sektion mit Store-Hinweis
+    und Tour-Anlegen-Vorbefüllung.
+
+Backend endpoints used (neu in Phase 2): `/api/events`,
+`/api/events/{id}/meals|tours|shopping-list|source-overrides`,
+`/api/events/{id}/exports/{recipes,meal,allergens,labels,tour}`,
+`/api/places`. PDF-Exporte brauchen den Server mit `--features typst`;
+ohne antworten sie mit einem klaren Fehler.
+
+Hinweis: Die Sample-DB enthält ältere View-Stände; die Migration
+`20261101240000_fix_event_ingredients_multiplier_per_meal.sql` korrigiert die
+Multiplikator-Verknüpfung ( Meal-granular) und wurde für die lokale DB
+bereits angewandt.
+
 ## Production
 
 The built SPA is served by the axum server under `/app/` (phase 5 of the
