@@ -8,7 +8,7 @@ import PlaceholderPage from './pages/PlaceholderPage'
 import EventsPage from './pages/EventsPage'
 import EventDetailPage from './pages/EventDetailPage'
 import RecipesPage from './pages/RecipesPage'
-import AccountPage from './pages/AccountPage'
+import SettingsPage from './pages/SettingsPage'
 import AdminPage from './pages/AdminPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
 import RecipeWizardPage from './pages/RecipeWizardPage'
@@ -76,8 +76,12 @@ export default function App() {
               element={<EventDetailPage />}
             />
             <Route
+              path="/settings"
+              element={<SettingsPage />}
+            />
+            <Route
               path="/account"
-              element={<AccountPage />}
+              element={<Navigate to="/settings" replace />}
             />
             <Route
               path="/admin"

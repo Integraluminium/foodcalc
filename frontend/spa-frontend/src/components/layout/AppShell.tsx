@@ -57,8 +57,8 @@ export default function AppShell() {
           <div className={styles.userArea}>
             <span className={styles.userName}>{user?.username ?? '…'}</span>
             <div className={styles.userLinks}>
-              <NavLink to="/account" className={styles.userLink}>
-                Konto
+              <NavLink to="/settings" className={styles.userLink}>
+                Einstellungen
               </NavLink>
               {user?.is_admin && (
                 <NavLink to="/admin" className={styles.userLink}>
