@@ -1,0 +1,64 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1000px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.cardButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface, transparent);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  font: inherit;
+  color: inherit;
+}
+
+.cardButton:hover {
+  border-color: var(--primary);
+}
+
+.cardName {
+  font-weight: 600;
+}
+
+.empty {
+  padding: var(--space-4);
+}
+
+.amountInput {
+  width: 6.5rem;
+  text-align: right;
+}
+
+.addRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  border-top: 1px dashed var(--border);
+  padding-top: var(--space-3);
+}
+
+.addRow .input:first-child {
+  flex: 1 1 200px;
+}

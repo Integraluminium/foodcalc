@@ -2,18 +2,22 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Dialog } from '../components/ui/Dialog'
+import { Drawer } from '../components/ui/Drawer'
 import { Spinner } from '../components/ui/Spinner'
 import { useCreateEvent, useEvents } from '../hooks/queries/useEvents'
 import { useCurrentUser } from '../hooks/useAuth'
 import { useGroups } from '../hooks/queries/useMasterData'
 import { formatDateRange, formatDecimal, toNumber } from '../lib/format'
+import type { EventListItem } from '../api/types'
 import styles from './EventsPage.module.css'
 
 export default function EventsPage() {
   const navigate = useNavigate()
   const events = useEvents()
+  const groups = useGroups()
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const [drawerEvent, setDrawerEvent] = useState<EventListItem | null>(null)
 
   const filtered = (events.data ?? []).filter((event) =>
     event.name.toLowerCase().includes(search.trim().toLowerCase()),
@@ -65,6 +69,7 @@ export default function EventsPage() {
                 <th className="num">Mahlzeiten</th>
                 <th className="num">Kosten</th>
                 <th className="num">Budget</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -95,6 +100,19 @@ export default function EventsPage() {
                     <td className={`num ${over ? styles.over : ''}`}>
                       {budget === null ? '–' : `${formatDecimal(budget)} €`}
                     </td>
+                    <td className="num">
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        title="Details"
+                        onClick={(clickEvent) => {
+                          clickEvent.stopPropagation()
+                          setDrawerEvent(event)
+                        }}
+                      >
+                        ℹ
+                      </button>
+                    </td>
                   </tr>
                 )
               })}
@@ -103,8 +121,74 @@ export default function EventsPage() {
         )}
       </div>
 
+      {drawerEvent && (
+        <ProjectDrawer
+          event={drawerEvent}
+          groupName={
+            groups.data?.find((group) => group.id === drawerEvent.group_id)
+              ?.name ?? `Gruppe ${drawerEvent.group_id}`
+          }
+          onClose={() => setDrawerEvent(null)}
+          onOpen={() => navigate(`/events/${drawerEvent.id}`)}
+        />
+      )}
+
       {createOpen && <CreateEventDialog onClose={() => setCreateOpen(false)} />}
     </div>
+  )
+}
+
+/** Quick project summary drawer: status at a glance + link to the cockpit. */
+function ProjectDrawer({
+  event,
+  groupName,
+  onClose,
+  onOpen,
+}: {
+  event: EventListItem
+  groupName: string
+  onClose: () => void
+  onOpen: () => void
+}) {
+  const budget = toNumber(event.budget)
+  const cost = toNumber(event.total_cost) ?? 0
+  const share =
+    budget !== null && budget > 0 ? Math.min((cost / budget) * 100, 100) : null
+  const over = budget !== null && cost > budget
+
+  return (
+    <Drawer title={event.name} onClose={onClose}>
+      <p className="muted">{event.comment ?? 'Kein Kommentar'}</p>
+      <dl className={styles.summaryGrid}>
+        <dt>Owner-Gruppe</dt>
+        <dd>{groupName}</dd>
+        <dt>Zeitraum</dt>
+        <dd>{formatDateRange(event.first_meal, event.last_meal)}</dd>
+        <dt>Mahlzeiten</dt>
+        <dd>{event.meal_count}</dd>
+        <dt>Kosten</dt>
+        <dd>{formatDecimal(cost)} €</dd>
+        <dt>Budget</dt>
+        <dd>
+          {budget === null ? (
+            '–'
+          ) : (
+            <>
+              {formatDecimal(budget)} €
+              <div className={styles.budgetBar}>
+                <div
+                  className={`${styles.budgetFill} ${over ? styles.budgetOver : ''}`}
+                  style={{ width: `${share ?? 0}%` }}
+                />
+              </div>
+            </>
+          )}
+        </dd>
+      </dl>
+      <button type="button" className="btn btn--primary" onClick={onOpen}>
+        Projekt-Cockpit öffnen
+      </button>
+    </Drawer>
   )
 }
 

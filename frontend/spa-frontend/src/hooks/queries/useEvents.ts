@@ -35,6 +35,51 @@ export function useShoppingList(eventId: number) {
   })
 }
 
+/** Food prep tasks with recipe names (timeline feed). */
+export function useEventPreps(eventId: number) {
+  return useQuery({
+    queryKey: queryKeys.events.preps(eventId),
+    queryFn: () => eventsApi.preps(eventId),
+    enabled: Number.isFinite(eventId) && eventId > 0,
+  })
+}
+
+/** Inventories linked to the event. */
+export function useEventInventories(eventId: number) {
+  return useQuery({
+    queryKey: queryKeys.events.inventories(eventId),
+    queryFn: () => eventsApi.eventInventories(eventId),
+    enabled: Number.isFinite(eventId) && eventId > 0,
+  })
+}
+
+/** Source overrides pinned for this event. */
+export function useEventOverrides(eventId: number) {
+  return useQuery({
+    queryKey: queryKeys.events.overrides(eventId),
+    queryFn: () => eventsApi.overrides(eventId),
+    enabled: Number.isFinite(eventId) && eventId > 0,
+  })
+}
+
+/** Shopping tours of the event (timeline feed). */
+export function useEventTours(eventId: number) {
+  return useQuery({
+    queryKey: queryKeys.events.tours(eventId),
+    queryFn: () => eventsApi.tours(eventId),
+    enabled: Number.isFinite(eventId) && eventId > 0,
+  })
+}
+
+/** Per-ingredient demand vs. the stock of linked inventories. */
+export function useInventoryCoverage(eventId: number) {
+  return useQuery({
+    queryKey: queryKeys.events.inventoryCoverage(eventId),
+    queryFn: () => eventsApi.inventoryCoverage(eventId),
+    enabled: Number.isFinite(eventId) && eventId > 0,
+  })
+}
+
 function useInvalidateEvents() {
   const queryClient = useQueryClient()
   return () => {
@@ -104,6 +149,24 @@ export function useEventMutations(eventId: number) {
     mutationFn: (tourId: number) => eventsApi.removeTour(eventId, tourId),
     onSuccess: invalidate,
   })
+  const addEventInventory = useMutation({
+    mutationFn: (inventoryId: number) =>
+      eventsApi.addEventInventory(eventId, inventoryId),
+    onSuccess: invalidate,
+  })
+  const removeEventInventory = useMutation({
+    mutationFn: (inventoryId: number) =>
+      eventsApi.removeEventInventory(eventId, inventoryId),
+    onSuccess: invalidate,
+  })
+  const addOverride = useMutation({
+    mutationFn: (sourceId: number) => eventsApi.addOverride(eventId, sourceId),
+    onSuccess: invalidate,
+  })
+  const removeOverride = useMutation({
+    mutationFn: (sourceId: number) => eventsApi.removeOverride(eventId, sourceId),
+    onSuccess: invalidate,
+  })
 
   return {
     update,
@@ -116,5 +179,9 @@ export function useEventMutations(eventId: number) {
     addTour,
     updateTour,
     removeTour,
+    addEventInventory,
+    removeEventInventory,
+    addOverride,
+    removeOverride,
   }
 }

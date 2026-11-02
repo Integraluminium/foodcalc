@@ -2,7 +2,10 @@ import { api } from '../client'
 import type {
   Event,
   EventDetail,
+  EventInventoryCoverage,
   EventListItem,
+  FoodPrepWithRecipe,
+  Inventory,
   PlannerMeal,
   ShoppingList,
   ShoppingTour,
@@ -88,4 +91,18 @@ export const eventsApi = {
     }),
   removeOverride: (eventId: number, sourceId: number) =>
     api.delete<void>(`/events/${eventId}/source-overrides/${sourceId}`),
+
+  preps: (eventId: number) =>
+    api.get<FoodPrepWithRecipe[]>(`/events/${eventId}/preps`),
+  eventInventories: (eventId: number) =>
+    api.get<Inventory[]>(`/events/${eventId}/inventories`),
+  addEventInventory: (eventId: number, inventoryId: number) =>
+    api.post<{ event_id: number; inventory_id: number }>(
+      `/events/${eventId}/inventories/${inventoryId}`,
+      {},
+    ),
+  removeEventInventory: (eventId: number, inventoryId: number) =>
+    api.delete<void>(`/events/${eventId}/inventories/${inventoryId}`),
+  inventoryCoverage: (eventId: number) =>
+    api.get<EventInventoryCoverage[]>(`/events/${eventId}/inventory-coverage`),
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Dialog } from '../../components/ui/Dialog'
+import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { Spinner } from '../../components/ui/Spinner'
 import { useRecipe, useRecipes } from '../../hooks/queries/useRecipes'
 import { usePlaces } from '../../hooks/queries/useMasterData'
@@ -10,6 +11,7 @@ import {
   rfc3339ToLocalInput,
   toNumber,
 } from '../../lib/format'
+import { ENERGY_PRESETS, presetForKj } from '../../lib/plannerPresets'
 import type { PlannerMeal } from '../../api/types'
 import styles from '../EventDetailPage.module.css'
 
@@ -174,9 +176,28 @@ interface MealFormFieldsProps {
 function MealFormFields(props: MealFormFieldsProps) {
   const totalKj =
     props.recipeStats !== null ? toNumber(props.recipeStats.energy_kj) : null
+  const [kindFilter, setKindFilter] = useState<'meal' | 'component' | 'all'>(
+    'meal',
+  )
+  const filteredRecipes = props.recipes.filter(
+    (recipe) => kindFilter === 'all' || recipe.kind === kindFilter,
+  )
+  const activePreset = presetForKj(Number(props.energyPerServing))
   return (
     <form id="meal-form" onSubmit={props.onSubmit}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className={styles.presetRow}>
+          <SegmentedControl
+            options={[
+              { value: 'meal', label: 'Gerichte' },
+              { value: 'component', label: 'Komponenten' },
+              { value: 'all', label: 'Alle' },
+            ]}
+            value={kindFilter}
+            onChange={setKindFilter}
+            ariaLabel="Rezepttyp filtern"
+          />
+        </div>
         <label className="field">
           Rezept
           <select
@@ -188,7 +209,7 @@ function MealFormFields(props: MealFormFieldsProps) {
             required
           >
             <option value="">Auswählen…</option>
-            {props.recipes.map((recipe) => (
+            {filteredRecipes.map((recipe) => (
               <option key={recipe.id} value={recipe.id}>
                 {recipe.name}
                 {recipe.kind === 'component' ? ' (Komponente)' : ''}
@@ -221,6 +242,23 @@ function MealFormFields(props: MealFormFieldsProps) {
               required
             />
           </label>
+        </div>
+        <div className={styles.presetRow}>
+          {ENERGY_PRESETS.map((preset) => (
+            <button
+              key={preset.kj}
+              type="button"
+              title={preset.hint}
+              className={`badge ${
+                activePreset?.kj === preset.kj
+                  ? 'badge--success'
+                  : 'badge--neutral'
+              }`}
+              onClick={() => props.setEnergyPerServing(String(preset.kj))}
+            >
+              {preset.label} · {preset.kj} kJ
+            </button>
+          ))}
         </div>
         <div className="form-row">
           <label className="field">
