@@ -37,6 +37,19 @@ export function ExportsTab({
           <button
             type="button"
             className="btn btn--primary"
+            title="Management-Übersicht: Rahmen, Mahlzeiten, Touren, Vorkochen"
+            onClick={() =>
+              download(
+                `/events/${eventId}/exports/overview`,
+                `${eventName}-uebersicht.pdf`,
+              )
+            }
+          >
+            Event-Übersicht (PDF)
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
             onClick={() =>
               download(
                 `/events/${eventId}/exports/recipes`,

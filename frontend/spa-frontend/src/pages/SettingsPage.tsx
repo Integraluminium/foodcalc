@@ -1,13 +1,44 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { ApiError } from '../api'
+import { SegmentedControl } from '../components/ui/SegmentedControl'
+import { GroupsSection } from '../components/settings/GroupsSection'
 import { Spinner } from '../components/ui/Spinner'
 import { useCurrentUser } from '../hooks/useAuth'
 import { useUserAdminMutations } from '../hooks/queries/useUsers'
 import { useGroups } from '../hooks/queries/useMasterData'
-import styles from './AccountPage.module.css'
+import styles from './SettingsPage.module.css'
 
-export default function AccountPage() {
+type Tab = 'account' | 'groups'
+
+const TAB_OPTIONS = [
+  { value: 'account', label: 'Konto' },
+  { value: 'groups', label: 'Gruppen' },
+] as const
+
+/**
+ * Settings hub: own account (profile, password, memberships) and group
+ * management. Members can manage the member lists of their groups; admins
+ * additionally create/delete groups.
+ */
+export default function SettingsPage() {
+  const [tab, setTab] = useState<Tab>('account')
+
+  return (
+    <div className={styles.page}>
+      <h1 className="section-title">Einstellungen</h1>
+      <SegmentedControl
+        options={[...TAB_OPTIONS]}
+        value={tab}
+        onChange={setTab}
+        ariaLabel="Einstellungsbereich wählen"
+      />
+      {tab === 'account' ? <AccountPanel /> : <GroupsSection />}
+    </div>
+  )
+}
+
+function AccountPanel() {
   const { data: user } = useCurrentUser()
   const groups = useGroups()
   const [savedPassword, setSavedPassword] = useState(false)
@@ -21,9 +52,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <h1 className="section-title">Mein Konto</h1>
-
+    <>
       <div className={`card ${styles.card}`}>
         <h2 className="section-subtitle">Profil</h2>
         <div className={styles.meta}>
@@ -58,11 +87,11 @@ export default function AccountPage() {
           ))}
         </ul>
         <p className="muted">
-          Gruppen-Mitgliedschaften werden von den Gruppen-Verwaltern bzw. der
-          Administration gepflegt (zu finden unter „Verwaltung", für Admins).
+          Mitgliedschaften pflegst du im Tab „Gruppen" (für deine Gruppen) —
+          Admins verwalten alle Benutzer unter „Verwaltung".
         </p>
       </div>
-    </div>
+    </>
   )
 }
 
