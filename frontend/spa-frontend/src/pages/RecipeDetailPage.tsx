@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { recipesTreeApi } from '../api'
 import { Dialog } from '../components/ui/Dialog'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Spinner } from '../components/ui/Spinner'
+import { RecipeTreeView } from '../components/recipes/RecipeTreeView'
 import {
   useRecipe,
   useRecipeMutations,
@@ -18,6 +21,33 @@ import { formatDecimal, formatKjPerG, toNumber } from '../lib/format'
 import type { RecipeDetail, RecipeKind, RecipeStep } from '../api/types'
 import type { RecipeStepInput } from '../api/endpoints/recipes'
 import styles from './RecipeDetailPage.module.css'
+
+/** Read-focused recursion view of the recipe (SUB/ING tree). */
+function TreeSection({ recipeId }: { recipeId: number }) {
+  const tree = useQuery({
+    queryKey: ['recipes', 'tree', recipeId] as const,
+    queryFn: () => recipesTreeApi.tree(recipeId),
+  })
+
+  return (
+    <section className={`card ${styles.section}`}>
+      <h2 className="section-subtitle">Rezept-Baum</h2>
+      {tree.isPending ? (
+        <Spinner size="sm" />
+      ) : tree.isError ? (
+        <p className="muted">
+          Baum konnte nicht geladen werden: {String(tree.error)}
+        </p>
+      ) : tree.data.ingredients.length === 0 && tree.data.children.length === 0 ? (
+        <p className="muted">
+          Noch keine Zutaten oder Sub-Komponenten — im Editor unten hinzufügen.
+        </p>
+      ) : (
+        <RecipeTreeView root={tree.data} />
+      )}
+    </section>
+  )
+}
 
 export default function RecipeDetailPage() {
   const params = useParams()
@@ -100,6 +130,16 @@ function RecipeEditor({ recipe }: { recipe: RecipeDetail }) {
           <button
             type="button"
             className="btn btn--ghost"
+            title="Kochanweisung als PDF (basis Mengen)"
+            onClick={() =>
+              void recipesTreeApi.exportPdf(recipe.id)
+            }
+          >
+            Rezept-PDF
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
             onClick={() => setEditOpen(true)}
           >
             Bearbeiten
@@ -153,6 +193,8 @@ function RecipeEditor({ recipe }: { recipe: RecipeDetail }) {
         Die Energie-Dichte skaliert die Menge: Portionen × Energie-Zielwert pro
         Portion bestimmen später die Kochmenge.
       </p>
+
+      <TreeSection recipeId={recipe.id} />
 
       <IngredientsSection
         recipe={recipe}

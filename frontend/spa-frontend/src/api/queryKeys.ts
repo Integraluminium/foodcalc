@@ -27,4 +27,11 @@ export const queryKeys = {
     detail: (id: number) => ['events', 'detail', id] as const,
     shoppingList: (id: number) => ['events', 'shopping-list', id] as const,
   },
+  users: {
+    list: (search: string) => ['users', 'list', search] as const,
+  },
+  groups: {
+    list: ['groups', 'list'] as const,
+    members: (id: number) => ['groups', 'members', id] as const,
+  },
 } as const

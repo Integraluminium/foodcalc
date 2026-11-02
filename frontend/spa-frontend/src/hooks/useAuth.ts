@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '../api'
 import { queryKeys } from '../api/queryKeys'
-import type { LoginInput } from '../api/types'
+import type { LoginInput, RegisterInput } from '../api/types'
 
 /** The session user, or an error when not logged in. */
 export function useCurrentUser() {
@@ -36,5 +36,21 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSettled: () => queryClient.clear(),
+  })
+}
+
+/**
+ * Registration: creates the account (plus personal group), logs in and
+ * resolves the session user — same shape as `useLogin`.
+ */
+export function useRegister() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    async mutationFn(input: RegisterInput) {
+      return authApi.register(input)
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData(queryKeys.auth.me, user)
+    },
   })
 }
