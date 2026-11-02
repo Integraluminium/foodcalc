@@ -39,3 +39,34 @@
   color: var(--danger);
   font-weight: 600;
 }
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.summaryGrid dt {
+  color: var(--text-muted);
+}
+
+.budgetBar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-top: 0.25rem;
+  min-width: 10rem;
+}
+
+.budgetFill {
+  height: 100%;
+  background: var(--success, #3f9c5b);
+  transition: width 0.2s ease;
+}
+
+.budgetOver {
+  background: var(--danger, #b23b3b);
+}

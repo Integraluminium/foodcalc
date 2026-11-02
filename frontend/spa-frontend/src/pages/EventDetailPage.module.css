@@ -147,3 +147,38 @@
   color: #bfdbfe;
   font-size: var(--text-sm);
 }
+
+.timelineLane {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+
+.laneBadge {
+  flex-shrink: 0;
+  min-width: 7.5rem;
+  text-align: center;
+}
+
+.laneItem {
+  font-size: var(--text-sm);
+}
+
+.exportGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.exportGrid .input {
+  flex: 1 1 240px;
+}
+
+.presetRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+}

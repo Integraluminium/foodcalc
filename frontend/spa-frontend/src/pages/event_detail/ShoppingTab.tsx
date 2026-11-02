@@ -14,6 +14,8 @@ import {
   formatDecimal,
 } from '../../lib/format'
 import type { TourWithItems } from '../../api/types'
+import { InventorySection } from './InventorySection'
+import { OverridesSection } from './OverridesSection'
 import styles from '../EventDetailPage.module.css'
 
 /** Today as `YYYY-MM-DD` (pure module helper for lint purity). */
@@ -133,6 +135,9 @@ export function ShoppingTab({ eventId }: { eventId: number }) {
           onClose={() => setTourDialogOpen(false)}
         />
       )}
+
+      <InventorySection eventId={eventId} />
+      <OverridesSection eventId={eventId} />
     </section>
   )
 }

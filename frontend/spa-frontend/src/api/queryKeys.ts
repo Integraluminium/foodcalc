@@ -26,6 +26,16 @@ export const queryKeys = {
     list: ['events', 'list'] as const,
     detail: (id: number) => ['events', 'detail', id] as const,
     shoppingList: (id: number) => ['events', 'shopping-list', id] as const,
+    preps: (id: number) => ['events', 'preps', id] as const,
+    overrides: (id: number) => ['events', 'overrides', id] as const,
+    tours: (id: number) => ['events', 'tours', id] as const,
+    inventories: (id: number) => ['events', 'inventories', id] as const,
+    inventoryCoverage: (id: number) => ['events', 'inventory-coverage', id] as const,
+  },
+  inventories: {
+    list: ['inventories', 'list'] as const,
+    detail: (id: number) => ['inventories', 'detail', id] as const,
+    items: (id: number) => ['inventories', 'items', id] as const,
   },
   users: {
     list: (search: string) => ['users', 'list', search] as const,

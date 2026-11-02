@@ -294,10 +294,10 @@ export interface ShoppingListItem {
   event_name: string
   ingredient_id: number
   ingredient_name: string
-  /** Total kg to buy for this ingredient on the tour. */
-  weight: Decimal
-  /** Energy in kJ (weight × kJ/g × 1000). */
-  energy: Decimal
+  /** Total kg to buy; null when the unit weight is unknown (shows as "?"). */
+  weight: Decimal | null
+  /** Energy in kJ; null whenever weight is null. */
+  energy: Decimal | null
   price: Decimal | null
   tour_id: number | null
   category: string | null
@@ -328,4 +328,66 @@ export interface SourceOverride {
   ingredient_name: string
   store_id: number
   store_name: string
+}
+
+export interface FoodPrepWithRecipe {
+  id: number
+  event_id: number
+  recipe_id: number
+  /** RFC 3339 timestamp. */
+  prep_date: string
+  use_from: string | null
+  use_until: string
+  recipe_name: string
+}
+
+export interface EventInventoryCoverage {
+  ingredient_id: number
+  ingredient_name: string
+  demand_kg: Decimal
+  covered_kg: Decimal
+}
+
+export interface Inventory {
+  id: number
+  name: string
+  group_id: number
+}
+
+export interface InventoryItemWithName {
+  inventory_id: number
+  ingredient_id: number
+  amount: Decimal
+  name: string
+}
+
+export interface FoodPrepWithRecipe {
+  id: number
+  event_id: number
+  recipe_id: number
+  /** RFC 3339 timestamp. */
+  prep_date: string
+  use_from: string | null
+  use_until: string
+  recipe_name: string
+}
+
+export interface EventInventoryCoverage {
+  ingredient_id: number
+  ingredient_name: string
+  demand_kg: Decimal
+  covered_kg: Decimal
+}
+
+export interface Inventory {
+  id: number
+  name: string
+  group_id: number
+}
+
+export interface InventoryItemWithName {
+  inventory_id: number
+  ingredient_id: number
+  amount: Decimal
+  name: string
 }

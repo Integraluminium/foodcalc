@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { recipesTreeApi } from '../api'
-import { Dialog } from '../components/ui/Dialog'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Spinner } from '../components/ui/Spinner'
 import { RecipeTreeView } from '../components/recipes/RecipeTreeView'
@@ -18,7 +16,7 @@ import {
 } from '../hooks/queries/useMasterData'
 import { useIngredients } from '../hooks/queries/useIngredients'
 import { formatDecimal, formatKjPerG, toNumber } from '../lib/format'
-import type { RecipeDetail, RecipeKind, RecipeStep } from '../api/types'
+import type { RecipeDetail, RecipeStep } from '../api/types'
 import type { RecipeStepInput } from '../api/endpoints/recipes'
 import styles from './RecipeDetailPage.module.css'
 
@@ -86,7 +84,6 @@ function RecipeEditor({ recipe }: { recipe: RecipeDetail }) {
   const units = useUnits()
   const recipes = useRecipes()
   const mutations = useRecipeMutations(recipe.id)
-  const [editOpen, setEditOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   const groupName =
@@ -140,7 +137,7 @@ function RecipeEditor({ recipe }: { recipe: RecipeDetail }) {
           <button
             type="button"
             className="btn btn--ghost"
-            onClick={() => setEditOpen(true)}
+            onClick={() => void navigate(`/recipes/${recipe.id}/edit`)}
           >
             Bearbeiten
           </button>
@@ -226,7 +223,6 @@ function RecipeEditor({ recipe }: { recipe: RecipeDetail }) {
         )}
       </div>
 
-      {editOpen && <EditRecipeDialog recipe={recipe} onClose={() => setEditOpen(false)} />}
       {confirmDelete && (
         <ConfirmDialog
           title="Rezept löschen"
@@ -241,71 +237,6 @@ function RecipeEditor({ recipe }: { recipe: RecipeDetail }) {
         />
       )}
     </div>
-  )
-}
-
-function EditRecipeDialog({
-  recipe,
-  onClose,
-}: {
-  recipe: RecipeDetail
-  onClose: () => void
-}) {
-  const mutations = useRecipeMutations(recipe.id)
-  const [kind, setKind] = useState<RecipeKind>(recipe.kind)
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    mutations.update.mutate(
-      {
-        name: String(data.get('name') ?? '').trim(),
-        comment: String(data.get('comment') ?? '').trim() || null,
-        kind,
-      },
-      { onSuccess: onClose },
-    )
-  }
-
-  return (
-    <Dialog
-      title="Rezept bearbeiten"
-      onClose={onClose}
-      footer={
-        <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Abbrechen
-          </button>
-          <button type="submit" form="edit-recipe-form" className="btn btn--primary">
-            Speichern
-          </button>
-        </>
-      }
-    >
-      <form id="edit-recipe-form" onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label className="field">
-            Name
-            <input className="input" name="name" defaultValue={recipe.name} required />
-          </label>
-          <label className="field">
-            Typ
-            <select
-              className="input"
-              value={kind}
-              onChange={(event) => setKind(event.target.value as RecipeKind)}
-            >
-              <option value="meal">Gericht</option>
-              <option value="component">Komponente</option>
-            </select>
-          </label>
-          <label className="field">
-            Kommentar
-            <input className="input" name="comment" defaultValue={recipe.comment ?? ''} />
-          </label>
-        </div>
-      </form>
-    </Dialog>
   )
 }
 

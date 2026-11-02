@@ -11,6 +11,8 @@ import RecipesPage from './pages/RecipesPage'
 import AccountPage from './pages/AccountPage'
 import AdminPage from './pages/AdminPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
+import RecipeWizardPage from './pages/RecipeWizardPage'
+import InventoriesPage from './pages/InventoriesPage'
 import IngredientsPage from './pages/IngredientsPage'
 import { ApiError } from './api'
 
@@ -50,8 +52,16 @@ export default function App() {
               element={<RecipesPage />}
             />
             <Route
+              path="/recipes/new"
+              element={<RecipeWizardPage />}
+            />
+            <Route
               path="/recipes/:recipeId"
               element={<RecipeDetailPage />}
+            />
+            <Route
+              path="/recipes/:recipeId/edit"
+              element={<RecipeWizardPage />}
             />
             <Route
               path="/ingredients"
@@ -75,13 +85,7 @@ export default function App() {
             />
             <Route
               path="/inventories"
-              element={
-                <PlaceholderPage
-                  title="Inventories"
-                  phase="Phase 3"
-                  hint="Lager und Bestände, Zuordnung zu Events."
-                />
-              }
+              element={<InventoriesPage />}
             />
             <Route
               path="*"

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { SegmentedControl } from '../components/ui/SegmentedControl'
 import { Spinner } from '../components/ui/Spinner'
@@ -8,15 +7,19 @@ import { useEvent, useEventMutations } from '../hooks/queries/useEvents'
 import { formatDateRange, formatDecimal, toNumber } from '../lib/format'
 import type { EventDetail } from '../api/types'
 import { EditEventDialog } from './event_detail/EditEventDialog'
+import { ExportsTab } from './event_detail/ExportsTab'
 import { MealPlanTab } from './event_detail/MealPlanTab'
 import { ShoppingTab } from './event_detail/ShoppingTab'
+import { TimelineTab } from './event_detail/TimelineTab'
 import styles from './EventDetailPage.module.css'
 
-type Tab = 'plan' | 'shopping'
+type Tab = 'plan' | 'shopping' | 'timeline' | 'exports'
 
 const TAB_OPTIONS = [
   { value: 'plan', label: 'Speiseplan' },
-  { value: 'shopping', label: 'Einkäufe' },
+  { value: 'shopping', label: 'Einkäufe & Logistik' },
+  { value: 'timeline', label: 'Zeitplan' },
+  { value: 'exports', label: 'Exporte' },
 ] as const
 
 export default function EventDetailPage() {
@@ -112,45 +115,6 @@ function EventEditor({
           <button
             type="button"
             className="btn btn--ghost"
-            title="Alle Rezepte als PDF"
-            onClick={() =>
-              void api.download(
-                `/events/${detail.event.id}/exports/recipes`,
-                `${detail.event.name}-rezepte.pdf`,
-              )
-            }
-          >
-            Rezepte-PDF
-          </button>
-          <button
-            type="button"
-            className="btn btn--ghost"
-            title="Allergenliste als PDF"
-            onClick={() =>
-              void api.download(
-                `/events/${detail.event.id}/exports/allergens`,
-                `${detail.event.name}-allergene.pdf`,
-              )
-            }
-          >
-            Allergene
-          </button>
-          <button
-            type="button"
-            className="btn btn--ghost"
-            title="Gerichte-Labels (Zeltkarten) als PDF"
-            onClick={() =>
-              void api.download(
-                `/events/${detail.event.id}/exports/labels`,
-                `${detail.event.name}-labels.pdf`,
-              )
-            }
-          >
-            Labels
-          </button>
-          <button
-            type="button"
-            className="btn btn--ghost"
             onClick={() => setEditOpen(true)}
           >
             Bearbeiten
@@ -184,10 +148,15 @@ function EventEditor({
         ariaLabel="Event-Ansicht wählen"
       />
 
-      {tab === 'plan' ? (
-        <MealPlanTab detail={detail} />
-      ) : (
-        <ShoppingTab eventId={detail.event.id} />
+      {tab === 'plan' && <MealPlanTab detail={detail} />}
+      {tab === 'shopping' && <ShoppingTab eventId={detail.event.id} />}
+      {tab === 'timeline' && <TimelineTab meals={detail.meals} />}
+      {tab === 'exports' && (
+        <ExportsTab
+          eventId={detail.event.id}
+          eventName={detail.event.name}
+          meals={detail.meals}
+        />
       )}
 
       {editOpen && (
