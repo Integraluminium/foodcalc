@@ -160,6 +160,66 @@ export interface IngredientDetail {
 }
 
 // ---------------------------------------------------------------------------
+// User & group management (Phase 3)
+// ---------------------------------------------------------------------------
+
+export interface RegisterInput {
+  username: string
+  email: string
+  password: string
+}
+
+/** Admin user row (never contains a password hash). */
+export interface AdminUser {
+  id: number
+  username: string
+  email: string
+  is_admin: boolean
+  /** RFC 3339. */
+  created_at: string
+}
+
+/** One node of the recipe recursion tree (view mode). */
+export interface RecipeTreeIngredient {
+  ingredient_id: number
+  name: string | null
+  /** Raw amount as entered on the recipe. */
+  amount: Decimal
+  unit_id: number
+  unit_name: string | null
+  /** Base weight in kg (amount × kg-per-unit); null without a conversion. */
+  weight: Decimal | null
+}
+
+export interface RecipeTreeNode {
+  recipe_id: number
+  name: string
+  kind: 'meal' | 'component'
+  /** kg of this sub-recipe used by its parent; null for the root. */
+  weight: Decimal | null
+  ingredients: RecipeTreeIngredient[]
+  children: RecipeTreeNode[]
+}
+
+export interface AdminUserWithGroups extends AdminUser {
+  groups: Group[]
+}
+
+export interface GroupMember extends AdminUser {}
+
+export interface UserUpdateInput {
+  username?: string
+  email?: string
+  is_admin?: boolean
+}
+
+export interface PasswordChangeInput {
+  /** Required when a user changes their own password. */
+  current_password?: string
+  new_password: string
+}
+
+// ---------------------------------------------------------------------------
 // Events & meal planning (Phase 2)
 // ---------------------------------------------------------------------------
 

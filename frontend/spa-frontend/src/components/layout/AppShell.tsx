@@ -54,7 +54,19 @@ export default function AppShell() {
           ))}
         </nav>
         <div className={styles.footer}>
-          <span className={styles.userName}>{user?.username ?? '…'}</span>
+          <div className={styles.userArea}>
+            <span className={styles.userName}>{user?.username ?? '…'}</span>
+            <div className={styles.userLinks}>
+              <NavLink to="/account" className={styles.userLink}>
+                Konto
+              </NavLink>
+              {user?.is_admin && (
+                <NavLink to="/admin" className={styles.userLink}>
+                  Verwaltung
+                </NavLink>
+              )}
+            </div>
+          </div>
           <button
             type="button"
             className={styles.logoutBtn}

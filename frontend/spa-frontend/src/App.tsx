@@ -3,10 +3,13 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AppShell from './components/layout/AppShell'
 import RequireAuth from './components/layout/RequireAuth'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import EventsPage from './pages/EventsPage'
 import EventDetailPage from './pages/EventDetailPage'
 import RecipesPage from './pages/RecipesPage'
+import AccountPage from './pages/AccountPage'
+import AdminPage from './pages/AdminPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
 import IngredientsPage from './pages/IngredientsPage'
 import { ApiError } from './api'
@@ -33,6 +36,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route
             element={
               <RequireAuth>
@@ -60,6 +64,14 @@ export default function App() {
             <Route
               path="/events/:eventId"
               element={<EventDetailPage />}
+            />
+            <Route
+              path="/account"
+              element={<AccountPage />}
+            />
+            <Route
+              path="/admin"
+              element={<AdminPage />}
             />
             <Route
               path="/inventories"

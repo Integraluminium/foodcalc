@@ -71,3 +71,8 @@
   border-radius: var(--radius-sm);
   padding: 8px 10px;
 }
+
+.switch {
+  font-size: var(--text-sm);
+  text-align: center;
+}

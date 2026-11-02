@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api'
 import { Spinner } from '../components/ui/Spinner'
 import { BrandIcon } from '../components/layout/icons'
@@ -77,6 +77,9 @@ export default function LoginPage() {
         >
           {login.isPending ? <Spinner size="sm" /> : 'Anmelden'}
         </button>
+        <p className={styles.switch}>
+          Noch kein Konto? <Link to="/register">Registrieren</Link>
+        </p>
       </form>
     </div>
   )

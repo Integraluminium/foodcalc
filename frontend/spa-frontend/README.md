@@ -80,6 +80,40 @@ Hinweis: Die Sample-DB enthält ältere View-Stände; die Migration
 Multiplikator-Verknüpfung ( Meal-granular) und wurde für die lokale DB
 bereits angewandt.
 
+## Implemented screens (Phase 3 — in progress)
+
+**Block A (fertig): Benutzer, Gruppen & Rechte**
+- `/register` — offene Registrierung (erzeugt Konto + persönliche Gruppe
+  atomar, Auto-Login), verlinkt vom Login
+- `/account` — Profil, Passwortwechsel (mit aktueller-Passwort-Prüfung),
+  eigene Gruppen
+- `/admin` (nur Admins, Link in der Seitenleiste) — Benutzerverwaltung
+  (Admin-Toggle, Passwort-Reset, Löschen mit Besitz-Schutz) und
+  Gruppenverwaltung (anlegen/löschen, Mitglieder je Gruppe mit
+  Benutzername/E-Mail-Suche hinzufügen/entfernen; persönliche Gruppen
+  ausgenommen)
+- Backend: `POST /api/auth/register` (public), `GET/PUT/DELETE /api/users*`,
+  `GET/POST/DELETE /api/groups*/members*`. Rechte-Modell: `is_admin` +
+  Gruppen-Mitgliedschaft — alle Checks laufen durch die zwei Choke-Punkte
+  (`require_admin`/`require_group_manager` in `api/users.rs`,
+  `usePermissions()` im SPA), damit ein künftiges Rollen-Modell nur dort
+  anfasst.
+- Fix: `/api/inventories` ist jetzt gruppenscoped.
+
+**Block B (Backend fertig, UI teils)**
+- `GET /api/recipes/{id}/tree` — Rekursionsbaum mit Basis-Mengen je Knoten
+  (zyklen-sicher); `GET /api/recipes/{id}/export` — Kochanweisungs-PDF,
+  optional skaliert (`?servings=&energy_per_serving=`)
+- SPA: kollabierbarer **Rezept-Baum** (SUB/ING-Badges) auf der Rezeptseite
+  + Rezept-PDF-Button. Offen: Wizard (Basis → Zutaten/Sub → Schritte →
+  Prüfen) als Ersatz für die Inline-Editoren, Recipe-Drawer in der Liste.
+
+**Offen (aus dem Phase-3-Plan):** Wizard-Vollausbau, Event-Cockpit
+(Projekt-Drawer, Add-Meal-Drawer mit Energie-Presets, Logistics-Tab mit
+Overrides-UI und Inventory-Coverage, Timeline-Tab, Exports-Tab mit
+Event-Overview-PDF) und die Inventare-Screens. Event-spezifische
+Rezeptkopien und Rollen pro Gruppe sind bewusst auf Phase 4 verschoben.
+
 ## Production
 
 The built SPA is served by the axum server under `/app/` (phase 5 of the

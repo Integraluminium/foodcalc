@@ -89,6 +89,39 @@
   white-space: nowrap;
 }
 
+.userArea {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.userLinks {
+  display: flex;
+  gap: 8px;
+}
+
+.userLink {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.userLink:hover {
+  color: var(--text-primary);
+  background: var(--bg-input);
+}
+
+.userLink.active {
+  color: var(--accent);
+}
+
 .logoutBtn {
   display: inline-flex;
   padding: 6px;

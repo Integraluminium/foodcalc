@@ -1,0 +1,116 @@
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.node {
+  display: flex;
+  flex-direction: column;
+}
+
+.children {
+  margin-left: calc(18px + var(--depth, 0) * 6px);
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.row:hover {
+  background: var(--bg-input);
+}
+
+.toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 18px;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+.toggleSpacer {
+  width: 18px;
+}
+
+.leafDot {
+  color: var(--text-muted);
+  width: 10px;
+}
+
+.name {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name:hover {
+  text-decoration: underline;
+}
+
+.rootName {
+  font-weight: 700;
+}
+
+.leafName {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.badgeSub {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.badgeIng {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.badgeRoot {
+  composes: badge;
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+}
+
+.amount {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.weightHint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.empty {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: 4px 0;
+}
