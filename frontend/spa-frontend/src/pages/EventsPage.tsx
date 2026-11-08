@@ -5,22 +5,38 @@ import { Dialog } from '../components/ui/Dialog'
 import { Drawer } from '../components/ui/Drawer'
 import { Spinner } from '../components/ui/Spinner'
 import { useCreateEvent, useEvents } from '../hooks/queries/useEvents'
-import { useCurrentUser } from '../hooks/useAuth'
 import { useGroups } from '../hooks/queries/useMasterData'
+import { useActiveGroup } from '../hooks/useActiveGroup'
 import { formatDateRange, formatDecimal, toNumber } from '../lib/format'
 import type { EventListItem } from '../api/types'
 import styles from './EventsPage.module.css'
 
+/** Group filter: a concrete group id, or `'all'` for every group. */
+type GroupFilter = number | 'all'
+
 export default function EventsPage() {
   const navigate = useNavigate()
   const events = useEvents()
-  const groups = useGroups()
+  const { data: groups } = useGroups()
+  const { activeGroupId, groups: userGroups } = useActiveGroup()
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [drawerEvent, setDrawerEvent] = useState<EventListItem | null>(null)
 
-  const filtered = (events.data ?? []).filter((event) =>
-    event.name.toLowerCase().includes(search.trim().toLowerCase()),
+  /**
+   * Explicit group selection (initially `null` = follow the sidebar's active
+   * group). Switching the sidebar group is picked up on the next mount;
+   * "Alle Gruppen" and per-group choices persist for this session.
+   */
+  const [groupOverride, setGroupOverride] = useState<GroupFilter | null>(null)
+  const groupFilter: GroupFilter = groupOverride ?? activeGroupId ?? 'all'
+
+  const matchesGroup =
+    (event: EventListItem) => groupFilter === 'all' || event.group_id === groupFilter
+  const filtered = (events.data ?? []).filter(
+    (event) =>
+      matchesGroup(event) &&
+      event.name.toLowerCase().includes(search.trim().toLowerCase()),
   )
 
   return (
@@ -36,12 +52,31 @@ export default function EventsPage() {
         </button>
       </div>
 
-      <input
-        className={`input ${styles.search}`}
-        placeholder="Events durchsuchen…"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-      />
+      <div className={styles.controls}>
+        <input
+          className={`input ${styles.search}`}
+          placeholder="Events durchsuchen…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        <select
+          className={`input ${styles.filter}`}
+          value={groupFilter === 'all' ? 'all' : String(groupFilter)}
+          onChange={(event) => {
+            const raw = event.target.value
+            setGroupOverride(raw === 'all' ? 'all' : Number(raw))
+          }}
+          aria-label="Nach Gruppe filtern"
+        >
+          <option value="all">Alle Gruppen</option>
+          {userGroups.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.name}
+              {group.is_personal ? ' (persönlich)' : ''}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className={`card ${styles.panel}`}>
         {events.isPending ? (
@@ -65,6 +100,7 @@ export default function EventsPage() {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Gruppe</th>
                 <th>Zeitraum</th>
                 <th className="num">Mahlzeiten</th>
                 <th className="num">Kosten</th>
@@ -91,6 +127,10 @@ export default function EventsPage() {
                           · {event.comment}
                         </span>
                       )}
+                    </td>
+                    <td className="secondary">
+                      {groups?.find((group) => group.id === event.group_id)?.name ??
+                        `Gruppe ${event.group_id}`}
                     </td>
                     <td className="secondary">
                       {formatDateRange(event.first_meal, event.last_meal)}
@@ -125,15 +165,20 @@ export default function EventsPage() {
         <ProjectDrawer
           event={drawerEvent}
           groupName={
-            groups.data?.find((group) => group.id === drawerEvent.group_id)
-              ?.name ?? `Gruppe ${drawerEvent.group_id}`
+            groups?.find((group) => group.id === drawerEvent.group_id)?.name ??
+            `Gruppe ${drawerEvent.group_id}`
           }
           onClose={() => setDrawerEvent(null)}
           onOpen={() => navigate(`/events/${drawerEvent.id}`)}
         />
       )}
 
-      {createOpen && <CreateEventDialog onClose={() => setCreateOpen(false)} />}
+      {createOpen && (
+        <CreateEventDialog
+          defaultGroupId={activeGroupId ?? 0}
+          onClose={() => setCreateOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -192,11 +237,15 @@ function ProjectDrawer({
   )
 }
 
-function CreateEventDialog({ onClose }: { onClose: () => void }) {
+function CreateEventDialog({
+  defaultGroupId,
+  onClose,
+}: {
+  defaultGroupId: number
+  onClose: () => void
+}) {
   const groups = useGroups()
-  const { data: user } = useCurrentUser()
   const create = useCreateEvent()
-  const defaultGroupId = user?.groups[0]?.id ?? 0
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

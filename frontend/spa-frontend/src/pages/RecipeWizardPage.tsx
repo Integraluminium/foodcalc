@@ -13,6 +13,7 @@ import {
 } from '../hooks/queries/useRecipes'
 import { useGroups, useUnits } from '../hooks/queries/useMasterData'
 import { useCurrentUser } from '../hooks/useAuth'
+import { useActiveGroup } from '../hooks/useActiveGroup'
 import { formatDecimal, toNumber } from '../lib/format'
 import type { Ingredient, RecipeDetail } from '../api/types'
 import styles from './RecipeWizardPage.module.css'
@@ -199,9 +200,12 @@ export default function RecipeWizardPage() {
   const queryClient = useQueryClient()
   const groups = useGroups()
   const { data: user } = useCurrentUser()
+  const { activeGroupId } = useActiveGroup()
   const existing = useRecipe(isEdit ? editId : 0)
 
-  const defaultGroupId = user?.groups[0]?.id ?? 0
+  // Creating a recipe defaults to the sidebar's active group (fallback: the
+  // user's first group). Editing never transfers ownership implicitly.
+  const defaultGroupId = activeGroupId ?? user?.groups[0]?.id ?? 0
   const [hydrated, setHydrated] = useState(false)
   const [draft, dispatch] = useReducer(
     reducer,

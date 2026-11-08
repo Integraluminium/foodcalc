@@ -13,6 +13,7 @@ import {
 } from '../hooks/queries/useInventories'
 import { useIngredients } from '../hooks/queries/useIngredients'
 import { useCurrentUser } from '../hooks/useAuth'
+import { useActiveGroup } from '../hooks/useActiveGroup'
 import { useGroups } from '../hooks/queries/useMasterData'
 import { toNumber } from '../lib/format'
 import styles from './InventoriesPage.module.css'
@@ -20,6 +21,7 @@ import styles from './InventoriesPage.module.css'
 export default function InventoriesPage() {
   const inventories = useInventories()
   const { data: user } = useCurrentUser()
+  const { activeGroupId } = useActiveGroup()
   const [createOpen, setCreateOpen] = useState(false)
   const [openId, setOpenId] = useState<number | null>(null)
 
@@ -80,7 +82,7 @@ export default function InventoriesPage() {
 
       {createOpen && user && (
         <CreateInventoryDialog
-          defaultGroupId={user.groups[0]?.id ?? 0}
+          defaultGroupId={activeGroupId ?? user.groups[0]?.id ?? 0}
           onClose={() => setCreateOpen(false)}
         />
       )}

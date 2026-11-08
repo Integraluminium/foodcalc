@@ -165,6 +165,17 @@ bereits angewandt.
   Template: `foodlib_new/templates/event_overview.typ`; Button im
   Exporte-Tab. Ohne typst-Feature: 422 mit Hinweis.
 
+**M1 — Aktiver Gruppen-Kontext (fertig)**
+- Globaler **Gruppen-Switcher** in der Seitenleisten-Fußzeile („Aktive
+  Gruppe — steuert Besitz und Sichtbarkeit"); Auswahl in `localStorage`
+  persistiert und gegen `GET /api/auth/me` validiert. Kontext-Provider:
+  `components/layout/ActiveGroupProvider.tsx`, Consumer-Hook:
+  `hooks/useActiveGroup.ts` (Fallback auf erste Gruppe).
+- **Event-Hub**: Gruppen-Filter (`src/pages/EventsPage.tsx`) — Standard ist
+  die aktive Gruppe, „Alle Gruppen" explizit wählbar; neue Spalte „Gruppe".
+- **Create-Dialoge vorbefüllt** mit der aktiven Gruppe: Event, Zutat,
+  Inventar und Rezept-Wizard (Neuanlage).
+
 **Offen (Phase 4):** Event-spezifische Rezeptkopien (Overlay-Diff als
 Design-Ansatz), Rollen pro Gruppe, Metro-Sync-UI. Nutzbarkeits-Feedback:
 Rezept-/Event-Workflows laut Nutzer noch nicht ausgereift genug —
