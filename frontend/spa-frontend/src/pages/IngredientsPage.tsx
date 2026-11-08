@@ -8,6 +8,7 @@ import {
   useIngredients,
 } from '../hooks/queries/useIngredients'
 import { useCurrentUser } from '../hooks/useAuth'
+import { useActiveGroup } from '../hooks/useActiveGroup'
 import { useGroups } from '../hooks/queries/useMasterData'
 import { formatDecimal } from '../lib/format'
 import styles from './IngredientsPage.module.css'
@@ -17,6 +18,7 @@ export default function IngredientsPage() {
   const debouncedSearch = useDebouncedValue(search)
   const ingredients = useIngredients(debouncedSearch || undefined)
   const { data: user } = useCurrentUser()
+  const { activeGroupId } = useActiveGroup()
   const [createOpen, setCreateOpen] = useState(false)
   const [openId, setOpenId] = useState<number | null>(null)
 
@@ -97,7 +99,7 @@ export default function IngredientsPage() {
 
       {createOpen && user && (
         <CreateIngredientDialog
-          defaultGroupId={user.groups[0]?.id ?? 0}
+          defaultGroupId={activeGroupId ?? user.groups[0]?.id ?? 0}
           onClose={() => setCreateOpen(false)}
           onCreated={(id) => {
             setCreateOpen(false)

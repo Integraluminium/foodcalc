@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AppShell from './components/layout/AppShell'
 import RequireAuth from './components/layout/RequireAuth'
+import ActiveGroupProvider from './components/layout/ActiveGroupProvider'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import PlaceholderPage from './pages/PlaceholderPage'
@@ -42,7 +43,9 @@ export default function App() {
           <Route
             element={
               <RequireAuth>
-                <AppShell />
+                <ActiveGroupProvider>
+                  <AppShell />
+                </ActiveGroupProvider>
               </RequireAuth>
             }
           >

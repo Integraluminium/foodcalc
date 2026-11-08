@@ -18,6 +18,17 @@
   max-width: 340px;
 }
 
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.filter {
+  max-width: 220px;
+}
+
 .panel {
   overflow: hidden;
 }
