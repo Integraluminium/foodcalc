@@ -11,6 +11,7 @@ import {
   rfc3339ToLocalInput,
   toNumber,
 } from '../../lib/format'
+import { scaledWeightKg } from '../../lib/scaling'
 import { ENERGY_PRESETS, presetForKj } from '../../lib/plannerPresets'
 import type { PlannerMeal } from '../../api/types'
 import styles from '../EventDetailPage.module.css'
@@ -57,25 +58,17 @@ export function MealDialog({
   )
   const [comment, setComment] = useState(meal?.comment ?? '')
 
-  // Live scaling preview from the selected recipe's stats.
+  // Live scaling preview from the selected recipe's stats — the math lives
+  // in lib/scaling.ts (single source of truth).
   const recipe = useRecipe(recipeId ?? 0)
   const preview = useMemo(() => {
     const stats = recipe.data?.stats
     const portions = Number(servings)
     const perServing = Number(energyPerServing)
-    const recipeEnergy = toNumber(stats?.energy_kj)
-    const recipeWeight = toNumber(stats?.weight_kg)
-    if (
-      !stats ||
-      !Number.isFinite(portions) ||
-      !Number.isFinite(perServing) ||
-      recipeEnergy === null ||
-      recipeEnergy <= 0 ||
-      recipeWeight === null
-    ) {
+    if (!stats || !Number.isFinite(portions) || !Number.isFinite(perServing)) {
       return null
     }
-    return (recipeWeight * (perServing * portions)) / recipeEnergy
+    return scaledWeightKg(stats.weight_kg, stats.energy_kj, perServing * portions)
   }, [recipe.data, servings, energyPerServing])
 
   const pending =

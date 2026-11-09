@@ -1,0 +1,70 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.amount {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.field {
+  width: 110px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Hide the native spinner — the ▲/▼ buttons replace it with a big hit area. */
+.field::-webkit-outer-spin-button,
+.field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.field {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.steppers {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-left: 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  overflow: hidden;
+  background: var(--bg-input);
+}
+
+.stepBtn {
+  flex: 1;
+  padding: 0 6px;
+  font-size: 8px;
+  line-height: 1;
+  color: var(--text-muted);
+  min-height: 14px;
+}
+
+.stepBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.stepBtn:first-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.unit {
+  width: 84px;
+  flex-shrink: 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-left: 0;
+}
+
+.conversion {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}

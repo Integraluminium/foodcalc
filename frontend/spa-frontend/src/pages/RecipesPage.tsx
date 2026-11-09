@@ -4,6 +4,7 @@ import { SegmentedControl } from '../components/ui/SegmentedControl'
 import { Spinner } from '../components/ui/Spinner'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useRecipes } from '../hooks/queries/useRecipes'
+import { t } from '../i18n'
 import { formatKjPerG } from '../lib/format'
 import type { RecipeKind } from '../api/types'
 import styles from './RecipesPage.module.css'
@@ -30,7 +31,7 @@ export default function RecipesPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className="section-title">Recipes</h1>
+        <h1 className="section-title">{t('nav.recipes')}</h1>
         <button
           type="button"
           className="btn btn--primary"

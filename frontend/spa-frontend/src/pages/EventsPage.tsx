@@ -7,6 +7,7 @@ import { Spinner } from '../components/ui/Spinner'
 import { useCreateEvent, useEvents } from '../hooks/queries/useEvents'
 import { useGroups } from '../hooks/queries/useMasterData'
 import { useActiveGroup } from '../hooks/useActiveGroup'
+import { t } from '../i18n'
 import { formatDateRange, formatDecimal, toNumber } from '../lib/format'
 import type { EventListItem } from '../api/types'
 import styles from './EventsPage.module.css'
@@ -42,7 +43,7 @@ export default function EventsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className="section-title">Events</h1>
+        <h1 className="section-title">{t('nav.events')}</h1>
         <button
           type="button"
           className="btn btn--primary"

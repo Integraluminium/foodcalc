@@ -8,6 +8,7 @@ import {
   formatTime,
   toNumber,
 } from '../../lib/format'
+import { portionCost } from '../../lib/scaling'
 import type { EventDetail, PlannerMeal } from '../../api/types'
 import { MealDialog } from './MealDialog'
 import styles from '../EventDetailPage.module.css'
@@ -164,9 +165,7 @@ function DayGroup({
               </td>
               <td className="num">{formatDecimal(meal.weight)} kg</td>
               <td className="num">
-                {formatDecimal(
-                  (toNumber(meal.price) ?? 0) / Math.max(meal.servings, 1),
-                )}
+                {formatDecimal(portionCost(meal.price, meal.servings) ?? 0)}
               </td>
               <td className="num">{formatDecimal(meal.price)} €</td>
               <td className={styles.rowActions}>
