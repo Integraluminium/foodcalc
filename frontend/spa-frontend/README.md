@@ -181,6 +181,36 @@ Design-Ansatz), Rollen pro Gruppe, Metro-Sync-UI. Nutzbarkeits-Feedback:
 Rezept-/Event-Workflows laut Nutzer noch nicht ausgereift genug —
 UX-Überarbeitung der bestehenden Screens als nächster Schritt.
 
+## UI-Redesign P0 — Fundamente & Deduplizierung (fertig)
+
+Grundlage des UI-Plans (`UI_Spec.md` + Mockups): konsistente Pattern
+(Master-Detail-Drawer, Status-Badges, Menü statt Textlink-Wüste) und eine
+einzige Rechenquelle für die Energie-Skalierung.
+
+- **`components/overlay/Overlay.tsx`** — einheitliches Overlay-Primitive
+  (Drawer- und Modal-Variante, Größen sm/md/lg) mit ESC-zum-Schließen,
+  Fokus-Falle und Body-Scroll-Lock. `ui/Dialog.tsx` und `ui/Drawer.tsx` sind
+  jetzt Thin-Wrapper; alle bestehenden Dialoge bekommen ESC/Fokus gratis.
+  Die alten `Dialog.module.css`/`Drawer.module.css` sind entfernt.
+- **`components/layout/UserMenu.tsx`** — Sidebar-Fußzeile neu: nur
+  Name/Avatar sichtbar, Klick öffnet Menü (Profil & Einstellungen, Verwaltung
+  [nur Admin], Abmelden). Der Gruppen-Switcher bleibt als beschrifteter
+  eigener Block („Aktive Gruppe"), da er Besitz/Sichtbarkeit steuert.
+- **`i18n/`** — zentrale deutsche UI-Texte mit typsicherem `t(key)` (Keys aus
+  `de.ts`); Shell und Hub-Überschriften migriert („Zutaten/Rezepte/…"), damit
+  die UI konsistent deutsch ist. Späteres i18n = zweite Datei mit gleichen
+  Keys, ohne Komponenten anzufassen.
+- **`lib/scaling.ts`** — einzige Quelle der Energie-Skalierungs-Mathematik
+  (`energyDensityKjPerG`, `scaledWeightKg`, `portionCost`); MealDialog-Vorschau
+  und €/Portion-Spalte nutzen sie bereits. Getestet in `scaling.test.ts`.
+- **`ui/AmountInput.tsx`** — einheitliche Mengeneingabe (Zahl + Stepper +
+  Einheit + automatische kg-Umrechnung; unbekannte Umrechnung zeigt „?")
+  für Rezeptzeilen, Inventar und Touren (Einsatz ab P1).
+- **`ui/StatusBadge.tsx`** — Status-Vokabular der Event-Zutatenverwaltung:
+  `available`/`planned`/`missing`/`unknown` mit fixen Badge-Farben.
+- **`hub/StateViews.tsx`** — einheitliche Lade-/Fehler-/Leerzustände für alle
+  Hub-Listen (Einsatz ab P1 beim Hub-Umbau).
+
 
 ## Production
 

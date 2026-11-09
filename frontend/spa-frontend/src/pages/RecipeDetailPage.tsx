@@ -15,6 +15,7 @@ import {
   useUnits,
 } from '../hooks/queries/useMasterData'
 import { useIngredients } from '../hooks/queries/useIngredients'
+import { t } from '../i18n'
 import { formatDecimal, formatKjPerG, toNumber } from '../lib/format'
 import type { RecipeDetail, RecipeStep } from '../api/types'
 import type { RecipeStepInput } from '../api/endpoints/recipes'
@@ -93,7 +94,7 @@ function RecipeEditor({ recipe }: { recipe: RecipeDetail }) {
   return (
     <div className={styles.page}>
       <Link to="/recipes" className="secondary">
-        ← Recipes
+        ← {t('nav.recipes')}
       </Link>
 
       <div className={`card ${styles.header}`}>
