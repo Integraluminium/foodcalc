@@ -50,7 +50,9 @@ function TreeNode({
           {node.name}
         </Link>
         {isRoot ? (
-          <span className={styles.badgeRoot}>GERICHT</span>
+          <span className={styles.badgeRoot}>
+            {node.kind === 'meal' ? 'GERICHT' : 'KOMPONENTE'}
+          </span>
         ) : (
           <span className={`${styles.badge} ${styles.badgeSub}`}>SUB</span>
         )}

@@ -50,6 +50,15 @@
   font-size: var(--text-xs);
 }
 
+.compact {
+  justify-content: center;
+  padding: 8px;
+}
+
+.compact .avatar {
+  margin: 0;
+}
+
 .menu {
   position: absolute;
   bottom: calc(100% + 6px);

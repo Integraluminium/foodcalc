@@ -1,0 +1,62 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px var(--space-3);
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.rowActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.badges {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.badgeRemove {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.badgeRemove:hover {
+  color: var(--danger);
+}
+
+.iconButton {
+  font-size: 0.95rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.iconButton:hover:not(:disabled) {
+  color: var(--danger);
+  background: var(--danger-soft);
+}

@@ -19,21 +19,31 @@
   border-radius: 999px;
   font-size: var(--text-sm);
   cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
-.stepTab:hover {
-  border-color: var(--primary);
-  color: var(--text);
+.stepTab:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.stepTab:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .stepActive {
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: #bfdbfe;
   font-weight: 600;
 }
 
 .stepDone {
-  color: var(--text);
+  color: var(--success);
+  border-color: var(--border-strong);
 }
 
 .layout {
@@ -47,6 +57,13 @@
   .layout {
     grid-template-columns: 1fr;
   }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
 }
 
 .card {
@@ -71,11 +88,28 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
-  margin-top: var(--space-2);
+}
+
+/* Sticky action bar: Zurück/Weiter/Speichern bleiben erreichbar — auch auf
+   Mobile, wo die Kalkulations-Sidebar unter dem Inhalt landet. */
+.actionBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-card);
 }
 
 .error {
-  color: var(--danger, #b23b3b);
+  color: var(--danger);
   font-size: var(--text-sm);
 }
 
@@ -153,7 +187,7 @@
   flex-direction: column;
   gap: var(--space-2);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: var(--space-3);
 }
 
@@ -190,4 +224,28 @@
 
 .reviewGrid dt {
   color: var(--text-muted);
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.reviewList ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-sm);
+}
+
+.reviewList li {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  overflow-wrap: anywhere;
 }

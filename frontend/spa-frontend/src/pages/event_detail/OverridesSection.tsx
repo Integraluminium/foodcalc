@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ingredientsApi } from '../../api'
 import { Spinner } from '../../components/ui/Spinner'
+import { Skeleton } from '../../components/ui/Skeleton'
 import {
   useEventMutations,
   useEventOverrides,
@@ -9,6 +10,7 @@ import {
 } from '../../hooks/queries/useEvents'
 import { useStores } from '../../hooks/queries/useMasterData'
 import { formatDecimal, toNumber } from '../../lib/format'
+import { t } from '../../i18n'
 import styles from '../EventDetailPage.module.css'
 
 /**
@@ -50,16 +52,14 @@ export function OverridesSection({ eventId }: { eventId: number }) {
   )
 
   const storeName = (storeId: number) =>
-    stores.data?.find((store) => store.id === storeId)?.name ?? `Store ${storeId}`
+    stores.data?.find((store) => store.id === storeId)?.name ??
+    t('overrides.storeFallback', { id: storeId })
 
   return (
     <div className={`card ${styles.dayCard}`}>
       <div className={styles.dayHeader}>
-        <h3 className="section-subtitle">Source-Overrides</h3>
-        <span className="muted">
-          Zutaten, die für dieses Event von einer bestimmten Quelle bezogen
-          werden (z. B. privater Bestand, anderer Händler).
-        </span>
+        <h3 className="section-subtitle">{t('overrides.heading')}</h3>
+        <span className="muted">{t('overrides.hint')}</span>
       </div>
 
       <div className={styles.tabToolbar}>
@@ -68,7 +68,7 @@ export function OverridesSection({ eventId }: { eventId: number }) {
           value={ingredientId || ''}
           onChange={(event) => setIngredientId(Number(event.target.value) || 0)}
         >
-          <option value="">Zutat wählen…</option>
+          <option value="">{t('overrides.chooseIngredient')}</option>
           {candidates.map((candidate) => (
             <option key={candidate.id} value={candidate.id}>
               {candidate.name}
@@ -89,7 +89,7 @@ export function OverridesSection({ eventId }: { eventId: number }) {
                 }
               }}
             >
-              <option value="">Quelle überschreiben mit…</option>
+              <option value="">{t('overrides.chooseSource')}</option>
               {(sources.data?.sources ?? [])
                 .filter((source) => !overriddenSourceIds.has(source.id))
                 .map((source) => (
@@ -104,15 +104,18 @@ export function OverridesSection({ eventId }: { eventId: number }) {
       </div>
 
       {overrides.isPending ? (
-        <Spinner size="sm" />
+        <div className={styles.previewSkeleton}>
+          <Skeleton height="0.8rem" />
+          <Skeleton width="70%" height="0.8rem" />
+        </div>
       ) : (overrides.data ?? []).length === 0 ? (
-        <p className="muted">Keine Overrides gesetzt — alle Zutaten laufen über ihre Standardquellen.</p>
+        <p className="muted">{t('overrides.none')}</p>
       ) : (
         <table className="table">
           <thead>
             <tr>
-              <th>Zutat</th>
-              <th>Quelle (Store)</th>
+              <th>{t('overrides.col.ingredient')}</th>
+              <th>{t('overrides.col.source')}</th>
               <th />
             </tr>
           </thead>
@@ -120,12 +123,15 @@ export function OverridesSection({ eventId }: { eventId: number }) {
             {(overrides.data ?? []).map((override) => (
               <tr key={override.source_id}>
                 <td>{override.ingredient_name}</td>
-                <td>{override.store_name ?? `Store ${override.store_id}`}</td>
+                <td>
+                  {override.store_name ??
+                    t('overrides.storeFallback', { id: override.store_id })}
+                </td>
                 <td className="num">
                   <button
                     type="button"
                     className={styles.iconButton}
-                    title="Override entfernen"
+                    title={t('overrides.remove')}
                     onClick={() => mutations.removeOverride.mutate(override.source_id)}
                   >
                     🗑

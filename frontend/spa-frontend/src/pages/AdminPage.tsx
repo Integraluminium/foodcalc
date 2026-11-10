@@ -80,29 +80,30 @@ function UsersPanel() {
           Benutzer konnten nicht geladen werden: {String(users.error)}
         </p>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Benutzer</th>
-              <th>E-Mail</th>
-              <th>Gruppen</th>
-              <th className="num">Admin</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {users.data.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  {row.username}
-                  {row.groups.some((group) => group.is_personal) && (
-                    <span className={`muted ${styles.personalTag}`}>
-                      {' '}
-                      (persönliche Gruppe)
-                    </span>
-                  )}
-                </td>
-                <td className="secondary">{row.email}</td>
+        <div className={styles.tableWrap}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Benutzer</th>
+                <th>E-Mail</th>
+                <th>Gruppen</th>
+                <th className="num">Admin</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {users.data.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    {row.username}
+                    {row.groups.some((group) => group.is_personal) && (
+                      <span className={`muted ${styles.personalTag}`}>
+                        {' '}
+                        (persönliche Gruppe)
+                      </span>
+                    )}
+                  </td>
+                  <td className={`secondary ${styles.email}`}>{row.email}</td>
                 <td>
                   {row.groups.map((group) => group.name).join(', ') || '–'}
                 </td>
@@ -149,7 +150,8 @@ function UsersPanel() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       {deleteUser && (

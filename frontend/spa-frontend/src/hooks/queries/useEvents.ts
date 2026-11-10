@@ -6,6 +6,8 @@ import {
   type TourInput,
 } from '../../api/endpoints/events'
 import { queryKeys } from '../../api/queryKeys'
+import type { ShoppingList } from '../../api/types'
+import { notify } from '../../components/ui/toast'
 
 const EVENTS_ROOT = ['events'] as const
 
@@ -98,6 +100,7 @@ export function useCreateEvent() {
 /** All editing mutations for one event; every success refreshes event queries. */
 export function useEventMutations(eventId: number) {
   const invalidate = useInvalidateEvents()
+  const queryClient = useQueryClient()
 
   const update = useMutation({
     mutationFn: (input: {
@@ -136,7 +139,10 @@ export function useEventMutations(eventId: number) {
   })
   const addTour = useMutation({
     mutationFn: (input: TourInput) => eventsApi.addTour(eventId, input),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate()
+      notify('success', 'Tour angelegt — passende Zutaten wurden zugeordnet.')
+    },
   })
   const updateTour = useMutation({
     mutationFn: (args: { tourId: number } & TourInput) => {
@@ -145,9 +151,65 @@ export function useEventMutations(eventId: number) {
     },
     onSuccess: invalidate,
   })
+  /**
+   * Optimistic: die Tour verschwindet sofort aus der Liste (inkl. Rollback
+   * bei Fehler) — vorher hing die Karte bis zum Refetch sichtbar herum.
+   */
   const removeTour = useMutation({
     mutationFn: (tourId: number) => eventsApi.removeTour(eventId, tourId),
-    onSuccess: invalidate,
+    onMutate: async (tourId) => {
+      await queryClient.cancelQueries({ queryKey: EVENTS_ROOT })
+      const previousList = queryClient.getQueryData<ShoppingList>(
+        queryKeys.events.shoppingList(eventId),
+      )
+      queryClient.setQueryData<ShoppingList>(
+        queryKeys.events.shoppingList(eventId),
+        (current) =>
+          current
+            ? { ...current, tours: current.tours.filter((t) => t.id !== tourId) }
+            : current,
+      )
+      return { previousList }
+    },
+    onError: (_error, _tourId, context) => {
+      if (context?.previousList) {
+        queryClient.setQueryData(
+          queryKeys.events.shoppingList(eventId),
+          context.previousList,
+        )
+      }
+    },
+    onSuccess: () => notify('success', 'Tour gelöscht.'),
+    onSettled: () => invalidate(),
+  })
+  const addTourItem = useMutation({
+    mutationFn: (args: { tourId: number; ingredientId: number }) =>
+      eventsApi.addTourItem(eventId, args.tourId, args.ingredientId),
+    onSuccess: () => {
+      invalidate()
+      notify('success', 'Zutat der Tour zugeordnet.')
+    },
+  })
+  const removeTourItem = useMutation({
+    mutationFn: (args: { tourId: number; ingredientId: number }) =>
+      eventsApi.removeTourItem(eventId, args.tourId, args.ingredientId),
+    onSuccess: () => {
+      invalidate()
+      notify('success', 'Zuordnung aufgehoben.')
+    },
+  })
+  const setTourCompleted = useMutation({
+    mutationFn: (args: { tourId: number; completed: boolean }) =>
+      eventsApi.setTourCompleted(eventId, args.tourId, args.completed),
+    onSuccess: (_result, args) => {
+      invalidate()
+      notify(
+        'success',
+        args.completed
+          ? 'Tour als erledigt markiert — sie ist jetzt gesperrt.'
+          : 'Tour wieder geöffnet.',
+      )
+    },
   })
   const addEventInventory = useMutation({
     mutationFn: (inventoryId: number) =>
@@ -179,6 +241,9 @@ export function useEventMutations(eventId: number) {
     addTour,
     updateTour,
     removeTour,
+    addTourItem,
+    removeTourItem,
+    setTourCompleted,
     addEventInventory,
     removeEventInventory,
     addOverride,
