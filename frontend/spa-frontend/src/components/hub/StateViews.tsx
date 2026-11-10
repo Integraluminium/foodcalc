@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { t } from '../../i18n'
-import { Spinner } from '../ui/Spinner'
+import { SkeletonTable } from '../ui/Skeleton'
 import styles from './StateViews.module.css'
 
 /** Consistent loading / error / empty states for hub lists and sections. */
@@ -8,7 +8,8 @@ import styles from './StateViews.module.css'
 export function LoadingState() {
   return (
     <div className={styles.state}>
-      <Spinner />
+      <SkeletonTable rows={5} cols={4} />
+      <span className={styles.visuallyHidden}>{t('state.loading')}</span>
     </div>
   )
 }

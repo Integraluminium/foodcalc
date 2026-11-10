@@ -287,6 +287,8 @@ export interface ShoppingTour {
   tour_date: string
   store_id: number
   store_name: string | null
+  /** Completed tours are locked (no edits, no item changes). */
+  completed?: boolean
 }
 
 export interface ShoppingListItem {

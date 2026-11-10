@@ -1,15 +1,20 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ErrorState, EmptyState, LoadingState } from '../components/hub/StateViews'
+import { RecipeView } from '../components/recipes/RecipeView'
+import { Drawer } from '../components/ui/Drawer'
 import { SegmentedControl } from '../components/ui/SegmentedControl'
-import { Spinner } from '../components/ui/Spinner'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { useRecipes } from '../hooks/queries/useRecipes'
+import { useActiveGroup } from '../hooks/useActiveGroup'
 import { t } from '../i18n'
 import { formatKjPerG } from '../lib/format'
-import type { RecipeKind } from '../api/types'
+import type { RecipeKind, RecipeListItem } from '../api/types'
 import styles from './RecipesPage.module.css'
 
 type KindFilter = RecipeKind | 'all'
+/** Owner-Filter: konkrete Gruppe, `'all'` für alle, `null` = aktive Gruppe. */
+type OwnerFilter = number | 'all' | null
 
 const KIND_OPTIONS: { value: KindFilter; label: string }[] = [
   { value: 'meal', label: 'Gerichte' },
@@ -17,16 +22,34 @@ const KIND_OPTIONS: { value: KindFilter; label: string }[] = [
   { value: 'all', label: 'Alle' },
 ]
 
+/**
+ * Rezept-Hub (UI_Spec §3.2): Filter/Suche, Data-Grid und Detail als
+ * Overlay-Drawer — ein Klick inspiziert, ohne die Liste zu verlassen.
+ */
 export default function RecipesPage() {
   const navigate = useNavigate()
   const [kind, setKind] = useState<KindFilter>('meal')
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
+  const { activeGroupId, groups: userGroups } = useActiveGroup()
+  /** `null` = der Sidebar-Gruppe folgen, sonst explizite Wahl. */
+  const [ownerOverride, setOwnerOverride] = useState<OwnerFilter>(null)
+  const [drawerRecipe, setDrawerRecipe] = useState<RecipeListItem | null>(null)
 
+  const ownerFilter: OwnerFilter = ownerOverride ?? activeGroupId ?? 'all'
   const recipes = useRecipes({
     kind: kind === 'all' ? undefined : kind,
     search: debouncedSearch || undefined,
   })
+
+  const filtered = useMemo(
+    () =>
+      (recipes.data ?? []).filter(
+        (recipe) =>
+          ownerFilter === 'all' || recipe.group_id === ownerFilter,
+      ),
+    [recipes.data, ownerFilter],
+  )
 
   return (
     <div className={styles.page}>
@@ -54,42 +77,58 @@ export default function RecipesPage() {
           onChange={setKind}
           ariaLabel="Rezeptart filtern"
         />
+        <select
+          className={`input ${styles.ownerFilter}`}
+          value={ownerFilter === 'all' ? 'all' : String(ownerFilter)}
+          onChange={(event) => {
+            const raw = event.target.value
+            setOwnerOverride(raw === 'all' ? 'all' : Number(raw))
+          }}
+          aria-label="Nach Besitzer-Gruppe filtern"
+        >
+          <option value="all">Alle Gruppen</option>
+          {userGroups.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.name}
+              {group.is_personal ? ' (persönlich)' : ''}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className={`card ${styles.panel}`}>
         {recipes.isPending ? (
-          <div className={styles.empty}>
-            <Spinner />
-          </div>
+          <LoadingState />
         ) : recipes.isError ? (
-          <div className={styles.empty}>
-            <p className="secondary">
-              Rezepte konnten nicht geladen werden: {String(recipes.error)}
-            </p>
-          </div>
-        ) : recipes.data.length === 0 ? (
-          <div className={styles.empty}>
-            <p className="secondary">
-              Keine Rezepte gefunden. Lege das erste über „Neues Rezept" an.
-            </p>
-          </div>
+          <ErrorState
+            message={`Rezepte konnten nicht geladen werden: ${String(recipes.error)}`}
+          />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            message={
+              recipes.data && recipes.data.length > 0
+                ? 'Keine Rezepte für diesen Filter.'
+                : 'Keine Rezepte gefunden. Lege das erste über „Neues Rezept“ an.'
+            }
+          />
         ) : (
           <table className="table">
             <thead>
               <tr>
                 <th>Name</th>
                 <th>Typ</th>
-                <th>Owner</th>
+                <th>Kommentar</th>
+                <th>Besitzer</th>
                 <th className="num">Energie</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {recipes.data.map((recipe) => (
+              {filtered.map((recipe) => (
                 <tr
                   key={recipe.id}
                   className={styles.row}
-                  onClick={() => navigate(`/recipes/${recipe.id}`)}
+                  onClick={() => setDrawerRecipe(recipe)}
                 >
                   <td>{recipe.name}</td>
                   <td>
@@ -103,6 +142,9 @@ export default function RecipesPage() {
                       {recipe.kind === 'meal' ? 'Gericht' : 'Komponente'}
                     </span>
                   </td>
+                  <td className={`muted ${styles.comment}`}>
+                    {recipe.comment ?? '–'}
+                  </td>
                   <td className="secondary">{recipe.group_name}</td>
                   <td className="num">{formatKjPerG(recipe.energy_kj_per_g)}</td>
                   <td className="num muted">›</td>
@@ -112,6 +154,19 @@ export default function RecipesPage() {
           </table>
         )}
       </div>
+
+      {drawerRecipe && (
+        <Drawer
+          title={drawerRecipe.name}
+          onClose={() => setDrawerRecipe(null)}
+        >
+          <RecipeView
+            recipeId={drawerRecipe.id}
+            variant="overlay"
+            onDeleted={() => setDrawerRecipe(null)}
+          />
+        </Drawer>
+      )}
     </div>
   )
 }

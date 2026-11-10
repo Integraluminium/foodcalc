@@ -10,6 +10,7 @@ export const queryKeys = {
     list: (filters: { kind?: string; search?: string }) =>
       ['recipes', 'list', filters] as const,
     detail: (id: number) => ['recipes', 'detail', id] as const,
+    tree: (id: number) => ['recipes', 'tree', id] as const,
   },
   ingredients: {
     list: (search: string) => ['ingredients', 'list', search] as const,

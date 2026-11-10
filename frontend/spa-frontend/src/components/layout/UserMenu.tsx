@@ -9,8 +9,10 @@ import styles from './UserMenu.module.css'
  * (Profil, Verwaltung, Abmelden) öffnet sich per Klick — selten genutzte
  * Aktionen stören nicht den Blick. Der Gruppen-Switcher bleibt bewusst als
  * eigener Block darüber (steuert Besitz/Sichtbarkeit, häufig genutzt).
+ *
+ * `compact` (Event-Workspace): nur der Avatar, Sidebar ist dann Icon-Rail.
  */
-export function UserMenu() {
+export function UserMenu({ compact = false }: { compact?: boolean }) {
   const { data: user } = useCurrentUser()
   const logout = useLogout()
   const navigate = useNavigate()
@@ -48,17 +50,21 @@ export function UserMenu() {
     <div ref={rootRef} className={styles.root}>
       <button
         type="button"
-        className={styles.trigger}
+        className={compact ? `${styles.trigger} ${styles.compact}` : styles.trigger}
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t('shell.userMenu')}
       >
         <span className={styles.avatar}>{initial}</span>
-        <span className={styles.name}>{user?.username ?? '…'}</span>
-        <span className={styles.chevron} aria-hidden="true">
-          ▾
-        </span>
+        {!compact && (
+          <>
+            <span className={styles.name}>{user?.username ?? '…'}</span>
+            <span className={styles.chevron} aria-hidden="true">
+              ▾
+            </span>
+          </>
+        )}
       </button>
       {open && (
         <div className={styles.menu} role="menu">

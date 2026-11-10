@@ -5,9 +5,9 @@ import {
   type RecipeStepInput,
   type RecipeUpdateInput,
 } from '../../api/endpoints/recipes'
+import { recipesTreeApi } from '../../api/endpoints/recipesTree'
 import { queryKeys } from '../../api/queryKeys'
 
-const LIST_ROOT = ['recipes'] as const
 
 /** Recipes for the list screen (kind/search filters are part of the key). */
 export function useRecipes(filters?: RecipeFilters) {
@@ -27,15 +27,29 @@ export function useRecipe(id: number) {
   })
 }
 
-function useInvalidateRecipes() {
+/** Recursive composition tree (view mode, S/I nodes with base amounts). */
+export function useRecipeTree(id: number) {
+  return useQuery({
+    queryKey: queryKeys.recipes.tree(id),
+    queryFn: () => recipesTreeApi.tree(id),
+    enabled: Number.isFinite(id) && id > 0,
+  })
+}
+
+function useInvalidateRecipeData() {
   const queryClient = useQueryClient()
   return () => {
-    void queryClient.invalidateQueries({ queryKey: LIST_ROOT })
+    // Rezept-Änderungen wirken überall nach: Listen/Details/Bäume, aber auch
+    // Events (Namen, Gewichte, Kosten, Energiedichten im Speiseplan und in
+    // Kalkulation/Einkauf). Ohne die Events-Invalidierung zeigt der
+    // Speiseplan nach einer Rezept-Bearbeitung veraltete Werte.
+    void queryClient.invalidateQueries({ queryKey: ['recipes'] })
+    void queryClient.invalidateQueries({ queryKey: ['events'] })
   }
 }
 
 export function useCreateRecipe() {
-  const invalidate = useInvalidateRecipes()
+  const invalidate = useInvalidateRecipeData()
   return useMutation({
     mutationFn: recipesApi.create,
     onSuccess: invalidate,
@@ -50,7 +64,7 @@ export interface RecipeIngredientInput {
 
 /** All editing mutations for one recipe; every success refreshes the lists. */
 export function useRecipeMutations(recipeId: number) {
-  const invalidate = useInvalidateRecipes()
+  const invalidate = useInvalidateRecipeData()
 
   const update = useMutation({
     mutationFn: (input: RecipeUpdateInput) => recipesApi.update(recipeId, input),

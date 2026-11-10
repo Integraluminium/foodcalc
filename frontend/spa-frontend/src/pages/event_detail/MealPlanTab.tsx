@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../../api'
 import { useEventMutations } from '../../hooks/queries/useEvents'
 import {
   formatDayLabel,
@@ -9,8 +8,9 @@ import {
   toNumber,
 } from '../../lib/format'
 import { portionCost } from '../../lib/scaling'
+import { t } from '../../i18n'
 import type { EventDetail, PlannerMeal } from '../../api/types'
-import { MealDialog } from './MealDialog'
+import { MealDrawer } from './MealDrawer'
 import styles from '../EventDetailPage.module.css'
 
 /** Speiseplan tab: meals grouped by day with the planner base values. */
@@ -40,22 +40,22 @@ export function MealPlanTab({ detail }: { detail: EventDetail }) {
     <section className={styles.tabSection}>
       <div className={styles.tabToolbar}>
         <span className="muted">
-          {detail.meals.length} Mahlzeiten ·{' '}
-          {formatDecimal(toNumber(detail.total_cost) ?? 0)} € eingekauft
+          {t('plan.summary', {
+            meals: detail.meals.length,
+            cost: formatDecimal(toNumber(detail.total_cost) ?? 0),
+          })}
         </span>
         <button
           type="button"
           className="btn btn--primary"
           onClick={() => setEditing(null)}
         >
-          + Mahlzeit planen
+          {t('plan.addMeal')}
         </button>
       </div>
 
       {days.length === 0 ? (
-        <p className="muted">
-          Noch keine Mahlzeiten geplant — oben rechts hinzufügen.
-        </p>
+        <p className="muted">{t('plan.empty')}</p>
       ) : (
         days.map(([dayKey, meals]) => (
           <DayGroup
@@ -70,7 +70,7 @@ export function MealPlanTab({ detail }: { detail: EventDetail }) {
       )}
 
       {editing !== undefined && (
-        <MealDialog
+        <MealDrawer
           eventId={detail.event.id}
           meal={editing ?? undefined}
           onClose={() => setEditing(undefined)}
@@ -108,27 +108,34 @@ function DayGroup({
       <div className={styles.dayHeader}>
         <h3 className="section-subtitle">{label}</h3>
         <span className={`muted ${styles.dayTotals}`}>
-          {portions} Portionen · {formatDecimal(weight)} kg ·{' '}
-          {formatDecimal(cost)} €
+          {t('plan.dayTotals', {
+            portions,
+            weight: formatDecimal(weight),
+            cost: formatDecimal(cost),
+          })}
         </span>
       </div>
       <table className="table">
         <thead>
           <tr>
-            <th>Zeit</th>
-            <th>Gericht</th>
-            <th>Ort</th>
-            <th className="num">Portionen</th>
-            <th className="num">kJ / Portion</th>
-            <th className="num">Gewicht</th>
-            <th className="num">€ / Portion</th>
-            <th className="num">Kosten</th>
+            <th>{t('plan.col.time')}</th>
+            <th>{t('plan.col.dish')}</th>
+            <th>{t('plan.col.place')}</th>
+            <th className="num">{t('plan.col.servings')}</th>
+            <th className="num">{t('plan.col.kjPerPortion')}</th>
+            <th className="num">{t('plan.col.weight')}</th>
+            <th className="num">{t('plan.col.costPerPortion')}</th>
+            <th className="num">{t('plan.col.cost')}</th>
             <th />
           </tr>
         </thead>
         <tbody>
           {meals.map((meal) => (
-            <tr key={meal.meal_id}>
+            <tr
+              key={meal.meal_id}
+              className={styles.mealRow}
+              onClick={() => onEdit(meal)}
+            >
               <td className={styles.time}>
                 {formatTime(meal.start_time)}
                 {meal.end_time !== meal.start_time && (
@@ -140,7 +147,7 @@ function DayGroup({
                 {!meal.weighed_in && (
                   <span
                     className={`badge badge--warning ${styles.warnBadge}`}
-                    title="Rezept ist nicht eingewogen — Mengen können abweichen"
+                    title={t('plan.notWeighedHint')}
                   >
                     ~
                   </span>
@@ -172,15 +179,7 @@ function DayGroup({
                 <button
                   type="button"
                   className={styles.iconButton}
-                  title="Bearbeiten"
-                  onClick={() => onEdit(meal)}
-                >
-                  ✎
-                </button>
-                <button
-                  type="button"
-                  className={styles.iconButton}
-                  title="Duplizieren"
+                  title={t('plan.duplicate')}
                   onClick={() => onDuplicate(meal)}
                 >
                   ⧉
@@ -188,20 +187,7 @@ function DayGroup({
                 <button
                   type="button"
                   className={styles.iconButton}
-                  title="Rezept-PDF"
-                  onClick={() =>
-                    void api.download(
-                      `/events/${meal.event_id}/exports/meal/${meal.meal_id}`,
-                      `${meal.name}.pdf`,
-                    )
-                  }
-                >
-                  ⤓
-                </button>
-                <button
-                  type="button"
-                  className={styles.iconButton}
-                  title="Aus dem Plan entfernen"
+                  title={t('plan.removeFromPlan')}
                   onClick={() => onRemove(meal)}
                 >
                   🗑

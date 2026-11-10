@@ -19,6 +19,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Weite Tabellen (E-Mail, Gruppenliste) scrollbar statt überlaufend. */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.tableWrap .table {
+  min-width: 640px;
+}
+
+.email {
+  overflow-wrap: anywhere;
 }
 
 .toolbar {

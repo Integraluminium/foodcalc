@@ -19,8 +19,26 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 16px;
+  padding: 18px 12px;
   border-bottom: 1px solid var(--border);
+}
+
+.collapseBtn {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.collapseBtn:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
 }
 
 .brandMark {
@@ -120,4 +138,34 @@
   min-width: 0;
   padding: 24px 28px;
   background: var(--bg-surface);
+}
+
+/* --- Workspace mode (collapsed rail): manuell per Pfeil oder im Event --- */
+.workspace .sidebar {
+  width: 64px;
+}
+
+.workspace .brand {
+  justify-content: space-between;
+  gap: 4px;
+  padding: 18px 6px;
+}
+
+.workspace .collapseBtn {
+  margin-left: 0;
+}
+
+.workspace .brandName,
+.workspace .navItem span,
+.workspace .groupBlock {
+  display: none;
+}
+
+.workspace .navItem {
+  justify-content: center;
+  padding: 10px;
+}
+
+.workspace .footer {
+  padding: 8px;
 }

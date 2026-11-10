@@ -1,36 +1,38 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { InventoryDrawer } from '../components/inventories/InventoryView'
+import { ErrorState, EmptyState, LoadingState } from '../components/hub/StateViews'
 import { Dialog } from '../components/ui/Dialog'
-import { Drawer } from '../components/ui/Drawer'
-import { Spinner } from '../components/ui/Spinner'
-import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import {
   useCreateInventory,
   useInventories,
-  useInventory,
-  useInventoryItems,
-  useInventoryMutations,
 } from '../hooks/queries/useInventories'
-import { useIngredients } from '../hooks/queries/useIngredients'
 import { useCurrentUser } from '../hooks/useAuth'
 import { useActiveGroup } from '../hooks/useActiveGroup'
 import { useGroups } from '../hooks/queries/useMasterData'
-import { toNumber } from '../lib/format'
+import { t } from '../i18n'
 import styles from './InventoriesPage.module.css'
 
+/**
+ * Inventar-Hub: Karten mit Besitzer-Gruppe; Inspektion/Abgleich im
+ * geteilten `InventoryDrawer` (Master-Detail).
+ */
 export default function InventoriesPage() {
   const inventories = useInventories()
   const { data: user } = useCurrentUser()
-  const { activeGroupId } = useActiveGroup()
+  const { activeGroupId, groups: userGroups } = useActiveGroup()
+  const groups = useGroups()
   const [createOpen, setCreateOpen] = useState(false)
   const [openId, setOpenId] = useState<number | null>(null)
 
-  const openInventory = useInventory(openId ?? 0)
+  const groupName = (groupId: number) =>
+    groups.data?.find((group) => group.id === groupId)?.name ??
+    `Gruppe ${groupId}`
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className="section-title">Inventare</h1>
+        <h1 className="section-title">{t('nav.inventories')}</h1>
         <button
           type="button"
           className="btn btn--primary"
@@ -45,17 +47,13 @@ export default function InventoriesPage() {
       </p>
 
       {inventories.isPending ? (
-        <div className={styles.empty}>
-          <Spinner />
-        </div>
+        <LoadingState />
       ) : inventories.isError ? (
-        <p className="secondary">
-          Inventare konnten nicht geladen werden: {String(inventories.error)}
-        </p>
+        <ErrorState
+          message={`Inventare konnten nicht geladen werden: ${String(inventories.error)}`}
+        />
       ) : (inventories.data ?? []).length === 0 ? (
-        <div className={styles.empty}>
-          <p className="secondary">Noch keine Inventare — lege das erste an.</p>
-        </div>
+        <EmptyState message="Noch keine Inventare — lege das erste an." />
       ) : (
         <div className={styles.grid}>
           {(inventories.data ?? []).map((inventory) => (
@@ -66,6 +64,7 @@ export default function InventoriesPage() {
               onClick={() => setOpenId(inventory.id)}
             >
               <span className={styles.cardName}>{inventory.name}</span>
+              <span className="muted">{groupName(inventory.group_id)}</span>
               <span className="muted">Bestand ansehen ›</span>
             </button>
           ))}
@@ -73,154 +72,16 @@ export default function InventoriesPage() {
       )}
 
       {openId !== null && (
-        <InventoryDrawer
-          inventoryId={openId}
-          name={openInventory.data?.name ?? `Inventar ${openId}`}
-          onClose={() => setOpenId(null)}
-        />
+        <InventoryDrawer inventoryId={openId} onClose={() => setOpenId(null)} />
       )}
 
       {createOpen && user && (
         <CreateInventoryDialog
-          defaultGroupId={activeGroupId ?? user.groups[0]?.id ?? 0}
+          defaultGroupId={activeGroupId ?? userGroups[0]?.id ?? 0}
           onClose={() => setCreateOpen(false)}
         />
       )}
     </div>
-  )
-}
-
-/** Inventory detail drawer: item list with inline amount editing. */
-function InventoryDrawer({
-  inventoryId,
-  name,
-  onClose,
-}: {
-  inventoryId: number
-  name: string
-  onClose: () => void
-}) {
-  const items = useInventoryItems(inventoryId)
-  const mutations = useInventoryMutations(inventoryId)
-  const ingredients = useIngredients('')
-  const [confirmDelete, setConfirmDelete] = useState(false)
-
-  const addItem = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const ingredientId = Number(data.get('ingredient_id') ?? 0)
-    const amount = String(data.get('amount') ?? '')
-    if (!ingredientId || !amount) return
-    mutations.addItem.mutate(
-      { ingredient_id: ingredientId, amount },
-      { onSuccess: () => event.currentTarget.reset() },
-    )
-  }
-
-  return (
-    <Drawer title={name} onClose={onClose}>
-      {items.isPending ? (
-        <Spinner />
-      ) : items.isError ? (
-        <p className="secondary">
-          Bestand konnte nicht geladen werden: {String(items.error)}
-        </p>
-      ) : (items.data ?? []).length === 0 ? (
-        <p className="muted">Noch keine Zutaten eingelagert.</p>
-      ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Zutat</th>
-              <th className="num">Menge (kg)</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {(items.data ?? []).map((item) => (
-              <tr key={item.ingredient_id}>
-                <td>{item.name}</td>
-                <td className="num">
-                  <input
-                    className={`input ${styles.amountInput}`}
-                    type="number"
-                    min="0"
-                    step="any"
-                    defaultValue={String(toNumber(item.amount) ?? 0)}
-                    onBlur={(event) => {
-                      const value = event.target.value
-                      const current = String(toNumber(item.amount) ?? 0)
-                      if (value !== current && value !== '') {
-                        mutations.updateItem.mutate({
-                          ingredientId: item.ingredient_id,
-                          amount: value,
-                        })
-                      }
-                    }}
-                  />
-                </td>
-                <td className="num">
-                  <button
-                    type="button"
-                    className="btn btn--ghost"
-                    title="Aus Bestand entfernen"
-                    onClick={() => mutations.removeItem.mutate(item.ingredient_id)}
-                  >
-                    🗑
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      <form className={styles.addRow} onSubmit={addItem}>
-        <select className="input" name="ingredient_id" required>
-          <option value="">Zutat wählen…</option>
-          {(ingredients.data ?? []).map((ingredient) => (
-            <option key={ingredient.id} value={ingredient.id}>
-              {ingredient.name}
-            </option>
-          ))}
-        </select>
-        <input
-          className={`input ${styles.amountInput}`}
-          name="amount"
-          type="number"
-          min="0"
-          step="any"
-          placeholder="kg"
-          required
-        />
-        <button
-          type="submit"
-          className="btn btn--ghost"
-          disabled={mutations.addItem.isPending}
-        >
-          + Einlagern
-        </button>
-      </form>
-
-      <button
-        type="button"
-        className="btn btn--danger"
-        onClick={() => setConfirmDelete(true)}
-      >
-        Inventar löschen
-      </button>
-      {confirmDelete && (
-        <ConfirmDialog
-          title="Inventar löschen"
-          message={`„${name}" inklusive aller gelagerten Mengen wirklich löschen?`}
-          onConfirm={() =>
-            mutations.remove.mutate(undefined, { onSuccess: onClose })
-          }
-          onCancel={() => setConfirmDelete(false)}
-          pending={mutations.remove.isPending}
-        />
-      )}
-    </Drawer>
   )
 }
 
@@ -262,7 +123,7 @@ function CreateInventoryDialog({
             className="btn btn--primary"
             disabled={create.isPending}
           >
-            {create.isPending ? <Spinner size="sm" /> : 'Anlegen'}
+            {create.isPending ? 'Anlegen…' : 'Anlegen'}
           </button>
         </>
       }

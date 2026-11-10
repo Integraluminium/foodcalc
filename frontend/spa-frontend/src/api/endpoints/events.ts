@@ -82,6 +82,20 @@ export const eventsApi = {
     api.put<ShoppingTour>(`/events/${eventId}/tours/${tourId}`, input),
   removeTour: (eventId: number, tourId: number) =>
     api.delete<void>(`/events/${eventId}/tours/${tourId}`),
+  /** Manually pin an ingredient onto a tour (overrides the auto assignment). */
+  addTourItem: (eventId: number, tourId: number, ingredientId: number) =>
+    api.post<void>(`/events/${eventId}/tours/${tourId}/items`, {
+      ingredient_id: ingredientId,
+    }),
+  removeTourItem: (eventId: number, tourId: number, ingredientId: number) =>
+    api.delete<void>(
+      `/events/${eventId}/tours/${tourId}/items/${ingredientId}`,
+    ),
+  /** Lock a tour as done (or reopen it). */
+  setTourCompleted: (eventId: number, tourId: number, completed: boolean) =>
+    api.put<void>(`/events/${eventId}/tours/${tourId}/completed`, {
+      completed,
+    }),
 
   overrides: (eventId: number) =>
     api.get<SourceOverride[]>(`/events/${eventId}/source-overrides`),

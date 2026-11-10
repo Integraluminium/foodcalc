@@ -1,0 +1,100 @@
+.modeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.amountInput {
+  width: 6.5rem;
+  text-align: right;
+}
+
+.addRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  border-top: 1px dashed var(--border);
+  padding-top: var(--space-3);
+}
+
+.addRow .input:first-child {
+  flex: 1 1 200px;
+}
+
+.scrollX {
+  overflow-x: auto;
+}
+
+.reconcileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Stacked card instead of a 4-column table: quick correction and difference
+   input wrap below the item name instead of pushing content off-screen. */
+.reconcileCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  padding: var(--space-3);
+}
+
+.reconcileHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.reconcileName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.reconcileAmount {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.quick {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.quick button {
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.quick button:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.deltaCell {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.deltaInput {
+  width: 5.5rem;
+  text-align: right;
+}

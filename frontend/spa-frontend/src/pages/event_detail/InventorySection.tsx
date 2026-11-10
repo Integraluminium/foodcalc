@@ -1,6 +1,8 @@
 import { useEventMutations, useEventInventories, useInventoryCoverage } from '../../hooks/queries/useEvents'
 import { useInventories } from '../../hooks/queries/useInventories'
 import { formatDecimal, toNumber } from '../../lib/format'
+import { Skeleton } from '../../components/ui/Skeleton'
+import { t } from '../../i18n'
 import styles from '../EventDetailPage.module.css'
 
 /**
@@ -22,11 +24,8 @@ export function InventorySection({ eventId }: { eventId: number }) {
   return (
     <div className={`card ${styles.dayCard}`}>
       <div className={styles.dayHeader}>
-        <h3 className="section-subtitle">Inventare</h3>
-        <span className="muted">
-          Bestände, die für dieses Event einplane werden — die Tabelle zeigt
-          pro Zutat, was abgedeckt ist und was noch gekauft werden muss.
-        </span>
+        <h3 className="section-subtitle">{t('eventInventory.heading')}</h3>
+        <span className="muted">{t('eventInventory.hint')}</span>
       </div>
 
       <div className={styles.tabToolbar}>
@@ -37,7 +36,7 @@ export function InventorySection({ eventId }: { eventId: number }) {
               <button
                 type="button"
                 className={styles.iconButton}
-                title="Inventar vom Event abkoppeln"
+                title={t('eventInventory.unlink')}
                 onClick={() => mutations.removeEventInventory.mutate(inventory.id)}
               >
                 ✕
@@ -45,7 +44,7 @@ export function InventorySection({ eventId }: { eventId: number }) {
             </span>
           ))}
           {linked.data && linked.data.length === 0 && (
-            <span className="muted">Noch keine Inventare gekoppelt.</span>
+            <span className="muted">{t('eventInventory.noneLinked')}</span>
           )}
         </div>
         <select
@@ -56,7 +55,7 @@ export function InventorySection({ eventId }: { eventId: number }) {
             if (inventoryId) mutations.addEventInventory.mutate(inventoryId)
           }}
         >
-          <option value="">Inventar koppeln…</option>
+          <option value="">{t('eventInventory.link')}</option>
           {linkable.map((inventory) => (
             <option key={inventory.id} value={inventory.id}>
               {inventory.name}
@@ -66,23 +65,25 @@ export function InventorySection({ eventId }: { eventId: number }) {
       </div>
 
       {coverage.isPending ? (
-        <p className="muted">Abdeckung wird berechnet…</p>
+        <div className={styles.previewSkeleton}>
+          <Skeleton height="0.8rem" />
+          <Skeleton width="80%" height="0.8rem" />
+          <Skeleton width="65%" height="0.8rem" />
+        </div>
       ) : coverage.isError ? (
         <p className="secondary">
-          Abdeckung konnte nicht geladen werden: {String(coverage.error)}
+          {t('eventInventory.coverageError', { error: String(coverage.error) })}
         </p>
       ) : (coverage.data ?? []).length === 0 ? (
-        <p className="muted">
-          Keine Zutaten im Speiseplan — es gibt nichts abzudecken.
-        </p>
+        <p className="muted">{t('eventInventory.nothingToCover')}</p>
       ) : (
         <table className="table">
           <thead>
             <tr>
-              <th>Zutat</th>
-              <th className="num">Bedarf</th>
-              <th className="num">Abgedeckt</th>
-              <th className="num">Fehlt</th>
+              <th>{t('eventInventory.col.ingredient')}</th>
+              <th className="num">{t('eventInventory.col.demand')}</th>
+              <th className="num">{t('eventInventory.col.covered')}</th>
+              <th className="num">{t('eventInventory.col.missing')}</th>
             </tr>
           </thead>
           <tbody>

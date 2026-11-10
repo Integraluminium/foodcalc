@@ -213,6 +213,8 @@ export default function RecipeWizardPage() {
     () => emptyDraft(defaultGroupId, 'meal'),
   )
   const [step, setStep] = useState<Step>('basis')
+  /** Bereits besuchte Schritte: vorwärts nur über „Weiter", kein Überspringen. */
+  const [visited, setVisited] = useState<Step[]>(['basis'])
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -395,6 +397,14 @@ export default function RecipeWizardPage() {
   const stepIndex = STEP_LABELS.findIndex((entry) => entry.key === step)
   const canAdvance = step !== 'basis' || draft.name.trim().length > 0
 
+  const advance = () => {
+    const next = STEP_LABELS[stepIndex + 1].key
+    setStep(next)
+    setVisited((current) =>
+      current.includes(next) ? current : [...current, next],
+    )
+  }
+
   return (
     <div className={styles.page}>
       <Link to={isEdit ? `/recipes/${editId}` : '/recipes'} className="secondary">
@@ -413,9 +423,11 @@ export default function RecipeWizardPage() {
             className={`${styles.stepTab} ${step === entry.key ? styles.stepActive : ''} ${
               index < stepIndex ? styles.stepDone : ''
             }`}
+            disabled={!visited.includes(entry.key)}
             onClick={() => setStep(entry.key)}
           >
-            {entry.label}
+            {index < stepIndex ? '✓ ' : `${index + 1} · `}
+            {entry.label.replace(/^\d+ · /, '')}
           </button>
         ))}
       </div>
@@ -534,38 +546,42 @@ export default function RecipeWizardPage() {
             Die Dichte skaliert später die Kochmenge: Portionen × kJ-Ziel pro
             Portion.
           </p>
-          {error && <p className={styles.error}>{error}</p>}
-          <div className={styles.wizardActions}>
-            {stepIndex > 0 && (
-              <button
-                type="button"
-                className="btn btn--ghost"
-                onClick={() => setStep(STEP_LABELS[stepIndex - 1].key)}
-              >
-                Zurück
-              </button>
-            )}
-            {stepIndex < STEP_LABELS.length - 1 ? (
-              <button
-                type="button"
-                className="btn btn--primary"
-                disabled={!canAdvance}
-                onClick={() => setStep(STEP_LABELS[stepIndex + 1].key)}
-              >
-                Weiter
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn--primary"
-                disabled={saving || !draft.name.trim()}
-                onClick={() => void commit()}
-              >
-                {saving ? <Spinner size="sm" /> : 'Speichern'}
-              </button>
-            )}
-          </div>
         </aside>
+      </div>
+
+      <div className={styles.actionBar}>
+        {error && <p className={styles.error}>{error}</p>}
+        <div className={styles.wizardActions}>
+          {stepIndex > 0 && (
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setStep(STEP_LABELS[stepIndex - 1].key)}
+            >
+              Zurück
+            </button>
+          )}
+          {stepIndex < STEP_LABELS.length - 1 ? (
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={!canAdvance}
+              title={canAdvance ? undefined : 'Bitte zuerst einen Namen eingeben.'}
+              onClick={advance}
+            >
+              Weiter
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={saving || !draft.name.trim()}
+              onClick={() => void commit()}
+            >
+              {saving ? <Spinner size="sm" /> : 'Speichern'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -790,7 +806,13 @@ function IngredientDraftRow({
         ))}
       </select>
       <span className={styles.kg}>
-        {row.kg !== null ? `${formatDecimal(row.kg)} kg` : 'keine Umrechnung'}
+        {row.kg !== null
+          ? `${formatDecimal(row.kg)} kg${
+              row.density !== null
+                ? ` ≈ ${formatDecimal(row.kg * 1000 * row.density, 0)} kJ`
+                : ''
+            }`
+          : 'keine Umrechnung'}
       </span>
       <button
         type="button"
@@ -988,7 +1010,25 @@ function StepsStep({
 
 // ------------------------------------------------------------ review step
 
-function ReviewStep({ draft, stats }: { draft: Draft; stats: { weight: number; energy: number; density: number | null } }) {
+function ReviewStep({
+  draft,
+  stats,
+}: {
+  draft: Draft
+  stats: { weight: number; energy: number; density: number | null }
+}) {
+  const ingredients = useIngredients('')
+  const units = useUnits()
+  const recipes = useRecipes()
+  const unitName = (unitId: number) =>
+    units.data?.find((unit) => unit.id === unitId)?.name ?? '?'
+  const ingredientName = (ingredientId: number) =>
+    ingredients.data?.find((ingredient) => ingredient.id === ingredientId)
+      ?.name ?? `Zutat #${ingredientId}`
+  const recipeName = (recipeId: number) =>
+    recipes.data?.find((recipe) => recipe.id === recipeId)?.name ??
+    `Rezept #${recipeId}`
+
   return (
     <section className={`card ${styles.card}`}>
       <h2 className="section-subtitle">Prüfen</h2>
@@ -1005,13 +1045,59 @@ function ReviewStep({ draft, stats }: { draft: Draft; stats: { weight: number; e
         <dd>{formatDecimal(stats.energy, 0)} kJ</dd>
         <dt>Dichte</dt>
         <dd>
-          {stats.density !== null ? `${formatDecimal(stats.density, 2)} kJ/g` : '–'}
+          {stats.density !== null
+            ? `${formatDecimal(stats.density, 2)} kJ/g`
+            : '–'}
         </dd>
       </dl>
-      <p className="muted">
-        {draft.ingredients.length} Zutaten · {draft.subRecipes.length}{' '}
-        Komponenten · {draft.steps.length} Schritte
-      </p>
+
+      <div className={styles.reviewList}>
+        <h3 className="section-subtitle">Zutaten</h3>
+        {draft.ingredients.length === 0 ? (
+          <p className="muted">Keine.</p>
+        ) : (
+          <ul>
+            {draft.ingredients.map((row, index) => (
+              <li key={`${row.ingredientId}-${index}`}>
+                {ingredientName(row.ingredientId)}
+                <span className="muted">
+                  {' '}
+                  · {row.amount} {unitName(row.unitId)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className={styles.reviewList}>
+        <h3 className="section-subtitle">Sub-Komponenten</h3>
+        {draft.subRecipes.length === 0 ? (
+          <p className="muted">Keine.</p>
+        ) : (
+          <ul>
+            {draft.subRecipes.map((row, index) => (
+              <li key={`${row.recipeId}-${index}`}>
+                {recipeName(row.recipeId)}
+                <span className="muted"> · {row.weight} kg</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {draft.steps.length > 0 && (
+        <div className={styles.reviewList}>
+          <h3 className="section-subtitle">Arbeitsschritte</h3>
+          <ul>
+            {draft.steps.map((row, index) => (
+              <li key={index}>
+                {row.name || <em className="muted">ohne Namen</em>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   )
 }
