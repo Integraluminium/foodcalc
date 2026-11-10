@@ -9,20 +9,18 @@ import { useGroups } from '../hooks/queries/useMasterData'
 import { useActiveGroup } from '../hooks/useActiveGroup'
 import { t } from '../i18n'
 import { formatDateRange, formatDecimal, toNumber } from '../lib/format'
-import type { EventListItem } from '../api/types'
+import type { EventListItem } from '../api'
 import styles from './EventsPage.module.css'
 
 /** Group filter: a concrete group id, or `'all'` for every group. */
 type GroupFilter = number | 'all'
 
 export default function EventsPage() {
-  const navigate = useNavigate()
   const events = useEvents()
   const { data: groups } = useGroups()
   const { activeGroupId, groups: userGroups } = useActiveGroup()
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
-  const [drawerEvent, setDrawerEvent] = useState<EventListItem | null>(null)
 
   /**
    * Explicit group selection (initially `null` = follow the sidebar's active
@@ -111,68 +109,24 @@ export default function EventsPage() {
             </thead>
             <tbody>
               {filtered.map((event) => {
-                const budget = toNumber(event.budget)
-                const cost = toNumber(event.total_cost) ?? 0
-                const over = budget !== null && cost > budget
-                return (
-                  <tr
-                    key={event.id}
-                    className={styles.row}
-                    onClick={() => navigate(`/events/${event.id}`)}
-                  >
-                    <td>
-                      {event.name}
-                      {event.comment && (
-                        <span className={`muted ${styles.comment}`}>
-                          {' '}
-                          · {event.comment}
-                        </span>
-                      )}
-                    </td>
-                    <td className="secondary">
-                      {groups?.find((group) => group.id === event.group_id)?.name ??
-                        `Gruppe ${event.group_id}`}
-                    </td>
-                    <td className="secondary">
-                      {formatDateRange(event.first_meal, event.last_meal)}
-                    </td>
-                    <td className="num">{event.meal_count}</td>
-                    <td className="num">{formatDecimal(cost)} €</td>
-                    <td className={`num ${over ? styles.over : ''}`}>
-                      {budget === null ? '–' : `${formatDecimal(budget)} €`}
-                    </td>
-                    <td className="num">
-                      <button
-                        type="button"
-                        className="btn btn--ghost"
-                        title="Details"
-                        onClick={(clickEvent) => {
-                          clickEvent.stopPropagation()
-                          setDrawerEvent(event)
-                        }}
-                      >
-                        ℹ
-                      </button>
-                    </td>
-                  </tr>
-                )
+                return <EventRow event={event} />
               })}
             </tbody>
           </table>
         )}
       </div>
 
-      {drawerEvent && (
-        <ProjectDrawer
-          event={drawerEvent}
-          groupName={
-            groups?.find((group) => group.id === drawerEvent.group_id)?.name ??
-            `Gruppe ${drawerEvent.group_id}`
-          }
-          onClose={() => setDrawerEvent(null)}
-          onOpen={() => navigate(`/events/${drawerEvent.id}`)}
-        />
-      )}
+      {/*{drawerEvent && (*/}
+      {/*  <ProjectDrawer*/}
+      {/*    event={drawerEvent}*/}
+      {/*    groupName={*/}
+      {/*      groups?.find((group) => group.id === drawerEvent.group_id)?.name ??*/}
+      {/*      `Gruppe ${drawerEvent.group_id}`*/}
+      {/*    }*/}
+      {/*    onClose={() => setDrawerEvent(null)}*/}
+      {/*    onOpen={() => navigate(`/events/${drawerEvent.id}`)}*/}
+      {/*  />*/}
+      {/*)}*/}
 
       {createOpen && (
         <CreateEventDialog
@@ -181,6 +135,61 @@ export default function EventsPage() {
         />
       )}
     </div>
+  )
+}
+
+function EventRow({ event }: { event: EventListItem }) {
+  const navigate = useNavigate()
+
+  const key = event.id
+  const groups = useGroups().data
+
+  const budget = toNumber(event.budget)
+  const cost = toNumber(event.total_cost) ?? 0
+  const over = budget !== null && cost > budget
+  return (
+      <tr
+          key={event.id}
+          className={styles.row}
+          onClick={() => navigate(`/events/${event.id}`)}
+      >
+        <td>
+          {event.name}
+          {event.comment && (
+              <span className={`muted ${styles.comment}`}>
+                          {' '}
+                · {event.comment}
+                        </span>
+          )}
+        </td>
+        <td className="secondary">
+          {groups?.find((group) => group.id === event.group_id)?.name ??
+              `Gruppe ${event.group_id}`}
+        </td>
+        <td className="secondary">
+          {formatDateRange(event.first_meal, event.last_meal)}
+        </td>
+        <td className="num">{event.meal_count}</td>
+        <td className="num">{formatDecimal(cost)} €</td>
+        <td className={`num ${over ? styles.over : ''}`}>
+          {budget === null ? '–' : `${formatDecimal(budget)} €`}
+        </td>
+        {/*<td className="num">*/}
+        {/*  <button*/}
+        {/*    type="button"*/}
+        {/*    className="btn btn--ghost"*/}
+        {/*    title="Details"*/}
+        {/*    onClick={(clickEvent) => {*/}
+        {/*      clickEvent.stopPropagation()*/}
+        {/*      setDrawerEvent(event)*/}
+        {/*    }}*/}
+        {/*  >*/}
+        {/*    ℹ*/}
+        {/*  </button>*/}
+        {/*</td>*/}
+
+        <td className="num muted">›</td>
+      </tr>
   )
 }
 
@@ -264,24 +273,12 @@ function CreateEventDialog({
   }
 
   return (
-    <Dialog
+      // TODO: Same dialog as Event Bearbeiten, but with empty fields and "Erstellen" button
+      //    Reuse the same component, just pass in the event data as props (or null for new event)
+
+    <Drawer
       title="Neues Event"
       onClose={onClose}
-      footer={
-        <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Abbrechen
-          </button>
-          <button
-            type="submit"
-            form="create-event-form"
-            className="btn btn--primary"
-            disabled={create.isPending}
-          >
-            {create.isPending ? <Spinner size="sm" /> : 'Anlegen'}
-          </button>
-        </>
-      }
     >
       <form id="create-event-form" onSubmit={handleSubmit}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -323,6 +320,6 @@ function CreateEventDialog({
           </label>
         </div>
       </form>
-    </Dialog>
+    </Drawer>
   )
 }

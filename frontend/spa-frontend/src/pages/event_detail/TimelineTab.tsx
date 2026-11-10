@@ -437,6 +437,9 @@ export function TimelineTab({ meals }: { meals: PlannerMeal[] }) {
     prep: t('timeline.kind.prep'),
   }
 
+  // TODO: optimise drag & drop with multiple lanes and overlapping items, as well as milestones
+  //    There might be the need for further requests to the backend
+
   return (
     <div
       ref={containerRef}
@@ -444,6 +447,7 @@ export function TimelineTab({ meals }: { meals: PlannerMeal[] }) {
       onPointerDown={onPointerDown}
     >
       <div className={styles.legend}>
+        <span className={`muted ${styles.hint}`}>{t('timeline.hint')}</span>
         {BAND_ORDER.slice()
           .reverse()
           .map((kind) => (
@@ -468,7 +472,6 @@ export function TimelineTab({ meals }: { meals: PlannerMeal[] }) {
               {kindLabel[kind]}
             </button>
           ))}
-        <span className={`muted ${styles.hint}`}>{t('timeline.hint')}</span>
       </div>
 
       {days.length === 0 ? (

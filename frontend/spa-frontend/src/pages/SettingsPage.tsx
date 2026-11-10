@@ -5,9 +5,10 @@ import { SegmentedControl } from '../components/ui/SegmentedControl'
 import { GroupsSection } from '../components/settings/GroupsSection'
 import { Spinner } from '../components/ui/Spinner'
 import { useCurrentUser } from '../hooks/useAuth'
-import { useUserAdminMutations } from '../hooks/queries/useUsers'
+import {useUserAdminMutations, useUsers} from '../hooks/queries/useUsers'
 import { useGroups } from '../hooks/queries/useMasterData'
 import styles from './SettingsPage.module.css'
+import {ConfirmDialog} from "../components/ui/ConfirmDialog.tsx";
 
 type Tab = 'account' | 'groups'
 
@@ -76,21 +77,7 @@ function AccountPanel() {
         )}
       </div>
 
-      <div className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">Meine Gruppen</h2>
-        <ul className={styles.groupList}>
-          {(groups.data ?? []).map((group) => (
-            <li key={group.id}>
-              {group.name}
-              {group.is_personal && <span className="muted"> (persönlich)</span>}
-            </li>
-          ))}
-        </ul>
-        <p className="muted">
-          Mitgliedschaften pflegst du im Tab „Gruppen" (für deine Gruppen) —
-          Admins verwalten alle Benutzer unter „Verwaltung".
-        </p>
-      </div>
+      <GroupPanel />
     </>
   )
 }
@@ -167,4 +154,100 @@ function PasswordForm({
       </button>
     </form>
   )
+}
+
+
+function GroupPanel() {
+    const [search, setSearch] = useState('')
+    const users = useUsers(search)
+    const { update, remove, changePassword } = useUserAdminMutations()
+    const [deleteUser, setDeleteUser] = useState<{
+        id: number
+        username: string
+    } | null>(null)
+
+    const updateAdmin = (id: number, is_admin: boolean) =>
+        update.mutate({ id, is_admin })
+
+    // TODO: Add group management UI here, similar to the AdminPage, allowing users to manage their groups and memberships.
+
+    return (
+        <div className={`card ${styles.panel}`}>
+            <div className={styles.toolbar}>
+                <input
+                    className={`input ${styles.search}`}
+                    placeholder="Benutzer suchen (Name / E-Mail)…"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                />
+                <span className="muted">
+          {users.data ? `${users.data.length} Benutzer` : ''}
+        </span>
+            </div>
+
+            {users.isPending ? (
+                <Spinner />
+            ) : users.isError ? (
+                <p className="secondary">
+                    Benutzer konnten nicht geladen werden: {String(users.error)}
+                </p>
+            ) : (
+                <div className={styles.tableWrap}>
+                    <table className="table">
+                        <thead>
+                        <tr>
+                            <th>Gruppe</th>
+                            <th>Berechtigungen</th>
+                            <th>Verlassen</th>
+
+                            <th />
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {users.data.map((row) => (
+                            <tr key={row.id}>
+                                <td>
+                                    {row.username}
+                                    {row.groups.some((group) => group.is_personal) && (
+                                        <span className={`muted ${styles.personalTag}`}>
+                        {' '}
+                                            (persönliche Gruppe)
+                      </span>
+                                    )}
+                                </td>
+                                <td className={`secondary ${styles.email}`}>[Berechtigungen]</td>
+                                <td className={styles.rowActions}>
+
+                                    <button
+                                        type="button"
+                                        className={styles.iconButton}
+                                        title="Gruppe verlassen"
+                                        onClick={() =>
+                                            {}
+                                        }
+                                    >
+                                        🗑
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {deleteUser && (
+                <ConfirmDialog
+                    title="Benutzer löschen"
+                    message={`„${deleteUser.username}" inklusive persönlicher Gruppe löschen? Das ist nur möglich, wenn die persönliche Gruppe keine Rezepte/Zutaten/Inventare/Events mehr besitzt.`}
+                    onConfirm={() => {
+                        remove.mutate(deleteUser.id)
+                        setDeleteUser(null)
+                    }}
+                    onCancel={() => setDeleteUser(null)}
+                    pending={remove.isPending}
+                />
+            )}
+        </div>
+    )
 }

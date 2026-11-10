@@ -77,6 +77,8 @@ export const STRINGS = {
   'overview.deleteTitle': 'Event löschen',
   'overview.deleteMessage':
     '„{name}“ inklusive Mahlzeitenplanung und Einkaufstouren wirklich löschen?',
+  'overview.budget': 'Budget (€)',
+  'overview.name': 'Name',
 
   // Speiseplan
   'plan.addMeal': '+ Mahlzeit planen',
