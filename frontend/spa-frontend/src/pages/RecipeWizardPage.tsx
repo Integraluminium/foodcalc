@@ -1,15 +1,11 @@
-import { useEffect, useMemo, useReducer, useState } from 'react'
-import type { Dispatch, FormEvent } from 'react'
+import { useMemo, useReducer, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ApiError, ingredientsApi, recipesApi } from '../api'
+import { useQueryClient } from '@tanstack/react-query'
+import { ApiError, recipesApi } from '../api'
 import { Spinner } from '../components/ui/Spinner'
 import {
-  useIngredients,
-} from '../hooks/queries/useIngredients'
-import {
   useRecipe,
-  useRecipes,
+
 } from '../hooks/queries/useRecipes'
 import { useGroups, useUnits } from '../hooks/queries/useMasterData'
 import { useCurrentUser } from '../hooks/useAuth'
@@ -17,14 +13,16 @@ import { useActiveGroup } from '../hooks/useActiveGroup'
 import { formatDecimal, toNumber } from '../lib/format'
 import type { Ingredient, RecipeDetail } from '../api/types'
 import styles from './RecipeWizardPage.module.css'
+import PlaceholderPage from "./PlaceholderPage.tsx";
+import {SegmentedControl} from "../components/ui/SegmentedControl.tsx";
 
 type Step = 'basis' | 'parts' | 'steps' | 'review'
 
-const STEP_LABELS: { key: Step; label: string }[] = [
-  { key: 'basis', label: '1 · Basis' },
-  { key: 'parts', label: '2 · Zutaten & Komponenten' },
-  { key: 'steps', label: '3 · Arbeitsschritte' },
-  { key: 'review', label: '4 · Prüfen & Speichern' },
+const STEP_LABELS: { value: Step; label: string }[] = [
+  { value: 'basis', label: '1 · Basis' },
+  { value: 'parts', label: '2 · Zutaten & Komponenten' },
+  { value: 'steps', label: '3 · Arbeitsschritte' },
+  { value: 'review', label: '4 · Prüfen & Speichern' },
 ]
 
 interface DraftIngredient {
@@ -394,18 +392,21 @@ export default function RecipeWizardPage() {
     )
   }
 
-  const stepIndex = STEP_LABELS.findIndex((entry) => entry.key === step)
+  const stepIndex = STEP_LABELS.findIndex((entry) => entry.value === step)
   const canAdvance = step !== 'basis' || draft.name.trim().length > 0
 
   const advance = () => {
-    const next = STEP_LABELS[stepIndex + 1].key
+    const next = STEP_LABELS[stepIndex + 1].value
     setStep(next)
     setVisited((current) =>
       current.includes(next) ? current : [...current, next],
     )
   }
 
-  return (
+    const [tab, setTab] = useState<Step>('basis')
+
+
+    return (
     <div className={styles.page}>
       <Link to={isEdit ? `/recipes/${editId}` : '/recipes'} className="secondary">
         ← {isEdit ? 'Zurück zum Rezept' : 'Zurück zur Liste'}
@@ -414,141 +415,32 @@ export default function RecipeWizardPage() {
       <h1 className="section-title">
         {isEdit ? `Rezept bearbeiten: ${draft.name || '…'}` : 'Neues Rezept'}
       </h1>
+        
+        <SegmentedControl options={[...STEP_LABELS]} value={tab} onChange={setTab} />
 
-      <div className={styles.stepper}>
-        {STEP_LABELS.map((entry, index) => (
-          <button
-            key={entry.key}
-            type="button"
-            className={`${styles.stepTab} ${step === entry.key ? styles.stepActive : ''} ${
-              index < stepIndex ? styles.stepDone : ''
-            }`}
-            disabled={!visited.includes(entry.key)}
-            onClick={() => setStep(entry.key)}
-          >
-            {index < stepIndex ? '✓ ' : `${index + 1} · `}
-            {entry.label.replace(/^\d+ · /, '')}
-          </button>
-        ))}
-      </div>
+      {/*  // TODO: update stepper to allow a more flexible navigation between steps*/}
+      {/*<div className={styles.stepper}>*/}
+      {/*  {STEP_LABELS.map((entry, index) => (*/}
+      {/*    <button*/}
+      {/*      key={entry.value}*/}
+      {/*      type="button"*/}
+      {/*      className={`${styles.stepTab} ${step === entry.value ? styles.stepActive : ''} ${*/}
+      {/*        index < stepIndex ? styles.stepDone : ''*/}
+      {/*      }`}*/}
+      {/*      disabled={!visited.includes(entry.value)}*/}
+      {/*      onClick={() => setStep(entry.value)}*/}
+      {/*    >*/}
+      {/*      {index < stepIndex ? '✓ ' : `${index + 1} · `}*/}
+      {/*      {entry.label.replace(/^\d+ · /, '')}*/}
+      {/*    </button>*/}
+      {/*  ))}*/}
+      {/*</div>*/}
+        <PlaceholderPage title={"Rezeptbearbeitung"} phase={"-"} />
 
-      <div className={styles.layout}>
-        <div className={styles.main}>
-          {step === 'basis' && (
-            <section className={`card ${styles.card}`}>
-              <h2 className="section-subtitle">Basisdaten</h2>
-              <label className="field">
-                Name
-                <input
-                  className="input"
-                  value={draft.name}
-                  onChange={(event) =>
-                    dispatch({
-                      type: 'set-frame',
-                      patch: { name: event.target.value },
-                    })
-                  }
-                  placeholder="z. B. Chili sin Carne"
-                  autoFocus
-                />
-              </label>
-              <div className="form-row">
-                <label className="field">
-                  Typ
-                  <select
-                    className="input"
-                    value={draft.kind}
-                    onChange={(event) =>
-                      dispatch({
-                        type: 'set-frame',
-                        patch: { kind: event.target.value as 'meal' | 'component' },
-                      })
-                    }
-                  >
-                    <option value="meal">Gericht</option>
-                    <option value="component">Komponente</option>
-                  </select>
-                </label>
-                <label className="field">
-                  Owner-Gruppe
-                  <select
-                    className="input"
-                    value={draft.groupId}
-                    onChange={(event) =>
-                      dispatch({
-                        type: 'set-frame',
-                        patch: { groupId: Number(event.target.value) || 0 },
-                      })
-                    }
-                  >
-                    {(groups.data ?? []).map((group) => (
-                      <option key={group.id} value={group.id}>
-                        {group.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="field">
-                Kommentar
-                <input
-                  className="input"
-                  value={draft.comment}
-                  onChange={(event) =>
-                    dispatch({
-                      type: 'set-frame',
-                      patch: { comment: event.target.value },
-                    })
-                  }
-                  placeholder="optional"
-                />
-              </label>
-              <label className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={draft.weighedIn}
-                  onChange={(event) =>
-                    dispatch({
-                      type: 'set-frame',
-                      patch: { weighedIn: event.target.checked },
-                    })
-                  }
-                />
-                Eingewogen (Mengen grammecht verifiziert)
-              </label>
-            </section>
-          )}
 
-          {step === 'parts' && <PartsStep draft={draft} dispatch={dispatch} />}
-          {step === 'steps' && <StepsStep draft={draft} dispatch={dispatch} />}
-          {step === 'review' && <ReviewStep draft={draft} stats={stats} />}
-        </div>
 
-        <aside className={`card ${styles.sidebar}`}>
-          <h2 className="section-subtitle">Kalkulation</h2>
-          <div className={styles.statLine}>
-            <span className="muted">Gesamtgewicht</span>
-            <strong>{formatDecimal(stats.weight)} kg</strong>
-          </div>
-          <div className={styles.statLine}>
-            <span className="muted">Energie gesamt</span>
-            <strong>{formatDecimal(stats.energy, 0)} kJ</strong>
-          </div>
-          <div className={styles.statLine}>
-            <span className="muted">Energie-Dichte</span>
-            <strong>
-              {stats.density !== null
-                ? `${formatDecimal(stats.density, 2)} kJ/g`
-                : '–'}
-            </strong>
-          </div>
-          <p className="muted">
-            Die Dichte skaliert später die Kochmenge: Portionen × kJ-Ziel pro
-            Portion.
-          </p>
-        </aside>
-      </div>
-
+        // TODO: This bar should be located on the bottom of the page,
+        //       but it is currently floating in the middle of the page.
       <div className={styles.actionBar}>
         {error && <p className={styles.error}>{error}</p>}
         <div className={styles.wizardActions}>
@@ -556,7 +448,7 @@ export default function RecipeWizardPage() {
             <button
               type="button"
               className="btn btn--ghost"
-              onClick={() => setStep(STEP_LABELS[stepIndex - 1].key)}
+              onClick={() => setStep(STEP_LABELS[stepIndex - 1].value)}
             >
               Zurück
             </button>
@@ -587,517 +479,3 @@ export default function RecipeWizardPage() {
   )
 }
 
-// ------------------------------------------------------------- parts step
-
-function PartsStep({
-  draft,
-  dispatch,
-}: {
-  draft: Draft
-  dispatch: Dispatch<Action>
-}) {
-  const ingredients = useIngredients('')
-  const units = useUnits()
-  const recipes = useRecipes()
-
-  const addIngredient = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const ingredientId = Number(data.get('ingredient_id') ?? 0)
-    if (!ingredientId) return
-    dispatch({
-      type: 'add-ingredient',
-      row: {
-        ingredientId,
-        amount: String(data.get('amount') ?? '1'),
-        unitId: Number(data.get('unit_id') ?? units.data?.[0]?.id ?? 0),
-        kg: null,
-        density: null,
-      },
-    })
-  }
-
-  const addSub = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const recipeId = Number(data.get('recipe_id') ?? 0)
-    if (!recipeId) return
-    dispatch({
-      type: 'add-sub',
-      row: {
-        recipeId,
-        weight: String(data.get('weight') ?? '1'),
-        density: null,
-      },
-    })
-  }
-
-  return (
-    <>
-      <section className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">Zutaten</h2>
-        {draft.ingredients.length === 0 && (
-          <p className="muted">Noch keine Zutaten — unten hinzufügen.</p>
-        )}
-        {draft.ingredients.map((row, index) => (
-          <IngredientDraftRow
-            key={`${row.ingredientId}-${index}`}
-            row={row}
-            index={index}
-            dispatch={dispatch}
-            catalog={ingredients.data ?? []}
-            units={units.data ?? []}
-          />
-        ))}
-        <form className={styles.addRow} onSubmit={addIngredient}>
-          <select className="input" name="ingredient_id" required>
-            <option value="">Zutat wählen…</option>
-            {(ingredients.data ?? []).map((ingredient) => (
-              <option key={ingredient.id} value={ingredient.id}>
-                {ingredient.name}
-              </option>
-            ))}
-          </select>
-          <input
-            className={`input ${styles.narrow}`}
-            name="amount"
-            type="number"
-            min="0"
-            step="any"
-            defaultValue="1"
-            required
-          />
-          <select className={`input ${styles.narrow}`} name="unit_id" required>
-            {(units.data ?? []).map((unit) => (
-              <option key={unit.id} value={unit.id}>
-                {unit.name}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className="btn btn--ghost">
-            + Zutat
-          </button>
-        </form>
-      </section>
-
-      <section className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">Sub-Komponenten</h2>
-        <p className="muted">
-          Gerichte und Komponenten sind frei kombinierbar (z. B. Komponente als
-          Beilage, Mahlzeit als Beilage einer Mahlzeit).
-        </p>
-        {draft.subRecipes.map((row, index) => (
-          <SubDraftRow
-            key={`${row.recipeId}-${index}`}
-            row={row}
-            index={index}
-            dispatch={dispatch}
-          />
-        ))}
-        <form className={styles.addRow} onSubmit={addSub}>
-          <select className="input" name="recipe_id" required>
-            <option value="">Rezept wählen…</option>
-            {(recipes.data ?? []).map((recipe) => (
-              <option key={recipe.id} value={recipe.id}>
-                {recipe.name}
-                {recipe.kind === 'component' ? ' (Komponente)' : ''}
-              </option>
-            ))}
-          </select>
-          <input
-            className={`input ${styles.narrow}`}
-            name="weight"
-            type="number"
-            min="0"
-            step="any"
-            defaultValue="1"
-            required
-          />
-          <span className={styles.unitLabel}>kg</span>
-          <button type="submit" className="btn btn--ghost">
-            + Komponente
-          </button>
-        </form>
-      </section>
-    </>
-  )
-}
-
-/** One ingredient draft row; resolves its kg from the ingredient detail. */
-function IngredientDraftRow({
-  row,
-  index,
-  dispatch,
-  catalog,
-  units,
-}: {
-  row: DraftIngredient
-  index: number
-  dispatch: Dispatch<Action>
-  catalog: Ingredient[]
-  units: { id: number; name: string }[]
-}) {
-  const detail = useQuery({
-    queryKey: ['ingredients', 'detail', row.ingredientId] as const,
-    queryFn: () => ingredientsApi.detail(row.ingredientId),
-    enabled: row.ingredientId > 0,
-  })
-
-  useEffect(() => {
-    const weights = detail.data?.weights ?? []
-    const match = weights.find((weight) => weight.unit_id === row.unitId)
-    const amount = toNumber(row.amount)
-    const kg = match && amount !== null ? amount * (toNumber(match.weight) ?? 0) : null
-    const energy = catalog.find(
-      (ingredient) => ingredient.id === row.ingredientId,
-    )
-    const density = energy ? toNumber(energy.energy) : null
-    if (kg !== row.kg || density !== row.density) {
-      dispatch({ type: 'update-ingredient', index, patch: { kg, density } })
-    }
-  }, [
-    detail.data,
-    row.ingredientId,
-    row.unitId,
-    row.amount,
-    row.kg,
-    row.density,
-    index,
-    dispatch,
-    catalog,
-  ])
-
-  const name =
-    catalog.find((ingredient) => ingredient.id === row.ingredientId)?.name ??
-    `Zutat #${row.ingredientId}`
-
-  return (
-    <div className={styles.editRow}>
-      <span className={styles.rowName}>{name}</span>
-      <input
-        className={`input ${styles.narrow}`}
-        type="number"
-        min="0"
-        step="any"
-        value={row.amount}
-        onChange={(event) =>
-          dispatch({
-            type: 'update-ingredient',
-            index,
-            patch: { amount: event.target.value },
-          })
-        }
-      />
-      <select
-        className={`input ${styles.narrow}`}
-        value={row.unitId}
-        onChange={(event) =>
-          dispatch({
-            type: 'update-ingredient',
-            index,
-            patch: { unitId: Number(event.target.value) || 0 },
-          })
-        }
-      >
-        {units.map((unit) => (
-          <option key={unit.id} value={unit.id}>
-            {unit.name}
-          </option>
-        ))}
-      </select>
-      <span className={styles.kg}>
-        {row.kg !== null
-          ? `${formatDecimal(row.kg)} kg${
-              row.density !== null
-                ? ` ≈ ${formatDecimal(row.kg * 1000 * row.density, 0)} kJ`
-                : ''
-            }`
-          : 'keine Umrechnung'}
-      </span>
-      <button
-        type="button"
-        className={styles.iconButton}
-        title="Zeile entfernen"
-        onClick={() => dispatch({ type: 'remove-ingredient', index })}
-      >
-        ✕
-      </button>
-    </div>
-  )
-}
-
-/** One sub-recipe draft row; resolves the sub-recipe's energy density. */
-function SubDraftRow({
-  row,
-  index,
-  dispatch,
-}: {
-  row: DraftSubRecipe
-  index: number
-  dispatch: Dispatch<Action>
-}) {
-  const recipe = useRecipe(row.recipeId)
-  useEffect(() => {
-    const density = recipe.data?.stats?.energy_kj_per_g ?? null
-    if (density !== row.density) {
-      dispatch({ type: 'update-sub', index, patch: { density } })
-    }
-  }, [recipe.data, row.density, index, dispatch])
-
-  return (
-    <div className={styles.editRow}>
-      <Link to={`/recipes/${row.recipeId}`} className={styles.rowName}>
-        {recipe.data?.name ?? `Rezept #${row.recipeId}`}
-      </Link>
-      <input
-        className={`input ${styles.narrow}`}
-        type="number"
-        min="0"
-        step="any"
-        value={row.weight}
-        onChange={(event) =>
-          dispatch({
-            type: 'update-sub',
-            index,
-            patch: { weight: event.target.value },
-          })
-        }
-      />
-      <span className={styles.unitLabel}>kg</span>
-      <button
-        type="button"
-        className={styles.iconButton}
-        title="Zeile entfernen"
-        onClick={() => dispatch({ type: 'remove-sub', index })}
-      >
-        ✕
-      </button>
-    </div>
-  )
-}
-
-// ------------------------------------------------------------- steps step
-
-function StepsStep({
-  draft,
-  dispatch,
-}: {
-  draft: Draft
-  dispatch: Dispatch<Action>
-}) {
-  return (
-    <section className={`card ${styles.card}`}>
-      <h2 className="section-subtitle">Arbeitsschritte</h2>
-      <p className="muted">
-        Zeiten: fix (z. B. 10 min anbraten) oder pro kg (z. B. 25 min/kg
-        kochen). Für die Zeitplanung im Event.
-      </p>
-      {draft.steps.length === 0 && (
-        <p className="muted">Noch keine Schritte — unten hinzufügen.</p>
-      )}
-      {draft.steps.map((row, index) => (
-        <div key={index} className={styles.stepRow}>
-          <div className={styles.stepHeader}>
-            <strong>{index + 1}.</strong>
-            <input
-              className="input"
-              placeholder="z. B. Zwiebeln anschwitzen"
-              value={row.name}
-              onChange={(event) =>
-                dispatch({
-                  type: 'update-step',
-                  index,
-                  patch: { name: event.target.value },
-                })
-              }
-            />
-            <button
-              type="button"
-              className={styles.iconButton}
-              title="Nach oben"
-              disabled={index === 0}
-              onClick={() => dispatch({ type: 'move-step', index, direction: -1 })}
-            >
-              ↑
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              title="Nach unten"
-              disabled={index === draft.steps.length - 1}
-              onClick={() => dispatch({ type: 'move-step', index, direction: 1 })}
-            >
-              ↓
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              title="Schritt entfernen"
-              onClick={() => dispatch({ type: 'remove-step', index })}
-            >
-              ✕
-            </button>
-          </div>
-          <textarea
-            className="input"
-            rows={2}
-            placeholder="Beschreibung"
-            value={row.description}
-            onChange={(event) =>
-              dispatch({
-                type: 'update-step',
-                index,
-                patch: { description: event.target.value },
-              })
-            }
-          />
-          <div className={styles.stepTimes}>
-            <label>
-              fix (min)
-              <input
-                className={`input ${styles.narrow}`}
-                type="number"
-                min="0"
-                step="1"
-                value={row.fixedSeconds > 0 ? row.fixedSeconds / 60 : ''}
-                onChange={(event) =>
-                  dispatch({
-                    type: 'update-step',
-                    index,
-                    patch: {
-                      fixedSeconds: Math.round(
-                        (Number(event.target.value) || 0) * 60,
-                      ),
-                    },
-                  })
-                }
-              />
-            </label>
-            <label>
-              pro kg (min)
-              <input
-                className={`input ${styles.narrow}`}
-                type="number"
-                min="0"
-                step="1"
-                value={row.perKgSeconds > 0 ? row.perKgSeconds / 60 : ''}
-                onChange={(event) =>
-                  dispatch({
-                    type: 'update-step',
-                    index,
-                    patch: {
-                      perKgSeconds: Math.round(
-                        (Number(event.target.value) || 0) * 60,
-                      ),
-                    },
-                  })
-                }
-              />
-            </label>
-          </div>
-        </div>
-      ))}
-      <button
-        type="button"
-        className="btn btn--ghost"
-        onClick={() => dispatch({ type: 'add-step' })}
-      >
-        + Schritt
-      </button>
-    </section>
-  )
-}
-
-// ------------------------------------------------------------ review step
-
-function ReviewStep({
-  draft,
-  stats,
-}: {
-  draft: Draft
-  stats: { weight: number; energy: number; density: number | null }
-}) {
-  const ingredients = useIngredients('')
-  const units = useUnits()
-  const recipes = useRecipes()
-  const unitName = (unitId: number) =>
-    units.data?.find((unit) => unit.id === unitId)?.name ?? '?'
-  const ingredientName = (ingredientId: number) =>
-    ingredients.data?.find((ingredient) => ingredient.id === ingredientId)
-      ?.name ?? `Zutat #${ingredientId}`
-  const recipeName = (recipeId: number) =>
-    recipes.data?.find((recipe) => recipe.id === recipeId)?.name ??
-    `Rezept #${recipeId}`
-
-  return (
-    <section className={`card ${styles.card}`}>
-      <h2 className="section-subtitle">Prüfen</h2>
-      <dl className={styles.reviewGrid}>
-        <dt>Name</dt>
-        <dd>{draft.name || <em className="muted">fehlt</em>}</dd>
-        <dt>Typ</dt>
-        <dd>{draft.kind === 'meal' ? 'Gericht' : 'Komponente'}</dd>
-        <dt>Eingewogen</dt>
-        <dd>{draft.weighedIn ? 'ja' : 'nein'}</dd>
-        <dt>Gewicht</dt>
-        <dd>{formatDecimal(stats.weight)} kg</dd>
-        <dt>Energie</dt>
-        <dd>{formatDecimal(stats.energy, 0)} kJ</dd>
-        <dt>Dichte</dt>
-        <dd>
-          {stats.density !== null
-            ? `${formatDecimal(stats.density, 2)} kJ/g`
-            : '–'}
-        </dd>
-      </dl>
-
-      <div className={styles.reviewList}>
-        <h3 className="section-subtitle">Zutaten</h3>
-        {draft.ingredients.length === 0 ? (
-          <p className="muted">Keine.</p>
-        ) : (
-          <ul>
-            {draft.ingredients.map((row, index) => (
-              <li key={`${row.ingredientId}-${index}`}>
-                {ingredientName(row.ingredientId)}
-                <span className="muted">
-                  {' '}
-                  · {row.amount} {unitName(row.unitId)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className={styles.reviewList}>
-        <h3 className="section-subtitle">Sub-Komponenten</h3>
-        {draft.subRecipes.length === 0 ? (
-          <p className="muted">Keine.</p>
-        ) : (
-          <ul>
-            {draft.subRecipes.map((row, index) => (
-              <li key={`${row.recipeId}-${index}`}>
-                {recipeName(row.recipeId)}
-                <span className="muted"> · {row.weight} kg</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {draft.steps.length > 0 && (
-        <div className={styles.reviewList}>
-          <h3 className="section-subtitle">Arbeitsschritte</h3>
-          <ul>
-            {draft.steps.map((row, index) => (
-              <li key={index}>
-                {row.name || <em className="muted">ohne Namen</em>}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </section>
-  )
-}

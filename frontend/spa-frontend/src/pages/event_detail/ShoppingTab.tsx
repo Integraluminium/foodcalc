@@ -20,6 +20,7 @@ import type { IngredientWithoutTour, TourWithItems } from '../../api/types'
 import { InventorySection } from './InventorySection'
 import { OverridesSection } from './OverridesSection'
 import styles from '../EventDetailPage.module.css'
+import {Drawer} from "../../components/ui/Drawer.tsx";
 
 /** Today as `YYYY-MM-DD` (pure module helper for lint purity). */
 function todayIsoDate(): string {
@@ -394,24 +395,25 @@ function AddTourDialog({
   const busy = mutations.addTour.isPending || mutations.addTourItem.isPending
 
   return (
-    <Dialog
+
+    <Drawer
       title={t('shopping.tourForm.title')}
       onClose={onClose}
-      footer={
-        <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
-            {t('action.cancel')}
-          </button>
-          <button
-            type="submit"
-            form="tour-form"
-            className="btn btn--primary"
-            disabled={!storeId || busy}
-          >
-            {busy ? <Spinner size="sm" /> : t('shopping.tourForm.submit')}
-          </button>
-        </>
-      }
+      // footer={
+      //   <>
+      //     <button type="button" className="btn btn--ghost" onClick={onClose}>
+      //       {t('action.cancel')}
+      //     </button>
+      //     <button
+      //       type="submit"
+      //       form="tour-form"
+      //       className="btn btn--primary"
+      //       disabled={!storeId || busy}
+      //     >
+      //       {busy ? <Spinner size="sm" /> : t('shopping.tourForm.submit')}
+      //     </button>
+      //   </>
+      // }
     >
       <form id="tour-form" onSubmit={handleSubmit}>
         <div className={styles.drawerForm}>
@@ -503,6 +505,6 @@ function AddTourDialog({
           )}
         </div>
       </form>
-    </Dialog>
+    </Drawer>
   )
 }

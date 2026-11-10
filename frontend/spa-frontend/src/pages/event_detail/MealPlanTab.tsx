@@ -48,7 +48,7 @@ export function MealPlanTab({ detail }: { detail: EventDetail }) {
         <button
           type="button"
           className="btn btn--primary"
-          onClick={() => setEditing(null)}
+          onClick={() => setEditing(undefined)}
         >
           {t('plan.addMeal')}
         </button>

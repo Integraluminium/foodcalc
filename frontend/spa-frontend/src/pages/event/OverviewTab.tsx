@@ -41,7 +41,7 @@ export function OverviewTab() {
 
   return (
     <div className={styles.tabSection}>
-      <div className={`card ${styles.dayCard}`}>
+      <div className={`card ${styles.dayCard}`} onClick={() => setEditOpen(true)}>
         <div className={styles.dayHeader}>
           <h3 className="section-subtitle">{t('overview.frame')}</h3>
           <span className="badge badge--neutral">{groupName}</span>
@@ -85,7 +85,14 @@ export function OverviewTab() {
 
         <div className={styles.dayHeader}>
           <h3 className="section-subtitle">{t('overview.linkedInventories')}</h3>
-          <span className="muted">{t('overview.linkedInventoriesHint')}</span>
+          {/*<span className="muted">{t('overview.linkedInventoriesHint')}</span>*/}
+          <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setEditOpen(true)}
+          >
+            {t('action.edit')}
+          </button>
         </div>
         <div className={styles.badges}>
           {(linkedInventories.data ?? []).length === 0 ? (
@@ -110,7 +117,7 @@ export function OverviewTab() {
         </div>
         <div className={styles.exportGrid}>
           <ExportButton
-            className="btn btn--primary"
+            className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/overview`}
             filename={`${detail.event.name}-uebersicht.pdf`}
             title={t('overview.exportOverviewHint')}
@@ -138,40 +145,22 @@ export function OverviewTab() {
         </div>
       </div>
 
-      <div className={`card ${styles.dayCard} ${styles.actionsCard}`}>
-        <div className={styles.dayHeader}>
-          <h3 className="section-subtitle">{t('overview.actions')}</h3>
-        </div>
-        <div className={styles.headerActions}>
-          <button
-            type="button"
-            className="btn btn--primary"
-            title={t('overview.cloneHint')}
-            onClick={() =>
-              mutations.clone.mutate(undefined, {
-                onSuccess: (created) => void navigate(`/events/${created.id}`),
-              })
-            }
-            disabled={mutations.clone.isPending}
-          >
-            {t('overview.clone')}
-          </button>
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={() => setEditOpen(true)}
-          >
-            {t('action.edit')}
-          </button>
-          <button
-            type="button"
-            className="btn btn--danger"
-            onClick={() => setConfirmDelete(true)}
-          >
-            {t('action.delete')}
-          </button>
-        </div>
-      </div>
+      {/*<div className={`card ${styles.dayCard} ${styles.actionsCard}`}>*/}
+      {/*  <div className={styles.dayHeader}>*/}
+      {/*    <h3 className="section-subtitle">{t('overview.actions')}</h3>*/}
+      {/*  </div>*/}
+      {/*  <div className={styles.headerActions}>*/}
+
+      {/*    <button*/}
+      {/*      type="button"*/}
+      {/*      className="btn btn--ghost"*/}
+      {/*      onClick={() => setEditOpen(true)}*/}
+      {/*    >*/}
+      {/*      {t('action.edit')}*/}
+      {/*    </button>*/}
+
+      {/*  </div>*/}
+      {/*</div>*/}
 
       {editOpen && (
         <EditEventDialog
