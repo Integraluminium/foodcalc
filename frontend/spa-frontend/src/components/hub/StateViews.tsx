@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { t } from '../../i18n'
-import { SkeletonTable } from '../ui/Skeleton'
+import { SkeletonTable } from '../../molecules/ui/Skeleton'
 import styles from './StateViews.module.css'
 
 /** Consistent loading / error / empty states for hub lists and sections. */

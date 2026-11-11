@@ -1,8 +1,8 @@
-import { MealPlanTab } from '../event_detail/MealPlanTab'
-import { ShoppingTab } from '../event_detail/ShoppingTab'
-import { TimelineTab } from '../event_detail/TimelineTab'
-import { KalkulationTab } from './KalkulationTab'
-import { useWorkspace } from './workspaceContext'
+import { MealPlanTab } from './meals/MealPlanTab.tsx'
+import { ShoppingTab } from './shopping/ShoppingTab.tsx'
+import { TimelineTab } from './timeline/TimelineTab.tsx'
+import { KalkulationTab } from './calculation/KalkulationTab.tsx'
+import { useWorkspace } from './workspaceContext.ts'
 
 /**
  * Dünne Routen-Wrapper: beziehen den geteilten Workspace-Kontext

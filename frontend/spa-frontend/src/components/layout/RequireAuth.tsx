@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { setUnauthorizedHandler } from '../../api'
 import { useCurrentUser } from '../../hooks/useAuth'
-import { Spinner } from '../ui/Spinner'
+import { Spinner } from '../../molecules/ui/Spinner'
 
 /**
  * Route guard: renders its children only for authenticated users.

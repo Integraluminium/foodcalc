@@ -9,10 +9,10 @@ import {
 } from '../../hooks/queries/useRecipes'
 import { usePermissions } from '../../hooks/usePermissions'
 import { t } from '../../i18n'
-import { ExportButton } from '../ui/ExportButton'
+import { ExportButton } from '../../molecules/ui/ExportButton'
 import { formatDecimal, formatKjPerG, formatMinutes } from '../../lib/format'
-import { ConfirmDialog } from '../ui/ConfirmDialog'
-import { Spinner } from '../ui/Spinner'
+import { ConfirmDialog } from '../../molecules/ui/ConfirmDialog'
+import { Spinner } from '../../molecules/ui/Spinner'
 import styles from './RecipeView.module.css'
 import { RecipeTreeView } from './RecipeTreeView'
 

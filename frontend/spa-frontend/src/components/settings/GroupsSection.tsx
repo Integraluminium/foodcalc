@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Spinner } from '../ui/Spinner'
+import { Spinner } from '../../molecules/ui/Spinner'
 import { usePermissions } from '../../hooks/usePermissions'
 import {
   useGroupAdminMutations,
