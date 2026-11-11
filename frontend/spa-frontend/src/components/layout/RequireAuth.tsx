@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { setUnauthorizedHandler } from '../../api'
-import { useCurrentUser } from '../../hooks/useAuth'
-import { Spinner } from '../../molecules/ui/Spinner'
+import { useCurrentUser } from '../../hooks/useAuth.ts'
+import { Spinner } from '../ui/spinner/Spinner.tsx'
 
 /**
  * Route guard: renders its children only for authenticated users.

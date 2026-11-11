@@ -1,8 +1,8 @@
 import {useMemo, useState} from 'react'
 import type { FormEvent } from 'react'
-import { InventoryDrawer } from '../../components/inventories/InventoryView.tsx'
-import { ErrorState, EmptyState, LoadingState } from '../../components/hub/StateViews.tsx'
-import { Dialog } from '../../molecules/ui/Dialog.tsx'
+import { InventoryDrawer } from './view/InventoryView.tsx'
+import { ErrorState, EmptyState, LoadingState } from '../../components/layout/state_views/StateViews.tsx'
+import { Dialog } from '../../components/ui/dialog/Dialog.tsx'
 import {
   useCreateInventory,
   useInventories,
@@ -12,10 +12,10 @@ import { useActiveGroup } from '../../hooks/useActiveGroup.ts'
 import { useGroups } from '../../hooks/queries/useMasterData.ts'
 import { t } from '../../i18n'
 import styles from './InventoriesPage.module.css'
-import {SegmentedControl} from "../../molecules/ui/SegmentedControl.tsx";
+import {SegmentedControl} from "../../components/ui/segented_control/SegmentedControl.tsx";
 import {formatKjPerG} from "../../lib/format.ts";
-import {Drawer} from "../../molecules/ui/Drawer.tsx";
-import {RecipeView} from "../../components/recipes/RecipeView.tsx";
+import {Drawer} from "../../components/ui/drawer/Drawer.tsx";
+import {RecipeView} from "../recipe/view/RecipeView.tsx";
 import {useRecipes} from "../../hooks/queries/useRecipes.ts";
 import {useNavigate} from "react-router-dom";
 

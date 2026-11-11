@@ -1,5 +1,5 @@
 import { ApiError, api } from '../api'
-import { notify } from '../molecules/ui/toast'
+import { notify } from '../components/ui/toast/toast.ts'
 
 /**
  * Datei-Download mit Session-Cookie und Nutzer-Feedback: Erfolg und

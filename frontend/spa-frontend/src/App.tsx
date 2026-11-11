@@ -5,9 +5,9 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import AppShell from './components/layout/AppShell'
-import RequireAuth from './components/layout/RequireAuth'
-import ActiveGroupProvider from './components/layout/ActiveGroupProvider'
+import AppShell from './components/layout/shell/AppShell.tsx'
+import RequireAuth from './components/layout/RequireAuth.tsx'
+import ActiveGroupProvider from './components/layout/ActiveGroupProvider.tsx'
 import LoginPage from './pages/login/LoginPage.tsx'
 import RegisterPage from './pages/login/RegisterPage.tsx'
 import PlaceholderPage from './pages/PlaceholderPage'
@@ -15,20 +15,20 @@ import EventsPage from './pages/event/EventsPage.tsx'
 import RecipesPage from './pages/recipe/RecipesPage.tsx'
 import SettingsPage from './pages/settings/SettingsPage.tsx'
 import AdminPage from './pages/admin/AdminPage.tsx'
-import RecipeDetailPage from './pages/recipe/RecipeDetailPage.tsx'
-import RecipeWizardPage from './pages/recipe/RecipeWizardPage.tsx'
+import RecipeDetailPage from './pages/recipe/details/RecipeDetailPage.tsx'
+import RecipeWizardPage from './pages/recipe/edit/RecipeWizardPage.tsx'
 import InventoriesPage from './pages/inventory/InventoriesPage.tsx'
 import IngredientsPage from './pages/ingredient/IngredientsPage.tsx'
 import { ApiError } from './api'
-import { notify } from './molecules/ui/toast'
-import EventWorkspace from './pages/event/EventWorkspace'
-import { OverviewTab } from './pages/event/overview/OverviewTab.tsx'
+import { notify } from './components/ui/toast/toast.ts'
+import EventWorkspace from './pages/event/workspace/EventWorkspace.tsx'
+import { OverviewTab } from './pages/event/workspace/overview/OverviewTab.tsx'
 import {
   KalkulationRoute,
   PlanRoute,
   ShoppingRoute,
   TimelineRoute,
-} from './pages/event/tabRoutes.tsx'
+} from './pages/event/workspace/tabRoutes.tsx'
 
 /**
  * Unerwartete Fehler (5xx, Netzwerk, nicht-ApiError-Würfe) laufen app-weit

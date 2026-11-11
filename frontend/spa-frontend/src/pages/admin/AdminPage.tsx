@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { ConfirmDialog } from '../../molecules/ui/ConfirmDialog.tsx'
-import { SegmentedControl } from '../../molecules/ui/SegmentedControl.tsx'
-import { GroupsSection } from '../../components/settings/GroupsSection.tsx'
-import { Spinner } from '../../molecules/ui/Spinner.tsx'
+import { ConfirmDialog } from '../../components/ui/dialog/ConfirmDialog.tsx'
+import { SegmentedControl } from '../../components/ui/segented_control/SegmentedControl.tsx'
+import { GroupsSection } from '../../components/patterns/settings/GroupsSection.tsx'
+import { Spinner } from '../../components/ui/spinner/Spinner.tsx'
 import { usePermissions } from '../../hooks/usePermissions.ts'
 import {
   useUserAdminMutations,
