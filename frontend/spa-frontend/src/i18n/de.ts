@@ -13,6 +13,7 @@ export const STRINGS = {
   'nav.recipes': 'Rezepte',
   'nav.events': 'Events',
   'nav.inventories': 'Inventare',
+    'nav.documents': 'allg. Dokumente',
   'shell.activeGroup': 'Aktive Gruppe',
   'shell.activeGroupHint': 'Steuert Besitz und Sichtbarkeit',
   'shell.userMenu': 'Benutzermenü',

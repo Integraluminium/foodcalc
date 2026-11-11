@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
 import type { EventDetail } from '../../api/types'
-import { Spinner } from '../../components/ui/Spinner'
+import { Spinner } from '../../molecules/ui/Spinner'
 import { useEvent, useEventMutations } from '../../hooks/queries/useEvents'
 import { formatDateRange, formatDecimal, toNumber } from '../../lib/format'
 import { t } from '../../i18n'

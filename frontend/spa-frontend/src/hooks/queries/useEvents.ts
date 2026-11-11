@@ -7,7 +7,7 @@ import {
 } from '../../api/endpoints/events'
 import { queryKeys } from '../../api/queryKeys'
 import type { ShoppingList } from '../../api/types'
-import { notify } from '../../components/ui/toast'
+import { notify } from '../../molecules/ui/toast'
 
 const EVENTS_ROOT = ['events'] as const
 

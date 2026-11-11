@@ -29,7 +29,7 @@ otherwise debug builds auto-login the `test` user on localhost.
   (fetch, session cookie, error mapping, PDF downloads). REST API changes
   only touch this file, `src/api/types.ts` and `src/api/endpoints/*`.
 - `src/hooks/*` — TanStack Query hooks (queries, mutations, invalidation).
-- `src/components/ui/*` — shared primitives; app shell in `components/layout`.
+- `src/molecules/ui` — shared primitives; app shell in `components/layout`.
 - `src/pages/*` — route-level screens (React Router).
 - `src/styles/tokens.css` — all design tokens; per-component CSS modules.
 
@@ -171,7 +171,7 @@ bereits angewandt.
   persistiert und gegen `GET /api/auth/me` validiert. Kontext-Provider:
   `components/layout/ActiveGroupProvider.tsx`, Consumer-Hook:
   `hooks/useActiveGroup.ts` (Fallback auf erste Gruppe).
-- **Event-Hub**: Gruppen-Filter (`src/pages/EventsPage.tsx`) — Standard ist
+- **Event-Hub**: Gruppen-Filter (`src/pages/event/EventsPage.tsx`) — Standard ist
   die aktive Gruppe, „Alle Gruppen" explizit wählbar; neue Spalte „Gruppe".
 - **Create-Dialoge vorbefüllt** mit der aktiven Gruppe: Event, Zutat,
   Inventar und Rezept-Wizard (Neuanlage).

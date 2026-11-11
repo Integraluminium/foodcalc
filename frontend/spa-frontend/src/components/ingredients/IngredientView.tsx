@@ -12,9 +12,9 @@ import {
 } from '../../hooks/queries/useMasterData'
 import { usePermissions } from '../../hooks/usePermissions'
 import { formatDecimal, toNumber } from '../../lib/format'
-import { ConfirmDialog } from '../ui/ConfirmDialog'
-import { Drawer } from '../ui/Drawer'
-import { Spinner } from '../ui/Spinner'
+import { ConfirmDialog } from '../../molecules/ui/ConfirmDialog'
+import { Drawer } from '../../molecules/ui/Drawer'
+import { Spinner } from '../../molecules/ui/Spinner'
 import styles from './IngredientView.module.css'
 
 export type IngredientMutations = ReturnType<typeof useIngredientMutations>

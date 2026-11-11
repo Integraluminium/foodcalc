@@ -5,7 +5,7 @@ import {useActiveGroup} from '../../hooks/useActiveGroup'
 import {t} from '../../i18n'
 import {BoxIcon, BrandIcon, CalendarIcon, IngredientsIcon, RecipeIcon,} from './icons'
 import {UserMenu} from './UserMenu'
-import {Toasts} from '../ui/Toast'
+import {Toasts} from '../../molecules/ui/Toast'
 import styles from './AppShell.module.css'
 
 const COLLAPSE_KEY = 'foodcalc.sidebarCollapsed'
@@ -24,6 +24,7 @@ const NAV_ITEMS = [
     {to: '/recipes', labelKey: 'nav.recipes', Icon: RecipeIcon},
     {to: '/events', labelKey: 'nav.events', Icon: CalendarIcon},
     {to: '/inventories', labelKey: 'nav.inventories', Icon: BoxIcon},
+    {to: '/static/documents', labelKey: 'nav.documents', Icon: BoxIcon},
 ] as const
 
 export default function AppShell() {
