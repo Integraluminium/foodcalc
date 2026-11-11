@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { IngredientDrawer } from '../../components/ingredients/IngredientView.tsx'
-import { ErrorState, EmptyState, LoadingState } from '../../components/hub/StateViews.tsx'
-import { Dialog } from '../../molecules/ui/Dialog.tsx'
+import { IngredientDrawer } from './view/IngredientView.tsx'
+import { ErrorState, EmptyState, LoadingState } from '../../components/layout/state_views/StateViews.tsx'
+import { Dialog } from '../../components/ui/dialog/Dialog.tsx'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.ts'
 import {
   useCreateIngredient,

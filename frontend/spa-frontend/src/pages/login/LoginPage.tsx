@@ -1,8 +1,8 @@
 import type { FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../api'
-import { Spinner } from '../../molecules/ui/Spinner.tsx'
-import { BrandIcon } from '../../components/layout/icons.tsx'
+import { Spinner } from '../../components/ui/spinner/Spinner.tsx'
+import { BrandIcon } from '../../components/ui/icons/icons.tsx'
 import { useCurrentUser, useLogin } from '../../hooks/useAuth.ts'
 import styles from './LoginPage.module.css'
 
