@@ -1,5 +1,5 @@
-import { api } from '../client'
-import type { Inventory, InventoryItemWithName } from '../types'
+import {api} from '../client'
+import type {Inventory, InventoryItemWithName} from '../types'
 
 export interface InventoryCreateInput {
   name: string
@@ -20,6 +20,8 @@ export const inventoriesApi = {
   update: (id: number, input: Partial<InventoryCreateInput>) =>
     api.put<Inventory>(`/inventories/${id}`, input),
   remove: (id: number) => api.delete<void>(`/inventories/${id}`),
+  setOwner: (id: number, groupId: number) =>
+    api.put<void>(`/inventories/${id}/owner`, { group_id: groupId }),
 
   addItem: (id: number, input: InventoryItemInput) =>
     api.post<InventoryItemWithName>(`/inventories/${id}/items`, input),

@@ -1,4 +1,5 @@
-import { useCurrentUser } from './useAuth'
+import type {GroupRole} from "../api";
+import {useCurrentUser} from './useAuth'
 
 /**
  * Client-side permission mirror of the backend model: `is_admin` grants
@@ -11,14 +12,25 @@ export function usePermissions() {
   const isAdmin = user?.is_admin ?? false
   const groupIds = user?.groups.map((group) => group.id) ?? []
 
+  /**
+   * Get the role of the user in a specific group.
+   * Admin users are considered to have the 'manager' role in all groups.
+   * @param groupId
+   */
+  const roleOf = (groupId: number): GroupRole | undefined => {
+    if (isAdmin) return 'manager'
+    return user?.groups.find((group) => group.id === groupId)?.role
+  }
+
   return {
     isAdmin,
     groupIds,
+    roleOf,
     /** Can the user manage (own) resources of this group? */
     canEditGroup: (groupId: number) =>
-      isAdmin || groupIds.includes(groupId),
+      isAdmin || roleOf(groupId) === 'viewer',
     /** Can the user manage group membership / delete the group? */
-    canManageGroup: (groupId: number, isPersonal = false) =>
-      !isPersonal && (isAdmin || groupIds.includes(groupId)),
+    canManageGroup: (groupId: number) => isAdmin || roleOf(groupId) === 'manager',
+
   }
 }

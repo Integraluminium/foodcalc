@@ -1,4 +1,4 @@
-import { api } from '../client'
+import {api} from '../client'
 import type {
   Event,
   EventDetail,
@@ -63,6 +63,9 @@ export const eventsApi = {
   remove: (id: number) => api.delete<void>(`/events/${id}`),
   clone: (id: number) => api.post<{ id: number }>(`/events/${id}/clone`, {}),
 
+  /** Explicit ownership transfer (Besitz-Übertragung). */
+  setOwner: (id: number, groupId: number) =>
+    api.put<void>(`/events/${id}/owner`, { group_id: groupId }),
   meals: (eventId: number) => api.get<PlannerMeal[]>(`/events/${eventId}/meals`),
   addMeal: (eventId: number, input: MealAddInput) =>
     api.post<{ meal_id: number }>(`/events/${eventId}/meals`, input),

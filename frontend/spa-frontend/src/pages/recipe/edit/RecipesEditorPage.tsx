@@ -186,7 +186,7 @@ function draftFromDetail(detail: RecipeDetail): Draft {
     }
 }
 
-export default function RecipeWizardPage() {
+export default function RecipesEditorPage() {
     const params = useParams()
     const editId = Number(params.recipeId)
     const isEdit = Number.isFinite(editId) && editId > 0

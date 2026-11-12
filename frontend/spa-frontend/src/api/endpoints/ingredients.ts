@@ -1,4 +1,4 @@
-import { api, buildQuery } from '../client'
+import {api, buildQuery} from '../client'
 import type {
   Ingredient,
   IngredientDetail,
@@ -37,6 +37,8 @@ export const ingredientsApi = {
     },
   ) => api.put<Ingredient>(`/ingredients/${id}`, input),
   remove: (id: number) => api.delete<void>(`/ingredients/${id}`),
+  setOwner: (id: number, groupId: number) =>
+    api.put<void>(`/ingredients/${id}/owner`, { group_id: groupId }),
   addSource: (id: number, input: IngredientSourceInput) =>
     api.post<IngredientSource>(`/ingredients/${id}/sources`, input),
   updateSource: (id: number, sourceId: number, input: IngredientSourceInput) =>

@@ -1,34 +1,25 @@
-import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import AppShell from './components/layout/shell/AppShell.tsx'
-import RequireAuth from './components/layout/RequireAuth.tsx'
+import {MutationCache, QueryCache, QueryClient, QueryClientProvider,} from '@tanstack/react-query'
+import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom'
+import {ApiError} from './api'
 import ActiveGroupProvider from './components/layout/ActiveGroupProvider.tsx'
+import RequireAuth from './components/layout/RequireAuth.tsx'
+import AppShell from './components/layout/shell/AppShell.tsx'
+import {notify} from './components/ui/toast/toast.ts'
+import AdminPage from './pages/admin/AdminPage.tsx'
+import DocumentsPage from "./pages/documents/DocumentsPage.tsx";
+import EventsPage from './pages/event/EventsPage.tsx'
+import EventWorkspace from './pages/event/workspace/EventWorkspace.tsx'
+import {OverviewTab} from './pages/event/workspace/overview/OverviewTab.tsx'
+import {KalkulationRoute, PlanRoute, ShoppingRoute, TimelineRoute,} from './pages/event/workspace/tabRoutes.tsx'
+import IngredientsPage from './pages/ingredient/IngredientsPage.tsx'
+import InventoriesPage from './pages/inventory/InventoriesPage.tsx'
 import LoginPage from './pages/login/LoginPage.tsx'
 import RegisterPage from './pages/login/RegisterPage.tsx'
 import PlaceholderPage from './pages/PlaceholderPage'
-import EventsPage from './pages/event/EventsPage.tsx'
+import RecipeDetailPage from './pages/recipe/details/RecipeDetailPage.tsx'
+import RecipesEditorPage from './pages/recipe/edit/RecipesEditorPage.tsx'
 import RecipesPage from './pages/recipe/RecipesPage.tsx'
 import SettingsPage from './pages/settings/SettingsPage.tsx'
-import AdminPage from './pages/admin/AdminPage.tsx'
-import RecipeDetailPage from './pages/recipe/details/RecipeDetailPage.tsx'
-import RecipeWizardPage from './pages/recipe/edit/RecipeWizardPage.tsx'
-import InventoriesPage from './pages/inventory/InventoriesPage.tsx'
-import IngredientsPage from './pages/ingredient/IngredientsPage.tsx'
-import { ApiError } from './api'
-import { notify } from './components/ui/toast/toast.ts'
-import EventWorkspace from './pages/event/workspace/EventWorkspace.tsx'
-import { OverviewTab } from './pages/event/workspace/overview/OverviewTab.tsx'
-import {
-  KalkulationRoute,
-  PlanRoute,
-  ShoppingRoute,
-  TimelineRoute,
-} from './pages/event/workspace/tabRoutes.tsx'
 
 /**
  * Unerwartete Fehler (5xx, Netzwerk, nicht-ApiError-Würfe) laufen app-weit
@@ -91,56 +82,24 @@ export default function App() {
             }
           >
             <Route path="/" element={<Navigate to="/events" replace />} />
-            <Route
-              path="/recipes"
-              element={<RecipesPage />}
-            />
-            <Route
-              path="/recipes/new"
-              element={<RecipeWizardPage />}
-            />
-            <Route
-              path="/recipes/:recipeId"
-              element={<RecipeDetailPage />}
-            />
-            <Route
-              path="/recipes/:recipeId/edit"
-              element={<RecipeWizardPage />}
-            />
-            <Route
-              path="/ingredients"
-              element={<IngredientsPage />}
-            />
-            <Route
-              path="/events"
-              element={<EventsPage />}
-            />
-            <Route
-              path="/events/:eventId"
-              element={<EventWorkspace />}
-            >
+            <Route path="/recipes" element={<RecipesPage />}/>
+            <Route path="/recipes/new" element={<RecipesEditorPage />}/>
+            <Route path="/recipes/:recipeId" element={<RecipeDetailPage />}/>
+            <Route path="/recipes/:recipeId/edit" element={<RecipesEditorPage />}/>
+            <Route path="/ingredients" element={<IngredientsPage />}/>
+            <Route path="/events" element={<EventsPage />}/>
+            <Route path="/events/:eventId" element={<EventWorkspace />}>
               <Route index element={<OverviewTab />} />
               <Route path="plan" element={<PlanRoute />} />
               <Route path="shopping" element={<ShoppingRoute />} />
               <Route path="kalkulation" element={<KalkulationRoute />} />
               <Route path="timeline" element={<TimelineRoute />} />
             </Route>
-            <Route
-              path="/settings"
-              element={<SettingsPage />}
-            />
-            <Route
-              path="/account"
-              element={<Navigate to="/settings" replace />}
-            />
-            <Route
-              path="/admin"
-              element={<AdminPage />}
-            />
-            <Route
-              path="/inventories"
-              element={<InventoriesPage />}
-            />
+            <Route path="/settings" element={<SettingsPage />}/>
+            <Route path="/account" element={<Navigate to="/settings" replace />}/>
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/inventories" element={<InventoriesPage />}/>
+            <Route path="/static/Documents" element={<DocumentsPage />} />
             <Route
               path="*"
               element={

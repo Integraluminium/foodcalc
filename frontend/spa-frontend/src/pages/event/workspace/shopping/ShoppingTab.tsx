@@ -5,8 +5,10 @@ import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
 import {SegmentedControl} from '../../../../components/patterns/segmented_control/SegmentedControl.tsx'
 import {SkeletonCards} from "../../../../components/patterns/skeleton/Skeleton.tsx";
 import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
-import {useEventMutations, useShoppingList,} from '../../../../hooks/queries/useEvents.ts'
+import {Spinner} from "../../../../components/ui/spinner/Spinner.tsx";
+import {useEvent, useEventMutations, useShoppingList,} from '../../../../hooks/queries/useEvents.ts'
 import {useStores} from '../../../../hooks/queries/useMasterData.ts'
+import {usePermissions} from "../../../../hooks/usePermissions.ts";
 import {t} from '../../../../i18n'
 import {dateInputToRfc3339, formatDayLabel, formatDecimal,} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
@@ -25,7 +27,10 @@ export function ShoppingTab({eventId}: { eventId: number }) {
   const stores = useStores()
   const [tourDialogOpen, setTourDialogOpen] = useState(false)
   const [prefillStore, setPrefillStore] = useState<number | null>(null)
-
+  const detail = useEvent(eventId)
+  const editable = usePermissions().canEditGroup(
+    detail.data?.event.group_id ?? 0,
+  )
   const today = todayIsoDate()
 
   return (
@@ -39,16 +44,18 @@ export function ShoppingTab({eventId}: { eventId: number }) {
             })
             : t('shopping.loading')}
         </span>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => {
-            setPrefillStore(null)
-            setTourDialogOpen(true)
-          }}
-        >
-          {t('shopping.addTour')}
-        </button>
+        {editable && (
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => {
+              setPrefillStore(null)
+              setTourDialogOpen(true)
+            }}
+          >
+            {t('shopping.addTour')}
+          </button>
+        )}
       </div>
 
       {shopping.isPending ? (
@@ -73,6 +80,7 @@ export function ShoppingTab({eventId}: { eventId: number }) {
               key={tour.id}
               tour={tour}
               uncovered={shopping.data.without_tour}
+              editable={editable}
               onRemove={() => mutations.removeTour.mutate(tour.id)}
             />
           ))}
@@ -149,10 +157,12 @@ function TourCard({
                     tour,
                     uncovered,
                     onRemove,
+                    editable
                   }: {
   tour: TourWithItems
   uncovered: IngredientWithoutTour[]
   onRemove: () => void
+  editable: boolean
 }) {
   const mutations = useEventMutations(tour.event_id)
   const [addItem, setAddItem] = useState(0)
@@ -186,30 +196,34 @@ function TourCard({
           >
             ⤓
           </ExportButton>
-          <button
-            type="button"
-            className={styles.iconButton}
-            title={
-              completed ? t('shopping.reopen') : t('shopping.markCompleted')
-            }
-            onClick={() =>
-              mutations.setTourCompleted.mutate({
-                tourId: tour.id,
-                completed: !completed,
-              })
-            }
-          >
-            {completed ? '🔓' : '✓'}
-          </button>
-          <button
-            type="button"
-            className={styles.iconButton}
-            title={t('shopping.removeTour')}
-            onClick={onRemove}
-            disabled={completed}
-          >
-            🗑
-          </button>
+          {editable && (
+            <button
+              type="button"
+              className={styles.iconButton}
+              title={
+                completed ? t('shopping.reopen') : t('shopping.markCompleted')
+              }
+              onClick={() =>
+                mutations.setTourCompleted.mutate({
+                  tourId: tour.id,
+                  completed: !completed,
+                })
+              }
+            >
+              {completed ? '🔓' : '✓'}
+            </button>
+          )}
+          {editable && !completed && (
+            <button
+              type="button"
+              className={styles.iconButton}
+              title={t('shopping.removeTour')}
+              onClick={onRemove}
+              disabled={completed}
+            >
+              🗑
+            </button>
+          )}
         </div>
       </div>
       {tour.items.length === 0 ? (
@@ -222,7 +236,7 @@ function TourCard({
             <th>{t('shopping.col.ingredient')}</th>
             <th className="num">{t('shopping.col.amount')}</th>
             <th className="num">{t('shopping.col.price')}</th>
-            {!completed && <th/>}
+            {editable && !completed && <th/>}
           </tr>
           </thead>
           <tbody>
@@ -234,7 +248,7 @@ function TourCard({
               <td className="num">
                 {item.price === null ? '–' : `${formatDecimal(item.price)} €`}
               </td>
-              {!completed && (
+              {editable && !completed && (
                 <td className={styles.rowActions}>
                   <button
                     type="button"
@@ -256,7 +270,7 @@ function TourCard({
           </tbody>
         </table>
       )}
-      {!completed && (
+      {editable && !completed && (
         <div className={styles.tabToolbar}>
           <select
             className="input"
@@ -390,21 +404,21 @@ function AddTourDialog({
     <Drawer
       title={t('shopping.tourForm.title')}
       onClose={onClose}
-      // footer={
-      //   <>
-      //     <button type="button" className="btn btn--ghost" onClick={onClose}>
-      //       {t('action.cancel')}
-      //     </button>
-      //     <button
-      //       type="submit"
-      //       form="tour-form"
-      //       className="btn btn--primary"
-      //       disabled={!storeId || busy}
-      //     >
-      //       {busy ? <Spinner size="sm" /> : t('shopping.tourForm.submit')}
-      //     </button>
-      //   </>
-      // }
+      footer={
+        <>
+          <button type="button" className="btn btn--ghost" onClick={onClose}>
+            {t('action.cancel')}
+          </button>
+          <button
+            type="submit"
+            form="tour-form"
+            className="btn btn--primary"
+            disabled={!storeId || busy}
+          >
+            {busy ? <Spinner size="sm" /> : t('shopping.tourForm.submit')}
+          </button>
+        </>
+      }
     >
       <form id="tour-form" onSubmit={handleSubmit}>
         <div className={styles.drawerForm}>

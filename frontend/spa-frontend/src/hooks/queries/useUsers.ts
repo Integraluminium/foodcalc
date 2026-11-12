@@ -1,10 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { groupsApi, usersApi } from '../../api'
-import { queryKeys } from '../../api/queryKeys'
-import type {
-  PasswordChangeInput,
-  UserUpdateInput,
-} from '../../api/types'
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
+import {groupsApi, usersApi} from '../../api'
+import {queryKeys} from '../../api/queryKeys'
+import type {PasswordChangeInput, UserUpdateInput,} from '../../api/types'
 
 const USERS_ROOT = ['users'] as const
 const GROUPS_ROOT = ['groups'] as const
@@ -85,5 +82,11 @@ export function useGroupAdminMutations() {
     onSuccess: invalidate,
   })
 
-  return { createGroup, removeGroup, addMember, removeMember }
+  const setMemberRole = useMutation({
+    mutationFn: (args: { groupId: number; userId: number; role: string }) =>
+      groupsApi.setMemberRole(args.groupId, args.userId, args.role),
+    onSuccess: invalidate,
+  })
+
+  return { createGroup, removeGroup, addMember, removeMember, setMemberRole }
 }

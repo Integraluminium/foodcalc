@@ -1,12 +1,5 @@
-import { api } from '../client'
-import type {
-  AdminUser,
-  AdminUserWithGroups,
-  Group,
-  GroupMember,
-  PasswordChangeInput,
-  UserUpdateInput,
-} from '../types'
+import {api} from '../client'
+import type {AdminUser, AdminUserWithGroups, Group, GroupMember, PasswordChangeInput, UserUpdateInput,} from '../types'
 
 /** User management (admin) and group management (admin or group members). */
 export const usersApi = {
@@ -31,4 +24,6 @@ export const groupsApi = {
     api.post<GroupMember>(`/groups/${id}/members`, { user }),
   removeMember: (groupId: number, userId: number) =>
     api.delete<void>(`/groups/${groupId}/members/${userId}`),
+  setMemberRole: (groupId: number, userId: number, role: string) =>
+    api.put<void>(`/groups/${groupId}/members/${userId}`, { role }),
 }
