@@ -18,8 +18,8 @@ export interface IngredientSourceInput {
 }
 
 export const ingredientsApi = {
-  list: (search?: string) =>
-    api.get<IngredientWithSources[]>(`/ingredients${buildQuery({ search })}`),
+  list: (params?: { search?: string; property_id?: number }) =>
+    api.get<IngredientWithSources[]>(`/ingredients${buildQuery(params ?? {})}`),
   detail: (id: number) => api.get<IngredientDetail>(`/ingredients/${id}`),
   create: (input: {
     name: string

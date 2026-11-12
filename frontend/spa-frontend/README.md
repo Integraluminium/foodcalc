@@ -463,3 +463,18 @@ PDF-Export-Fehlermeldung, Speiseplan-Bearbeitung (P5), weiter bis P8.
 
 The built SPA is served by the axum server under `/app/` (phase 5 of the
 migration plan); until then the old UI remains untouched at `/`.
+
+## Konventionen (spa-frontend)
+
+- **Platzierung:** page-local (`pages/<domäne>/…`) → bei Nutzung in ≥2 Domänen
+  Promotion nach `components/patterns/`, zustandslose Primitive nach
+  `components/ui/`, App-Chrome nach `components/layout/`.
+- **Bewusste Entfernungen** werden als `// REMOVED-BY-DESIGN: <Grund>` markiert
+  und nicht wieder eingebaut (z. B. kein Gruppen-Switcher in der Sidebar —
+  Gruppen entstehen bei Erstellung/Besitz-Übertragung).
+- **Rechte:** `usePermissions` ist die einzige Client-Entscheidungsstelle;
+  `isAdmin` gate't nur `/admin` + Selbstzuweisung, keine Ressourcenrechte.
+  Default-Owner beim Erstellen ist die persönliche Gruppe; Übertragung explizit.
+- **i18n:** UI-Texte ausschließlich über `t('bereich.zweck')`; neue Keys zuerst
+  in `i18n/de.ts`, dann `i18n/en.ts` (Kern-Namespaces übersetzt, Rest erbt DE —
+  TODO-Marker im File). Top-Level-Parity wird per `_EN_PARITY` build-geprüft.

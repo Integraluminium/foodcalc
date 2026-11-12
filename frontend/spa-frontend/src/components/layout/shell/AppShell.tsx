@@ -1,7 +1,5 @@
-import type {ChangeEvent} from 'react'
 import {useState} from 'react'
 import {NavLink, Outlet, useLocation} from 'react-router-dom'
-import {useActiveGroup} from '../../../hooks/useActiveGroup.ts'
 import {t} from '../../../i18n'
 import {BoxIcon, BrandIcon, CalendarIcon, IngredientsIcon, RecipeIcon,} from '../../ui/icons/icons.tsx'
 import {UserMenu} from '../user_menu/UserMenu.tsx'
@@ -29,7 +27,6 @@ const NAV_ITEMS = [
 
 export default function AppShell() {
     const location = useLocation()
-    const {groups, activeGroupId, setActiveGroupId} = useActiveGroup()
 
     // Einklappen manuell (Pfeil-Button, persistiert) oder automatisch im
     // Event-Workspace — die manuelle Wahl überschreibt den Workspace-Default.
@@ -49,10 +46,9 @@ export default function AppShell() {
         }
     }
 
-    const handleGroupChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        const raw = event.target.value
-        setActiveGroupId(raw === '' ? null : Number(raw))
-    }
+    // REMOVED-BY-DESIGN: Kein Gruppen-Switcher in der Seitenleiste — Gruppen
+    // tauchen bewusst nur bei Erstellung/Bearbeitung auf (Owner-Gruppe wählen,
+    // Besitz übertragen). Nicht wieder einbauen.
 
     return (
         <div className={`${styles.shell} ${collapsed ? styles.workspace : ''}`}>

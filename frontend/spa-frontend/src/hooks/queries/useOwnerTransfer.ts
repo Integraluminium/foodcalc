@@ -1,6 +1,7 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query'
 import {eventsApi, ingredientsApi, inventoriesApi, recipesApi,} from '../../api'
-import {notify} from '../../molecules/ui/toast'
+import {notify} from "../../components/ui/toast/toast.ts";
+
 
 /** Resource domains that support ownership transfer. */
 export type OwnerKind = 'recipes' | 'ingredients' | 'inventories' | 'events'

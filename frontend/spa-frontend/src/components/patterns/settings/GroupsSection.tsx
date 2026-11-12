@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import type { GroupRole } from '../../../api/types.ts'
 import { Spinner } from '../../ui/spinner/Spinner.tsx'
 import { usePermissions } from '../../../hooks/usePermissions.ts'
+import { t } from '../../../i18n'
 import {
   useGroupAdminMutations,
   useGroupMembers,
@@ -16,7 +18,7 @@ import styles from './GroupsSection.module.css'
  * create and delete groups.
  */
 export function GroupsSection() {
-  const { isAdmin, groupIds } = usePermissions()
+  const { isAdmin, canManageGroup } = usePermissions()
   const groups = useGroups()
   const { createGroup, removeGroup } = useGroupAdminMutations()
   const [newName, setNewName] = useState('')
@@ -38,7 +40,7 @@ export function GroupsSection() {
         >
           <input
             className="input"
-            placeholder="Neuer Gruppenname…"
+            placeholder={t('rights.createPlaceholder')}
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
           />
@@ -47,7 +49,7 @@ export function GroupsSection() {
             className="btn btn--primary"
             disabled={!newName.trim() || createGroup.isPending}
           >
-            + Gruppe anlegen
+            {t('rights.createButton')}
           </button>
         </form>
       )}
@@ -56,7 +58,7 @@ export function GroupsSection() {
         <Spinner />
       ) : groups.isError ? (
         <p className="secondary">
-          Gruppen konnten nicht geladen werden: {String(groups.error)}
+          {t('rights.loadError', { error: String(groups.error) })}
         </p>
       ) : (
         groups.data
@@ -66,11 +68,11 @@ export function GroupsSection() {
               key={group.id}
               groupId={group.id}
               name={group.name}
-              canManage={isAdmin || groupIds.includes(group.id)}
+              canManage={canManageGroup(group.id)}
               onRemove={() => {
                 if (
                   window.confirm(
-                    `Gruppe „${group.name}" löschen? Nur möglich, wenn sie keine Ressourcen mehr besitzt.`,
+                    t('rights.deleteGroupConfirm', { name: group.name }),
                   )
                 ) {
                   removeGroup.mutate(group.id)
@@ -79,9 +81,14 @@ export function GroupsSection() {
             />
           ))
       )}
+      <div className={styles.legend}>
+        <h3 className="section-subtitle">{t('rights.legendTitle')}</h3>
+        <p>{t('rights.legendViewer')}</p>
+        <p>{t('rights.legendEditor')}</p>
+        <p>{t('rights.legendManager')}</p>
+      </div>
       <p className="muted">
-        Persönliche Gruppen gehören immer genau einem Benutzer und werden mit
-        dem Konto verwaltet.
+        {t('rights.personalNote')}
       </p>
     </div>
   )
@@ -100,7 +107,7 @@ function GroupCard({
 }) {
   const [expanded, setExpanded] = useState(false)
   const members = useGroupMembers(expanded ? groupId : 0)
-  const { addMember, removeMember } = useGroupAdminMutations()
+  const { addMember, removeMember, setMemberRole } = useGroupAdminMutations()
   const [newMember, setNewMember] = useState('')
 
   const handleAdd = (event: FormEvent<HTMLFormElement>) => {
@@ -127,7 +134,7 @@ function GroupCard({
             <button
               type="button"
               className={styles.iconButton}
-              title="Gruppe löschen"
+              title={t('rights.deleteGroup')}
               onClick={onRemove}
             >
               🗑
@@ -141,7 +148,7 @@ function GroupCard({
           <Spinner size="sm" />
         ) : members.isError ? (
           <p className="secondary">
-            Mitglieder konnten nicht geladen werden: {String(members.error)}
+            {t('rights.membersLoadError', { error: String(members.error) })}
           </p>
         ) : (
           <>
@@ -155,11 +162,34 @@ function GroupCard({
                       <span className={styles.adminTag}> admin</span>
                     )}
                   </span>
+                  {canManage ? (
+                    <select
+                      className={`input ${styles.roleSelect}`}
+                      value={member.role}
+                      disabled={setMemberRole.isPending}
+                      title={t('rights.roleLabel')}
+                      onChange={(event) =>
+                        setMemberRole.mutate({
+                          groupId,
+                          userId: member.id,
+                          role: event.target.value as GroupRole,
+                        })
+                      }
+                    >
+                      <option value="viewer">{t('roles.viewer')}</option>
+                      <option value="editor">{t('roles.editor')}</option>
+                      <option value="manager">{t('roles.manager')}</option>
+                    </select>
+                  ) : (
+                    <span className="badge badge--neutral">
+                      {t(`roles.${member.role}`)}
+                    </span>
+                  )}
                   {canManage && (
                     <button
                       type="button"
                       className={styles.iconButton}
-                      title="Aus Gruppe entfernen"
+                      title={t('rights.removeMember')}
                       onClick={() => removeMember.mutate({ groupId, userId: member.id })}
                     >
                       ✕
@@ -168,14 +198,21 @@ function GroupCard({
                 </li>
               ))}
               {members.data.length === 0 && (
-                <li className="muted">Noch keine Mitglieder.</li>
+                <li className="muted">{t('rights.noMembers')}</li>
               )}
             </ul>
+            {setMemberRole.isError && (
+              <p className="secondary">
+                {setMemberRole.error instanceof Error
+                  ? setMemberRole.error.message
+                  : t('state.error')}
+              </p>
+            )}
             {canManage && (
               <form className={styles.addMemberRow} onSubmit={handleAdd}>
                 <input
                   className="input"
-                  placeholder="Benutzername oder E-Mail…"
+                  placeholder={t('rights.addMemberPlaceholder')}
                   value={newMember}
                   onChange={(event) => setNewMember(event.target.value)}
                 />
@@ -184,7 +221,7 @@ function GroupCard({
                   className="btn btn--ghost"
                   disabled={!newMember.trim() || addMember.isPending}
                 >
-                  + Hinzufügen
+                  {t('rights.addMemberButton')}
                 </button>
               </form>
             )}

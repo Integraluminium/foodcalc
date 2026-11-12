@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react'
 import {t} from '../../../i18n'
-import {EmptyState, ErrorState} from '../../layout/state_views/StateViews'
+import {EmptyState, ErrorState} from '../state_views/StateViews'
 import {SkeletonTable} from '../skeleton/Skeleton'
 import styles from './DataTable.module.css'
 

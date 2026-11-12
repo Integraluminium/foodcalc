@@ -26,19 +26,6 @@
   max-width: 340px;
 }
 
-.panel {
-  overflow: hidden;
-}
-
-.row {
-  cursor: pointer;
-}
-
-.kindBadge {
-  font-size: var(--text-xs);
-}
-
-.empty {
-  padding: var(--space-6);
-  text-align: center;
+.comment {
+  font-size: var(--text-sm);
 }

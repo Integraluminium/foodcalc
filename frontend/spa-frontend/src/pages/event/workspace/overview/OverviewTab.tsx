@@ -1,14 +1,16 @@
 import {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
+import {BudgetBar} from '../../../../components/patterns/budget_bar/BudgetBar.tsx'
 import {ConfirmDialog} from '../../../../components/patterns/dialog/ConfirmDialog.tsx'
 import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
 import {useEventInventories} from '../../../../hooks/queries/useEvents.ts'
 import {useGroups} from '../../../../hooks/queries/useMasterData.ts'
 import {t} from '../../../../i18n'
 import {formatDateRange, formatDecimal, toNumber} from '../../../../lib/format.ts'
+import {eventAggregates} from '../../../../lib/eventAggregation.ts'
 import styles from '../EventDetailPage.module.css'
 import {useWorkspace} from '../workspaceContext.ts'
-import {EditEventDrawer} from './EditEventDrawer.tsx'
+import {EventFormDrawer} from '../../EventFormDrawer.tsx'
 
 /**
  * Übersicht-Tab (Mockup „Event overview Editing"): Rahmen des Events mit
@@ -28,16 +30,8 @@ export function OverviewTab() {
     groups.data?.find((group) => group.id === detail.event.group_id)?.name ??
     t('overview.groupFallback', { id: detail.event.group_id })
 
-  const portions = detail.meals.reduce((sum, meal) => sum + meal.servings, 0)
-  const weight = detail.meals.reduce(
-    (sum, meal) => sum + (toNumber(meal.weight) ?? 0),
-    0,
-  )
-  const cost = toNumber(detail.total_cost) ?? 0
+  const aggregates = eventAggregates(detail.meals, detail.total_cost)
   const budget = toNumber(detail.event.budget)
-  const share =
-    budget !== null && budget > 0 ? Math.min((cost / budget) * 100, 100) : null
-  const over = budget !== null && cost > budget
 
   return (
     <div className={styles.tabSection}>
@@ -57,23 +51,12 @@ export function OverviewTab() {
           <dt>{t('overview.meals')}</dt>
           <dd>{detail.meals.length}</dd>
           <dt>{t('overview.portions')}</dt>
-          <dd>{portions}</dd>
+          <dd>{aggregates.portions}</dd>
           <dt>{t('overview.cookingAmount')}</dt>
-          <dd>{formatDecimal(weight)} kg</dd>
+          <dd>{formatDecimal(aggregates.weightKg)} kg</dd>
           <dt>{t('overview.cost')}</dt>
           <dd>
-            <span className={over ? styles.over : ''}>
-              {formatDecimal(cost)} €
-              {budget !== null && ` / ${formatDecimal(budget)} €`}
-            </span>
-            {share !== null && (
-              <div className={styles.budgetBar}>
-                <div
-                  className={`${styles.budgetFill} ${over ? styles.budgetOver : ''}`}
-                  style={{ width: `${share}%` }}
-                />
-              </div>
-            )}
+            <BudgetBar cost={aggregates.cost} budget={budget} />
           </dd>
           {detail.event.comment && (
             <>
@@ -145,29 +128,8 @@ export function OverviewTab() {
         </div>
       </div>
 
-      {/*<div className={`card ${styles.dayCard} ${styles.actionsCard}`}>*/}
-      {/*  <div className={styles.dayHeader}>*/}
-      {/*    <h3 className="section-subtitle">{t('overview.actions')}</h3>*/}
-      {/*  </div>*/}
-      {/*  <div className={styles.headerActions}>*/}
-
-      {/*    <button*/}
-      {/*      type="button"*/}
-      {/*      className="btn btn--ghost"*/}
-      {/*      onClick={() => setEditOpen(true)}*/}
-      {/*    >*/}
-      {/*      {t('action.edit')}*/}
-      {/*    </button>*/}
-
-      {/*  </div>*/}
-      {/*</div>*/}
-
       {editOpen && (
-        <EditEventDrawer
-          eventId={detail.event.id}
-          event={detail.event}
-          onClose={() => setEditOpen(false)}
-        />
+        <EventFormDrawer event={detail.event} onClose={() => setEditOpen(false)}/>
       )}
       {confirmDelete && (
         <ConfirmDialog

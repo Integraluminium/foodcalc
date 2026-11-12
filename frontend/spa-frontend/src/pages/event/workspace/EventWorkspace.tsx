@@ -1,8 +1,10 @@
 import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
 import type { EventDetail } from '../../../api/types.ts'
+import { BudgetBar } from '../../../components/patterns/budget_bar/BudgetBar.tsx'
 import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
 import { useEvent, useEventMutations } from '../../../hooks/queries/useEvents.ts'
-import { formatDateRange, formatDecimal, toNumber } from '../../../lib/format.ts'
+import { formatDateRange, toNumber } from '../../../lib/format.ts'
+import { eventAggregates } from '../../../lib/eventAggregation.ts'
 import { t } from '../../../i18n'
 import type { StringKey } from '../../../i18n'
 import type { WorkspaceContext } from './workspaceContext.ts'
@@ -61,11 +63,8 @@ function WorkspaceShell({ detail }: { detail: EventDetail }) {
   const mutations = useEventMutations(detail.event.id)
   const eventId = detail.event.id
 
-  const cost = toNumber(detail.total_cost) ?? 0
+  const aggregates = eventAggregates(detail.meals, detail.total_cost)
   const budget = toNumber(detail.event.budget)
-  const share =
-    budget !== null && budget > 0 ? Math.min((cost / budget) * 100, 100) : null
-  const over = budget !== null && cost > budget
 
   const context: WorkspaceContext = { eventId, detail, mutations }
 
@@ -90,18 +89,7 @@ function WorkspaceShell({ detail }: { detail: EventDetail }) {
           </div>
         </div>
         <div className={styles.budgetRow}>
-          <span className={over ? styles.over : ''}>
-            {formatDecimal(cost)} €
-            {budget !== null && ` / ${formatDecimal(budget)} €`}
-          </span>
-          {share !== null && (
-            <div className={styles.budgetBar}>
-              <div
-                className={`${styles.budgetFill} ${over ? styles.budgetOver : ''}`}
-                style={{ width: `${share}%` }}
-              />
-            </div>
-          )}
+          <BudgetBar cost={aggregates.cost} budget={budget} />
         </div>
       </div>
 

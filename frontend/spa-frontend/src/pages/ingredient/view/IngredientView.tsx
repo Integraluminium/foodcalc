@@ -4,8 +4,6 @@ import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.t
 import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredient, useIngredientMutations,} from '../../../hooks/queries/useIngredients.ts'
-import {useGroups,} from '../../../hooks/queries/useMasterData.ts'
-import {usePermissions} from '../../../hooks/usePermissions.ts'
 import PlaceholderPage from "../../PlaceholderPage.tsx";
 
 
@@ -46,9 +44,6 @@ function IngredientEditor({
   onClose: () => void
 }) {
   const mutations = useIngredientMutations(detail.ingredient.id)
-  const groups = useGroups()
-  const { canEditGroup } = usePermissions()
-  const editable = canEditGroup(detail.ingredient.group_id)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   return (

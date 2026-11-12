@@ -1,236 +1,185 @@
 import type {FormEvent} from 'react'
 import {useMemo, useState} from 'react'
-import {InventoryDrawer} from './view/InventoryView.tsx'
-import {EmptyState, ErrorState, LoadingState} from '../../components/layout/state_views/StateViews.tsx'
-import {useCreateInventory, useInventories,} from '../../hooks/queries/useInventories.ts'
+import type {Inventory} from '../../api/types.ts'
+import {Drawer} from '../../components/patterns/drawer/Drawer.tsx'
+import {GroupFilterSelect} from '../../components/patterns/group_filter/GroupFilterSelect.tsx'
+import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
+import {useCreateInventory, useInventories} from '../../hooks/queries/useInventories.ts'
 import {useCurrentUser} from '../../hooks/useAuth.ts'
-import {useActiveGroup} from '../../hooks/useActiveGroup.ts'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
+import {useOwnerFilter} from '../../hooks/useOwnerFilter.ts'
 import {t} from '../../i18n'
 import styles from './InventoriesPage.module.css'
-import { Drawer } from '../../components/patterns/drawer/Drawer.tsx'
-import {useNavigate} from "react-router-dom";
-
-
-type OwnerFilter = number | 'all' | null
+import {InventoryDrawer} from './view/InventoryView.tsx'
 
 /**
- *
- * Inventar-Hub: Karten mit Besitzer-Gruppe; Inspektion/Abgleich im
- * geteilten `InventoryDrawer` (Master-Detail).
+ * Inventar-Hub (UI_Spec §3.2): Data-Grid mit Besitzer-Gruppe; Inspektion und
+ * Bestands-Abgleich („Reconciliation Mode“) im geteilten `InventoryDrawer`
+ * (Master-Detail).
  */
 export default function InventoriesPage() {
-  useNavigate();
-  const inventories = useInventories()
-  const { data: user } = useCurrentUser()
-  const { activeGroupId, groups: userGroups } = useActiveGroup()
-  const groups = useGroups()
-  const [createOpen, setCreateOpen] = useState(false)
-  const [openId, setOpenId] = useState<number | null>(null)
+    const inventories = useInventories()
+    const {data: user} = useCurrentUser()
+    const userGroups = user?.groups ?? []
+    const personalGroupId =
+        user?.groups.find((group) => group.is_personal)?.id ??
+        user?.groups[0]?.id ??
+        0
+    const groups = useGroups()
+    const {ownerFilter, setOwnerFilter, matches} = useOwnerFilter()
+    const [search, setSearch] = useState('')
+    const [createOpen, setCreateOpen] = useState(false)
+    const [openId, setOpenId] = useState<number | null>(null)
 
-  const [ownerOverride, setOwnerOverride] = useState<OwnerFilter>(null)
-  const ownerFilter: OwnerFilter = ownerOverride ?? activeGroupId ?? 'all'
-  const [search, setSearch] = useState('')
+    const filtered = useMemo(
+        () =>
+            (inventories.data ?? [])
+                .filter(matches)
+                .filter((inventory) =>
+                    inventory.name.toLowerCase().includes(search.trim().toLowerCase()),
+                ),
+        [inventories.data, matches, search],
+    )
 
+    const groupNameOf = (groupId: number) =>
+        groups.data?.find((group) => group.id === groupId)?.name ??
+        t('overview.groupFallback', {id: groupId})
 
-  const filtered = useMemo(
-      () =>
-          (inventories.data ?? []).filter(
-              (recipe) =>
-                  ownerFilter === 'all' || recipe.group_id === ownerFilter,
-          ),
-      [inventories.data, ownerFilter],
-  )
+    const columns: DataTableColumn<Inventory>[] = [
+        {key: 'name', label: 'Name', render: (inventory) => inventory.name},
+        {
+            key: 'owner',
+            label: 'Besitzer',
+            className: 'secondary',
+            render: (inventory) => groupNameOf(inventory.group_id),
+        },
+    ]
 
-  return (
-      <div className={styles.page}>
-        <div className={styles.header}>
-          <h1 className="section-title">{t('nav.recipes')}</h1>
-          <button
-              type="button"
-              className="btn btn--primary"
-              onClick={() => setCreateOpen(true)}
-          >
-            + Neues Inventar
-          </button>
-        </div>
+    const emptyMessage =
+        inventories.data && inventories.data.length > 0
+            ? 'Keine Inventare für diesen Filter.'
+            : 'Keine Inventare gefunden. Lege das erste über „Neues Inventar“ an.'
 
-        <div className={styles.controls}>
-          <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>
-            <select
-                className={`input ${styles.ownerFilter}`}
-                value={ownerFilter === 'all' ? 'all' : String(ownerFilter)}
-                onChange={(event) => {
-                  const raw = event.target.value
-                  setOwnerOverride(raw === 'all' ? 'all' : Number(raw))
-                }}
-                aria-label="Nach Besitzer-Gruppe filtern"
-            >
-              <option value="all">Alle Gruppen</option>
-              {userGroups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                    {group.is_personal ? ' (persönlich)' : ''}
-                  </option>
-              ))}
-            </select>
+    return (
+        <div className={styles.page}>
+            <div className={styles.header}>
+                <h1 className="section-title">{t('nav.inventories')}</h1>
+                <button
+                    type="button"
+                    className="btn btn--primary"
+                    onClick={() => setCreateOpen(true)}
+                >
+                    + Neues Inventar
+                </button>
+            </div>
 
+            <div className={styles.controls}>
+                <GroupFilterSelect
+                    groups={userGroups}
+                    value={ownerFilter}
+                    onChange={setOwnerFilter}
+                />
+                <input
+                    className={`input ${styles.search}`}
+                    placeholder="Inventare durchsuchen…"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                />
+            </div>
 
-          </div>
+            <DataTable
+                columns={columns}
+                rows={filtered}
+                getRowKey={(inventory) => inventory.id}
+                onRowClick={(inventory) => setOpenId(inventory.id)}
+                isPending={inventories.isPending}
+                isError={inventories.isError}
+                error={inventories.error}
+                errorNoun="Inventare"
+                emptyMessage={emptyMessage}
+                withChevron
+            />
 
-          <input
-              className={`input ${styles.search}`}
-              placeholder="Rezepte durchsuchen…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-
-        <div className={`card ${styles.panel}`}>
-          {inventories.isPending ? (
-              <LoadingState/>
-          ) : inventories.isError ? (
-              <ErrorState
-                  message={`Rezepte konnten nicht geladen werden: ${String(inventories.error)}`}
-              />
-          ) : filtered.length === 0 ? (
-              <EmptyState
-                  message={
-                    inventories.data && inventories.data.length > 0
-                        ? 'Keine Rezepte für diesen Filter.'
-                        : 'Keine Rezepte gefunden. Lege das erste über „Neues Rezept“ an.'
-                  }
-              />
-          ) : (
-              <table className="table">
-                <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Typ</th>
-                  <th>Kommentar</th>
-                  <th>Besitzer</th>
-                  <th className="num">Energie</th>
-                  <th/>
-                </tr>
-                </thead>
-                <tbody>
-                {filtered.map((inventory) => (
-                    <tr
-                        key={inventory.id}
-                        className={styles.row}
-                        // onClick={() => setDrawerRecipe(inventory)}
-                    >
-                      <td>{inventory.name}</td>
-                      <td>
-                    <span
-                        className={`badge badge--success`}
-                    >
-                    </span>
-                      </td>
-                      <td className="num muted">›</td>
-                    </tr>
-                ))}
-                </tbody>
-              </table>
-          )}
-        </div>
-
-             {openId !== null && (
-               <InventoryDrawer inventoryId={openId} onClose={() => setOpenId(null)} />
+            {openId !== null && (
+                <InventoryDrawer inventoryId={openId} onClose={() => setOpenId(null)}/>
             )}
 
-
-
-        {createOpen && user && (
-                 <CreateInventoryDialog
-                   defaultGroupId={activeGroupId ?? userGroups[0]?.id ?? 0}
-                   onClose={() => setCreateOpen(false)}
-                 />
-               )}
-      </div>
-  )
+            {createOpen && user && (
+                <CreateInventoryDialog
+                    defaultGroupId={personalGroupId}
+                    onClose={() => setCreateOpen(false)}
+                />
+            )}
+        </div>
+    )
 }
 
 function CreateInventoryDialog({
-  defaultGroupId,
-  onClose,
+    defaultGroupId,
+    onClose,
 }: {
-  defaultGroupId: number
-  onClose: () => void
+    defaultGroupId: number
+    onClose: () => void
 }) {
-  const groups = useGroups()
-  const create = useCreateInventory()
+    const groups = useGroups()
+    const create = useCreateInventory()
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    create.mutate(
-      {
-        name: String(data.get('name') ?? '').trim(),
-        group_id:
-          Number(data.get('group_id') ?? defaultGroupId) || defaultGroupId,
-      },
-      { onSuccess: onClose },
-    )
-  }
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        const data = new FormData(event.currentTarget)
+        create.mutate(
+            {
+                name: String(data.get('name') ?? '').trim(),
+                group_id:
+                    Number(data.get('group_id') ?? defaultGroupId) || defaultGroupId,
+            },
+            {onSuccess: onClose},
+        )
+    }
 
-  return (
-    <Drawer
-      title="Neues Inventar"
-      onClose={onClose}
-      // footer={
-      //   <>
-      //     <button type="button" className="btn btn--ghost" onClick={onClose}>
-      //       Abbrechen
-      //     </button>
-      //     <button
-      //       type="submit"
-      //       form="create-inventory-form"
-      //       className="btn btn--primary"
-      //       disabled={create.isPending}
-      //     >
-      //       {create.isPending ? 'Anlegen…' : 'Anlegen'}
-      //     </button>
-      //   </>
-      // }
-    >
-      <form id="create-inventory-form" onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label className="field">
-            Name
-            <input className="input" name="name" required autoFocus />
-          </label>
-          <label className="field">
-            Owner-Gruppe
-            <select
-              className="input"
-              name="group_id"
-              defaultValue={defaultGroupId}
-            >
-              {(groups.data ?? []).map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                  {group.is_personal ? ' (persönlich)' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </form>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-        <button type="button" className="btn btn--ghost" onClick={onClose}>
-          Abbrechen
-        </button>
-        <button
-            type="submit"
-            form="create-inventory-form"
-            className="btn btn--primary"
-            disabled={create.isPending}
+    return (
+        <Drawer
+            title="Neues Inventar"
+            onClose={onClose}
+            footer={
+                <>
+                    <button type="button" className="btn btn--ghost" onClick={onClose}>
+                        Abbrechen
+                    </button>
+                    <button
+                        type="submit"
+                        form="create-inventory-form"
+                        className="btn btn--primary"
+                        disabled={create.isPending}
+                    >
+                        {create.isPending ? 'Anlegen…' : 'Anlegen'}
+                    </button>
+                </>
+            }
         >
-          {create.isPending ? 'Anlegen…' : 'Anlegen'}
-        </button>
-      </div>
-    </Drawer>
-  )
+            <form id="create-inventory-form" onSubmit={handleSubmit}>
+                <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+                    <label className="field">
+                        Name
+                        <input className="input" name="name" required autoFocus/>
+                    </label>
+                    <label className="field">
+                        Owner-Gruppe
+                        <select
+                            className="input"
+                            name="group_id"
+                            defaultValue={defaultGroupId}
+                        >
+                            {(groups.data ?? []).map((group) => (
+                                <option key={group.id} value={group.id}>
+                                    {group.name}
+                                    {group.is_personal ? ' (persönlich)' : ''}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+            </form>
+        </Drawer>
+    )
 }

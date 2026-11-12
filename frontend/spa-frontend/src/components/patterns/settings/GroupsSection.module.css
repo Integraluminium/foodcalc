@@ -87,3 +87,23 @@
 .addMemberRow .input {
   flex: 1;
 }
+
+/* Rollen-Auswahl in der Mitgliederzeile: kompakt, rechtsbündig. */
+.roleSelect {
+  width: auto;
+  min-width: 7.5rem;
+  padding: 4px 8px;
+  font-size: var(--text-sm);
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.legend p {
+  margin: 0;
+}

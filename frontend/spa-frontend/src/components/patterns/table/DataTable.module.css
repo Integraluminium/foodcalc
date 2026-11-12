@@ -1,0 +1,11 @@
+.panel {
+  overflow: hidden;
+}
+
+.row {
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--bg-elevated);
+}

@@ -1,10 +1,10 @@
 import type {FormEvent} from 'react'
 import {useState} from 'react'
-import {EmptyState, ErrorState, LoadingState} from '../../components/layout/state_views/StateViews.tsx'
+import {EmptyState, ErrorState, LoadingState} from '../../components/patterns/state_views/StateViews.tsx'
 import {Dialog} from "../../components/patterns/dialog/Dialog.tsx";
 import {useCreateIngredient, useIngredients,} from '../../hooks/queries/useIngredients.ts'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
-import {useActiveGroup} from '../../hooks/useActiveGroup.ts'
+import {useCurrentUser} from '../../hooks/useAuth.ts'
 import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
 import {t} from '../../i18n'
 import {formatDecimal} from '../../lib/format.ts'
@@ -18,15 +18,14 @@ import {IngredientDrawer} from './view/IngredientView.tsx'
 export default function IngredientsPage() {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
-  const ingredients = useIngredients(debouncedSearch || undefined)
-  const { activeGroupId, groups: userGroups } = useActiveGroup()
-  const groups = useGroups()
+  const ingredients = useIngredients({ search: debouncedSearch || undefined })
+  const { data: user } = useCurrentUser()
+  const personalGroupId =
+    user?.groups.find((group) => group.is_personal)?.id ??
+    user?.groups[0]?.id ??
+    0
   const [createOpen, setCreateOpen] = useState(false)
   const [openId, setOpenId] = useState<number | null>(null)
-
-  const groupName = (groupId: number) =>
-    groups.data?.find((group) => group.id === groupId)?.name ??
-    `Gruppe ${groupId}`
 
   return (
     <div className={styles.page}>
@@ -92,7 +91,7 @@ export default function IngredientsPage() {
 
       {createOpen && (
         <CreateIngredientDialog
-          defaultGroupId={activeGroupId ?? userGroups[0]?.id ?? 0}
+          defaultGroupId={personalGroupId}
           onClose={() => setCreateOpen(false)}
         />
       )}

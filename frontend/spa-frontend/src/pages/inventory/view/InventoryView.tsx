@@ -6,9 +6,11 @@ import {useIngredients} from '../../../hooks/queries/useIngredients.ts'
 import {usePermissions} from '../../../hooks/usePermissions.ts'
 import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
 import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
 import {SegmentedControl} from '../../../components/patterns/segmented_control/SegmentedControl.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {t} from '../../../i18n'
 import styles from './InventoryView.module.css'
 
 export type InventoryMutations = ReturnType<typeof useInventoryMutations>
@@ -59,11 +61,12 @@ function InventoryContent({
 }) {
   const items = useInventoryItems(inventory.id)
   const mutations = useInventoryMutations(inventory.id)
-  const ingredients = useIngredients('')
-  const { canEditGroup } = usePermissions()
+  const ingredients = useIngredients()
+  const { canEditGroup, canManageGroup } = usePermissions()
   const editable = canEditGroup(inventory.group_id)
   const [mode, setMode] = useState<ItemMode>('edit')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [transferOpen, setTransferOpen] = useState(false)
 
   const addItem = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -168,6 +171,15 @@ function InventoryContent({
         </form>
       )}
 
+      {canManageGroup(inventory.group_id) && (
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => setTransferOpen(true)}
+        >
+          {t('transfer.button')}
+        </button>
+      )}
       {editable && (
         <button
           type="button"
@@ -176,6 +188,14 @@ function InventoryContent({
         >
           Inventar löschen
         </button>
+      )}
+      {transferOpen && (
+        <OwnerTransferDialog
+          kind="inventories"
+          id={inventory.id}
+          currentGroupId={inventory.group_id}
+          onClose={() => setTransferOpen(false)}
+        />
       )}
       {confirmDelete && (
         <ConfirmDialog

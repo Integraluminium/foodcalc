@@ -369,34 +369,3 @@ export interface InventoryItemWithName {
   amount: Decimal
   name: string
 }
-
-export interface FoodPrepWithRecipe {
-  id: number
-  event_id: number
-  recipe_id: number
-  /** RFC 3339 timestamp. */
-  prep_date: string
-  use_from: string | null
-  use_until: string
-  recipe_name: string
-}
-
-export interface EventInventoryCoverage {
-  ingredient_id: number
-  ingredient_name: string
-  demand_kg: Decimal
-  covered_kg: Decimal
-}
-
-export interface Inventory {
-  id: number
-  name: string
-  group_id: number
-}
-
-export interface InventoryItemWithName {
-  inventory_id: number
-  ingredient_id: number
-  amount: Decimal
-  name: string
-}

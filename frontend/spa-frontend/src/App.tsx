@@ -1,7 +1,6 @@
 import {MutationCache, QueryCache, QueryClient, QueryClientProvider,} from '@tanstack/react-query'
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom'
 import {ApiError} from './api'
-import ActiveGroupProvider from './components/layout/ActiveGroupProvider.tsx'
 import RequireAuth from './components/layout/RequireAuth.tsx'
 import AppShell from './components/layout/shell/AppShell.tsx'
 import {notify} from './components/ui/toast/toast.ts'
@@ -17,7 +16,7 @@ import LoginPage from './pages/login/LoginPage.tsx'
 import RegisterPage from './pages/login/RegisterPage.tsx'
 import PlaceholderPage from './pages/PlaceholderPage'
 import RecipeDetailPage from './pages/recipe/details/RecipeDetailPage.tsx'
-import RecipesEditorPage from './pages/recipe/edit/RecipesEditorPage.tsx'
+import { RecipeEditRedirect } from './pages/recipe/details/RecipeDetailPage.tsx'
 import RecipesPage from './pages/recipe/RecipesPage.tsx'
 import SettingsPage from './pages/settings/SettingsPage.tsx'
 
@@ -75,17 +74,15 @@ export default function App() {
           <Route
             element={
               <RequireAuth>
-                <ActiveGroupProvider>
-                  <AppShell />
-                </ActiveGroupProvider>
+                <AppShell />
               </RequireAuth>
             }
           >
             <Route path="/" element={<Navigate to="/events" replace />} />
             <Route path="/recipes" element={<RecipesPage />}/>
-            <Route path="/recipes/new" element={<RecipesEditorPage />}/>
+            <Route path="/recipes/new" element={<RecipeDetailPage />}/>
             <Route path="/recipes/:recipeId" element={<RecipeDetailPage />}/>
-            <Route path="/recipes/:recipeId/edit" element={<RecipesEditorPage />}/>
+            <Route path="/recipes/:recipeId/edit" element={<RecipeEditRedirect />}/>
             <Route path="/ingredients" element={<IngredientsPage />}/>
             <Route path="/events" element={<EventsPage />}/>
             <Route path="/events/:eventId" element={<EventWorkspace />}>

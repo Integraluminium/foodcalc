@@ -1,7 +1,7 @@
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {groupsApi, usersApi} from '../../api'
 import {queryKeys} from '../../api/queryKeys'
-import type {PasswordChangeInput, UserUpdateInput,} from '../../api/types'
+import type {GroupRole, PasswordChangeInput, UserUpdateInput,} from '../../api/types'
 
 const USERS_ROOT = ['users'] as const
 const GROUPS_ROOT = ['groups'] as const
@@ -89,4 +89,23 @@ export function useGroupAdminMutations() {
   })
 
   return { createGroup, removeGroup, addMember, removeMember, setMemberRole }
+}
+
+/**
+ * Admin self-grant (`PUT /api/admin/me/groups`): der Admin trägt sich selbst
+ * mit einer Rolle in eine Gruppe ein; danach gilt für ihn das normale ACS.
+ */
+export function useAdminSelfGrant() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (args: { groupId: number; role: GroupRole }) =>
+      groupsApi.selfGrant(args.groupId, args.role),
+    onSuccess: () => {
+      // Die eigene Mitgliedschaft steckt in /auth/me — dort und in den
+      // Gruppen-Caches nachziehen.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.master.groups })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.groups.list })
+    },
+  })
 }

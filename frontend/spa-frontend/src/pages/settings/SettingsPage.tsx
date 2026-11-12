@@ -6,6 +6,7 @@ import {GroupsSection} from '../../components/patterns/settings/GroupsSection.ts
 import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useUserAdminMutations} from '../../hooks/queries/useUsers.ts'
 import {useCurrentUser} from '../../hooks/useAuth.ts'
+import {t} from '../../i18n'
 import styles from './SettingsPage.module.css'
 
 type Tab = 'account' | 'groups'
@@ -64,6 +65,33 @@ function AccountPanel() {
             {user.is_admin ? 'Administrator' : 'Mitglied'}
           </span>
         </div>
+      </div>
+
+      <div className={`card ${styles.card}`}>
+        <h2 className="section-subtitle">{t('rights.myGroups')}</h2>
+        <p className="muted">{t('rights.myGroupsHint')}</p>
+        <ul className={styles.meta}>
+          {user.groups.map((group) => (
+            <li key={group.id} className={styles.field}>
+              <strong>{group.name}</strong>
+              {group.is_personal && (
+                <span className="muted"> · {t('rights.rolePersonal')}</span>
+              )}
+              <span
+                className={`badge ${
+                  group.role === 'manager'
+                    ? 'badge--success'
+                    : group.role === 'editor'
+                      ? 'badge--info'
+                      : 'badge--neutral'
+                }`}
+              >
+                {t(`roles.${group.role ?? 'viewer'}`)}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="muted">{t('rights.roleLegend')}</p>
       </div>
 
       <div className={`card ${styles.card}`}>

@@ -2,6 +2,7 @@ import {useState} from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 import type {RecipeDetail} from '../../../api'
 import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
 import {RecipeTreeView} from '../../../components/patterns/tree_view/RecipeTreeView.tsx'
 import {ExportButton} from '../../../components/ui/button/ExportButton.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
@@ -10,6 +11,9 @@ import {useRecipe, useRecipeMutations, useRecipeTree,} from '../../../hooks/quer
 import {usePermissions} from '../../../hooks/usePermissions.ts'
 import {t} from '../../../i18n'
 import {formatDecimal, formatKjPerG, formatMinutes} from '../../../lib/format.ts'
+import {RecipeIngredientsDrawer} from '../drawers/RecipeIngredientsDrawer.tsx'
+import {RecipeMetaDrawer} from '../drawers/RecipeMetaDrawer.tsx'
+import {RecipeStepsDrawer} from '../drawers/RecipeStepsDrawer.tsx'
 import styles from './RecipeView.module.css'
 
 export type RecipeViewVariant = 'overlay' | 'page'
@@ -68,8 +72,10 @@ function RecipeViewContent({
   const groups = useGroups()
   const tree = useRecipeTree(recipe.id)
   const mutations = useRecipeMutations(recipe.id)
-  const { canEditGroup } = usePermissions()
+  const { canEditGroup, canManageGroup } = usePermissions()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [transferOpen, setTransferOpen] = useState(false)
+  const [drawer, setDrawer] = useState<'meta' | 'ingredients' | 'steps' | null>(null)
 
   const editable = canEditGroup(recipe.group_id)
   const groupName =
@@ -122,13 +128,22 @@ function RecipeViewContent({
           >
             {t('recipe.pdf')}
           </ExportButton>
+          {canManageGroup(recipe.group_id) && (
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setTransferOpen(true)}
+            >
+              {t('transfer.button')}
+            </button>
+          )}
           {editable && (
             <button
               type="button"
               className="btn btn--ghost"
-              onClick={() => void navigate(`/recipes/${recipe.id}/edit`)}
+              onClick={() => setDrawer('meta')}
             >
-              {t('action.edit')}
+              {t('editor.drawer.triggerMeta')}
             </button>
           )}
           {editable && (
@@ -206,6 +221,15 @@ function RecipeViewContent({
         ) : (
           <RecipeTreeView root={tree.data} />
         )}
+        {editable && (
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => setDrawer('ingredients')}
+          >
+            {t('editor.drawer.triggerIngredients')}
+          </button>
+        )}
       </section>
 
       <section className={`card ${styles.section}`}>
@@ -234,6 +258,15 @@ function RecipeViewContent({
             ))}
           </div>
         )}
+        {editable && (
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => setDrawer('steps')}
+          >
+            {t('editor.drawer.triggerSteps')}
+          </button>
+        )}
       </section>
 
       {recipe.properties.length > 0 && (
@@ -249,6 +282,14 @@ function RecipeViewContent({
         </section>
       )}
 
+      {transferOpen && (
+        <OwnerTransferDialog
+          kind="recipes"
+          id={recipe.id}
+          currentGroupId={recipe.group_id}
+          onClose={() => setTransferOpen(false)}
+        />
+      )}
       {confirmDelete && (
         <ConfirmDialog
           title={t('recipe.deleteTitle')}
@@ -265,6 +306,19 @@ function RecipeViewContent({
           onCancel={() => setConfirmDelete(false)}
           pending={mutations.remove.isPending}
         />
+      )}
+
+      {drawer === 'meta' && (
+        <RecipeMetaDrawer recipe={recipe} onClose={() => setDrawer(null)} />
+      )}
+      {drawer === 'ingredients' && (
+        <RecipeIngredientsDrawer
+          recipeId={recipe.id}
+          onClose={() => setDrawer(null)}
+        />
+      )}
+      {drawer === 'steps' && (
+        <RecipeStepsDrawer recipeId={recipe.id} onClose={() => setDrawer(null)} />
       )}
     </div>
   )

@@ -1,12 +1,16 @@
 import { useState } from 'react'
+import type { GroupRole } from '../../api/types.ts'
 import { ConfirmDialog } from '../../components/patterns/dialog/ConfirmDialog.tsx'
 import { GroupsSection } from '../../components/patterns/settings/GroupsSection.tsx'
 import { Spinner } from '../../components/ui/spinner/Spinner.tsx'
 import { usePermissions } from '../../hooks/usePermissions.ts'
 import {
+  useAdminSelfGrant,
   useUserAdminMutations,
   useUsers,
 } from '../../hooks/queries/useUsers.ts'
+import { useGroups } from '../../hooks/queries/useMasterData.ts'
+import { t } from '../../i18n'
 import styles from './AdminPage.module.css'
 import { SegmentedControl } from '../../components/patterns/segmented_control/SegmentedControl.tsx'
 
@@ -174,5 +178,71 @@ function UsersPanel() {
 
 
 function GroupsPanel() {
-  return <GroupsSection />
+  return (
+    <>
+      <SelfGrantCard />
+      <GroupsSection />
+    </>
+  )
+}
+
+/**
+ * Admin-Selbstzuweisung (`PUT /api/admin/me/groups`): Admins halten sich an
+ * die Gruppenrollen — sie treten einer Gruppe bei, statt sie global zu
+ * übergehen, und handeln danach mit genau dieser Rolle.
+ */
+function SelfGrantCard() {
+  const groups = useGroups()
+  const [groupId, setGroupId] = useState<number | ''>('')
+  const [role, setRole] = useState<GroupRole>('editor')
+  const selfGrant = useAdminSelfGrant()
+
+  const submit = () => {
+    if (typeof groupId !== 'number') return
+    selfGrant.mutate({ groupId, role })
+  }
+
+  return (
+    <div className={`card ${styles.panel}`}>
+      <h2 className="section-subtitle">{t('admin.selfGrantTitle')}</h2>
+      <p className="muted">{t('admin.selfGrantHint')}</p>
+      <div className={styles.toolbar}>
+        <select
+          className="input"
+          value={groupId}
+          onChange={(event) =>
+            setGroupId(event.target.value === '' ? '' : Number(event.target.value))
+          }
+        >
+          <option value="">{t('transfer.chooseGroup')}</option>
+          {(groups.data ?? []).map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.name}
+              {group.is_personal ? ' (persönlich)' : ''}
+            </option>
+          ))}
+        </select>
+        <select
+          className="input"
+          value={role}
+          onChange={(event) => setRole(event.target.value as GroupRole)}
+        >
+          <option value="viewer">{t('roles.viewer')}</option>
+          <option value="editor">{t('roles.editor')}</option>
+          <option value="manager">{t('roles.manager')}</option>
+        </select>
+        <button
+          type="button"
+          className="btn btn--primary"
+          disabled={typeof groupId !== 'number' || selfGrant.isPending}
+          onClick={submit}
+        >
+          {t('admin.selfGrantButton')}
+        </button>
+      </div>
+      {selfGrant.isSuccess && (
+        <p className="muted">{t('admin.selfGrantDone')}</p>
+      )}
+    </div>
+  )
 }

@@ -58,26 +58,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.budgetBar {
-  flex: 1;
-  max-width: 320px;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-
-.budgetFill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 4px;
-}
-
-.budgetOver {
-  background: var(--danger);
-}
-
 .over {
   color: var(--danger);
   font-weight: 600;

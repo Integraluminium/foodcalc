@@ -1,41 +1,96 @@
-import type {FormEvent} from 'react'
 import {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import type {EventListItem} from '../../api'
-import {Drawer} from '../../components/patterns/drawer/Drawer.tsx'
-import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
-import {useCreateEvent, useEvents} from '../../hooks/queries/useEvents.ts'
+import {EventFormDrawer} from './EventFormDrawer.tsx'
+import {GroupFilterSelect} from '../../components/patterns/group_filter/GroupFilterSelect.tsx'
+import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
+import {useEvents} from '../../hooks/queries/useEvents.ts'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
-import {useActiveGroup} from '../../hooks/useActiveGroup.ts'
+import {useCurrentUser} from '../../hooks/useAuth.ts'
+import {useOwnerFilter} from '../../hooks/useOwnerFilter.ts'
 import {t} from '../../i18n'
 import {formatDateRange, formatDecimal, toNumber} from '../../lib/format.ts'
 import styles from './EventsPage.module.css'
 
-/** Group filter: a concrete group id, or `'all'` for every group. */
-type GroupFilter = number | 'all'
-
+/**
+ * Event-Hub (UI_Spec §3.2): Data-Grid mit Budget-Kennzahl, Klick öffnet den
+ * Workspace (UI_Spec §3.4); Anlegen über den Formular-Drawer.
+ */
 export default function EventsPage() {
+  const navigate = useNavigate()
   const events = useEvents()
-  const { data: groups } = useGroups()
-  const { activeGroupId, groups: userGroups } = useActiveGroup()
+  const {data: groups} = useGroups()
+  const {data: user} = useCurrentUser()
+  const userGroups = user?.groups ?? []
+  const {ownerFilter, setOwnerFilter, matches} = useOwnerFilter()
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
 
-  /**
-   * Explicit group selection (initially `null` = follow the sidebar's active
-   * group). Switching the sidebar group is picked up on the next mount;
-   * "Alle Gruppen" and per-group choices persist for this session.
-   */
-  const [groupOverride, setGroupOverride] = useState<GroupFilter | null>(null)
-  const groupFilter: GroupFilter = groupOverride ?? activeGroupId ?? 'all'
-
-  const matchesGroup =
-    (event: EventListItem) => groupFilter === 'all' || event.group_id === groupFilter
   const filtered = (events.data ?? []).filter(
     (event) =>
-      matchesGroup(event) &&
+      matches(event) &&
       event.name.toLowerCase().includes(search.trim().toLowerCase()),
   )
+
+  const groupName = (groupId: number) =>
+    groups?.find((group) => group.id === groupId)?.name ??
+    t('overview.groupFallback', {id: groupId})
+
+  const columns: DataTableColumn<EventListItem>[] = [
+    {
+      key: 'name',
+      label: 'Name',
+      render: (event) => (
+        <>
+          {event.name}
+          {event.comment && (
+            <span className={`muted ${styles.comment}`}>
+              {' '}· {event.comment}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      key: 'group',
+      label: 'Gruppe',
+      className: 'secondary',
+      render: (event) => groupName(event.group_id),
+    },
+    {
+      key: 'period',
+      label: 'Zeitraum',
+      className: 'secondary',
+      render: (event) => formatDateRange(event.first_meal, event.last_meal),
+    },
+    {
+      key: 'meals',
+      label: 'Mahlzeiten',
+      align: 'num',
+      render: (event) => event.meal_count,
+    },
+    {
+      key: 'cost',
+      label: 'Kosten',
+      align: 'num',
+      render: (event) => `${formatDecimal(toNumber(event.total_cost) ?? 0)} €`,
+    },
+    {
+      key: 'budget',
+      label: 'Budget',
+      align: 'num',
+      render: (event) => {
+        const budget = toNumber(event.budget)
+        if (budget === null) return '–'
+        const cost = toNumber(event.total_cost) ?? 0
+        return (
+          <span className={cost > budget ? styles.over : undefined}>
+            {formatDecimal(budget)} €
+          </span>
+        )
+      },
+    },
+  ]
 
   return (
     <div className={styles.page}>
@@ -57,268 +112,29 @@ export default function EventsPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        <select
-          className={`input ${styles.filter}`}
-          value={groupFilter === 'all' ? 'all' : String(groupFilter)}
-          onChange={(event) => {
-            const raw = event.target.value
-            setGroupOverride(raw === 'all' ? 'all' : Number(raw))
-          }}
-          aria-label="Nach Gruppe filtern"
-        >
-          <option value="all">Alle Gruppen</option>
-          {userGroups.map((group) => (
-            <option key={group.id} value={group.id}>
-              {group.name}
-              {group.is_personal ? ' (persönlich)' : ''}
-            </option>
-          ))}
-        </select>
+        <GroupFilterSelect
+          groups={userGroups}
+          value={ownerFilter}
+          onChange={setOwnerFilter}
+        />
       </div>
 
-      <div className={`card ${styles.panel}`}>
-        {events.isPending ? (
-          <div className={styles.empty}>
-            <Spinner />
-          </div>
-        ) : events.isError ? (
-          <div className={styles.empty}>
-            <p className="secondary">
-              Events konnten nicht geladen werden: {String(events.error)}
-            </p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className={styles.empty}>
-            <p className="secondary">
-              Keine Events gefunden. Lege das erste über „Neues Event" an.
-            </p>
-          </div>
-        ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Gruppe</th>
-                <th>Zeitraum</th>
-                <th className="num">Mahlzeiten</th>
-                <th className="num">Kosten</th>
-                <th className="num">Budget</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((event) => {
-                return <EventRow event={event} />
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/*{drawerEvent && (*/}
-      {/*  <ProjectDrawer*/}
-      {/*    event={drawerEvent}*/}
-      {/*    groupName={*/}
-      {/*      groups?.find((group) => group.id === drawerEvent.group_id)?.name ??*/}
-      {/*      `Gruppe ${drawerEvent.group_id}`*/}
-      {/*    }*/}
-      {/*    onClose={() => setDrawerEvent(null)}*/}
-      {/*    onOpen={() => navigate(`/events/${drawerEvent.id}`)}*/}
-      {/*  />*/}
-      {/*)}*/}
+      <DataTable
+        columns={columns}
+        rows={filtered}
+        getRowKey={(event) => event.id}
+        onRowClick={(event) => void navigate(`/events/${event.id}`)}
+        isPending={events.isPending}
+        isError={events.isError}
+        error={events.error}
+        errorNoun="Events"
+        emptyMessage="Keine Events gefunden. Lege das erste über „Neues Event“ an."
+        withChevron
+      />
 
       {createOpen && (
-        <CreateEventDialog
-          defaultGroupId={activeGroupId ?? 0}
-          onClose={() => setCreateOpen(false)}
-        />
+        <EventFormDrawer event={null} onClose={() => setCreateOpen(false)}/>
       )}
     </div>
-  )
-}
-
-function EventRow({ event }: { event: EventListItem }) {
-  const navigate = useNavigate()
-
-  const key = event.id
-  const groups = useGroups().data
-
-  const budget = toNumber(event.budget)
-  const cost = toNumber(event.total_cost) ?? 0
-  const over = budget !== null && cost > budget
-  return (
-      <tr
-          key={event.id}
-          className={styles.row}
-          onClick={() => navigate(`/events/${event.id}`)}
-      >
-        <td>
-          {event.name}
-          {event.comment && (
-              <span className={`muted ${styles.comment}`}>
-                          {' '}
-                · {event.comment}
-                        </span>
-          )}
-        </td>
-        <td className="secondary">
-          {groups?.find((group) => group.id === event.group_id)?.name ??
-              `Gruppe ${event.group_id}`}
-        </td>
-        <td className="secondary">
-          {formatDateRange(event.first_meal, event.last_meal)}
-        </td>
-        <td className="num">{event.meal_count}</td>
-        <td className="num">{formatDecimal(cost)} €</td>
-        <td className={`num ${over ? styles.over : ''}`}>
-          {budget === null ? '–' : `${formatDecimal(budget)} €`}
-        </td>
-        {/*<td className="num">*/}
-        {/*  <button*/}
-        {/*    type="button"*/}
-        {/*    className="btn btn--ghost"*/}
-        {/*    title="Details"*/}
-        {/*    onClick={(clickEvent) => {*/}
-        {/*      clickEvent.stopPropagation()*/}
-        {/*      setDrawerEvent(event)*/}
-        {/*    }}*/}
-        {/*  >*/}
-        {/*    ℹ*/}
-        {/*  </button>*/}
-        {/*</td>*/}
-
-        <td className="num muted">›</td>
-      </tr>
-  )
-}
-
-/** Quick project summary drawer: status at a glance + link to the cockpit. */
-function ProjectDrawer({
-  event,
-  groupName,
-  onClose,
-  onOpen,
-}: {
-  event: EventListItem
-  groupName: string
-  onClose: () => void
-  onOpen: () => void
-}) {
-  const budget = toNumber(event.budget)
-  const cost = toNumber(event.total_cost) ?? 0
-  const share =
-    budget !== null && budget > 0 ? Math.min((cost / budget) * 100, 100) : null
-  const over = budget !== null && cost > budget
-
-  return (
-    <Drawer title={event.name} onClose={onClose}>
-      <p className="muted">{event.comment ?? 'Kein Kommentar'}</p>
-      <dl className={styles.summaryGrid}>
-        <dt>Owner-Gruppe</dt>
-        <dd>{groupName}</dd>
-        <dt>Zeitraum</dt>
-        <dd>{formatDateRange(event.first_meal, event.last_meal)}</dd>
-        <dt>Mahlzeiten</dt>
-        <dd>{event.meal_count}</dd>
-        <dt>Kosten</dt>
-        <dd>{formatDecimal(cost)} €</dd>
-        <dt>Budget</dt>
-        <dd>
-          {budget === null ? (
-            '–'
-          ) : (
-            <>
-              {formatDecimal(budget)} €
-              <div className={styles.budgetBar}>
-                <div
-                  className={`${styles.budgetFill} ${over ? styles.budgetOver : ''}`}
-                  style={{ width: `${share ?? 0}%` }}
-                />
-              </div>
-            </>
-          )}
-        </dd>
-      </dl>
-      <button type="button" className="btn btn--primary" onClick={onOpen}>
-        Projekt-Cockpit öffnen
-      </button>
-    </Drawer>
-  )
-}
-
-function CreateEventDialog({
-  defaultGroupId,
-  onClose,
-}: {
-  defaultGroupId: number
-  onClose: () => void
-}) {
-  const groups = useGroups()
-  const create = useCreateEvent()
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    create.mutate(
-      {
-        name: String(data.get('name') ?? '').trim(),
-        comment: String(data.get('comment') ?? '').trim() || null,
-        budget: String(data.get('budget') ?? '').trim() || null,
-        group_id:
-          Number(data.get('group_id') ?? defaultGroupId) || defaultGroupId,
-      },
-      { onSuccess: () => onClose() },
-    )
-  }
-
-  return (
-      // TODO: Same dialog as Event Bearbeiten, but with empty fields and "Erstellen" button
-      //    Reuse the same component, just pass in the event data as props (or null for new event)
-
-    <Drawer
-      title="Neues Event"
-      onClose={onClose}
-    >
-      <form id="create-event-form" onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label className="field">
-            Name
-            <input className="input" name="name" required autoFocus />
-          </label>
-          <div className="form-row">
-            <label className="field">
-              Budget (€)
-              <input
-                className="input"
-                name="budget"
-                type="number"
-                step="any"
-                min="0"
-                placeholder="optional"
-              />
-            </label>
-            <label className="field">
-              Owner-Gruppe
-              <select
-                className="input"
-                name="group_id"
-                defaultValue={defaultGroupId}
-              >
-                {(groups.data ?? []).map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                    {group.is_personal ? ' (persönlich)' : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <label className="field">
-            Kommentar
-            <input className="input" name="comment" placeholder="optional" />
-          </label>
-        </div>
-      </form>
-    </Drawer>
   )
 }

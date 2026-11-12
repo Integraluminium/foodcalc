@@ -7,10 +7,20 @@ import { queryKeys } from '../../api/queryKeys'
 
 const LIST_ROOT = ['ingredients'] as const
 
-export function useIngredients(search?: string) {
+export interface IngredientFilters {
+  search?: string
+  /** Only ingredients carrying this property (picker filter). */
+  property_id?: number
+}
+
+export function useIngredients(filters?: IngredientFilters) {
+  const search = filters?.search
   return useQuery({
-    queryKey: queryKeys.ingredients.list(search ?? ''),
-    queryFn: () => ingredientsApi.list(search),
+    queryKey: [
+      ...queryKeys.ingredients.list(search ?? ''),
+      filters?.property_id ?? null,
+    ],
+    queryFn: () => ingredientsApi.list(filters),
   })
 }
 

@@ -1,0 +1,118 @@
+/* Geteilte Styles der Rezept-Drawers (Meta, Zutaten, Schritte). */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footerSpacer {
+  flex: 1;
+}
+
+.ownerRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Live-Kalkulationszeile über den Tabellen. */
+.calcLine {
+  padding: 4px 0 12px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.calcLine strong {
+  color: var(--text);
+}
+
+/* Mengenzelle: Zahl + Einheit ohne Umbruch nebeneinander. */
+.amountCell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.amountInput {
+  width: 5.5rem;
+  min-width: 0;
+}
+
+.unitSelect {
+  width: 7rem;
+  min-width: 0;
+}
+
+.kgInput {
+  width: 6rem;
+  min-width: 0;
+}
+
+.minInput {
+  width: 5rem;
+  min-width: 0;
+}
+
+.addRow {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.rowActions {
+  display: inline-flex;
+  gap: 2px;
+}
+
+/* Arbeitsschritte als mehrzeilige Karten (Layout-Wunsch: Kopfzeile mit
+   Nummer/Name/Zeiten, Beschreibung als eigene Zeile, Aktionen darunter). */
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stepCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.stepHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.stepNum {
+  min-width: 1.5rem;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.stepDur {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.stepDesc {
+  width: 100%;
+  resize: vertical;
+}
