@@ -1,20 +1,12 @@
-import { useState } from 'react'
-import type { IngredientDetail } from '../../../api/types.ts'
-import {
-  useIngredient,
-  useIngredientMutations,
-} from '../../../hooks/queries/useIngredients.ts'
-import {
-  useGroups,
-  useProperties,
-  useStores,
-  useUnits,
-} from '../../../hooks/queries/useMasterData.ts'
-import { usePermissions } from '../../../hooks/usePermissions.ts'
-import { formatDecimal, toNumber } from '../../../lib/format.ts'
-import { ConfirmDialog } from '../../../components/ui/dialog/ConfirmDialog.tsx'
-import { Drawer } from '../../../components/ui/drawer/Drawer.tsx'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
+import {useState} from 'react'
+import type {IngredientDetail} from '../../../api/types.ts'
+import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {useIngredient, useIngredientMutations,} from '../../../hooks/queries/useIngredients.ts'
+import {useGroups, useProperties, useStores, useUnits,} from '../../../hooks/queries/useMasterData.ts'
+import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import styles from './IngredientView.module.css'
 
 export type IngredientMutations = ReturnType<typeof useIngredientMutations>

@@ -1,16 +1,15 @@
-import { useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
-import { Drawer } from '../../../../components/ui/drawer/Drawer.tsx'
-import { Spinner } from '../../../../components/ui/spinner/Spinner.tsx'
-import { ExportButton } from '../../../../components/ui/button/ExportButton.tsx'
-import { Skeleton } from '../../../../components/ui/skeleton/Skeleton.tsx'
-import {
-  useRecipe,
-  useRecipeTree,
-  useRecipes,
-} from '../../../../hooks/queries/useRecipes.ts'
-import { usePlaces } from '../../../../hooks/queries/useMasterData.ts'
-import { useEventMutations } from '../../../../hooks/queries/useEvents.ts'
+import type {FormEvent} from 'react'
+import {useMemo, useState} from 'react'
+import type {PlannerMeal} from '../../../../api/types.ts'
+import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
+import {Skeleton} from '../../../../components/patterns/skeleton/Skeleton.tsx'
+import {RecipeTreeView} from '../../../../components/patterns/tree_view/RecipeTreeView.tsx'
+import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
+import {Spinner} from '../../../../components/ui/spinner/Spinner.tsx'
+import {useEventMutations} from '../../../../hooks/queries/useEvents.ts'
+import {usePlaces} from '../../../../hooks/queries/useMasterData.ts'
+import {useRecipe, useRecipes, useRecipeTree,} from '../../../../hooks/queries/useRecipes.ts'
+import {t} from '../../../../i18n'
 import {
   formatDecimal,
   formatKjPerG,
@@ -18,11 +17,8 @@ import {
   rfc3339ToLocalInput,
   toNumber,
 } from '../../../../lib/format.ts'
-import { energyDensityKjPerG, scaledWeightKg } from '../../../../lib/scaling.ts'
-import { ENERGY_PRESETS, presetForKj } from '../../../../lib/plannerPresets.ts'
-import { RecipeTreeView } from '../../../recipe/tree_view/RecipeTreeView.tsx'
-import { t } from '../../../../i18n'
-import type { PlannerMeal } from '../../../../api/types.ts'
+import {ENERGY_PRESETS, presetForKj} from '../../../../lib/plannerPresets.ts'
+import {energyDensityKjPerG, scaledWeightKg} from '../../../../lib/scaling.ts'
 import styles from '../EventDetailPage.module.css'
 
 /** Default planning date: tomorrow (pure module helper for lint purity). */

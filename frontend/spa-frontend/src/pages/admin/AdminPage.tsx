@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { ConfirmDialog } from '../../components/ui/dialog/ConfirmDialog.tsx'
-import { SegmentedControl } from '../../components/ui/segented_control/SegmentedControl.tsx'
+import { ConfirmDialog } from '../../components/patterns/dialog/ConfirmDialog.tsx'
 import { GroupsSection } from '../../components/patterns/settings/GroupsSection.tsx'
 import { Spinner } from '../../components/ui/spinner/Spinner.tsx'
 import { usePermissions } from '../../hooks/usePermissions.ts'
@@ -9,6 +8,7 @@ import {
   useUsers,
 } from '../../hooks/queries/useUsers.ts'
 import styles from './AdminPage.module.css'
+import { SegmentedControl } from '../../components/patterns/segmented_control/SegmentedControl.tsx'
 
 type Tab = 'users' | 'groups'
 

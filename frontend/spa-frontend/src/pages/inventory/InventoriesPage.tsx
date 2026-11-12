@@ -1,22 +1,14 @@
+import type {FormEvent} from 'react'
 import {useMemo, useState} from 'react'
-import type { FormEvent } from 'react'
-import { InventoryDrawer } from './view/InventoryView.tsx'
-import { ErrorState, EmptyState, LoadingState } from '../../components/layout/state_views/StateViews.tsx'
-import { Dialog } from '../../components/ui/dialog/Dialog.tsx'
-import {
-  useCreateInventory,
-  useInventories,
-} from '../../hooks/queries/useInventories.ts'
-import { useCurrentUser } from '../../hooks/useAuth.ts'
-import { useActiveGroup } from '../../hooks/useActiveGroup.ts'
-import { useGroups } from '../../hooks/queries/useMasterData.ts'
-import { t } from '../../i18n'
+import {InventoryDrawer} from './view/InventoryView.tsx'
+import {EmptyState, ErrorState, LoadingState} from '../../components/layout/state_views/StateViews.tsx'
+import {useCreateInventory, useInventories,} from '../../hooks/queries/useInventories.ts'
+import {useCurrentUser} from '../../hooks/useAuth.ts'
+import {useActiveGroup} from '../../hooks/useActiveGroup.ts'
+import {useGroups} from '../../hooks/queries/useMasterData.ts'
+import {t} from '../../i18n'
 import styles from './InventoriesPage.module.css'
-import {SegmentedControl} from "../../components/ui/segented_control/SegmentedControl.tsx";
-import {formatKjPerG} from "../../lib/format.ts";
-import {Drawer} from "../../components/ui/drawer/Drawer.tsx";
-import {RecipeView} from "../recipe/view/RecipeView.tsx";
-import {useRecipes} from "../../hooks/queries/useRecipes.ts";
+import { Drawer } from '../../components/patterns/drawer/Drawer.tsx'
 import {useNavigate} from "react-router-dom";
 
 
@@ -28,7 +20,7 @@ type OwnerFilter = number | 'all' | null
  * geteilten `InventoryDrawer` (Master-Detail).
  */
 export default function InventoriesPage() {
-  const navigate = useNavigate()
+  useNavigate();
   const inventories = useInventories()
   const { data: user } = useCurrentUser()
   const { activeGroupId, groups: userGroups } = useActiveGroup()
@@ -50,66 +42,6 @@ export default function InventoriesPage() {
       [inventories.data, ownerFilter],
   )
 
-
-  const groupName = (groupId: number) =>
-    groups.data?.find((group) => group.id === groupId)?.name ??
-    `Gruppe ${groupId}`
-
-  // return (
-  //   <div className={styles.page}>
-  //     <div className={styles.header}>
-  //       <h1 className="section-title">{t('nav.inventories')}</h1>
-  //       <button
-  //         type="button"
-  //         className="btn btn--primary"
-  //         onClick={() => setCreateOpen(true)}
-  //       >
-  //         + Neues Inventar
-  //       </button>
-  //     </div>
-  //     <p className="muted">
-  //       Lagerorte für Zutaten. Inventare können an Events gekoppelt werden —
-  //       ihr Bestand deckt dann einen Teil des Event-Bedarfs ab.
-  //     </p>
-  //
-  //     {inventories.isPending ? (
-  //       <LoadingState />
-  //     ) : inventories.isError ? (
-  //       <ErrorState
-  //         message={`Inventare konnten nicht geladen werden: ${String(inventories.error)}`}
-  //       />
-  //     ) : (inventories.data ?? []).length === 0 ? (
-  //       <EmptyState message="Noch keine Inventare — lege das erste an." />
-  //     ) : (
-  //       <div className={styles.grid}>
-  //         {(inventories.data ?? []).map((inventory) => (
-  //           <button
-  //             key={inventory.id}
-  //             type="button"
-  //             className={`card ${styles.cardButton}`}
-  //             onClick={() => setOpenId(inventory.id)}
-  //           >
-  //             <span className={styles.cardName}>{inventory.name}</span>
-  //             <span className="muted">{groupName(inventory.group_id)}</span>
-  //             <span className="muted">Bestand ansehen ›</span>
-  //           </button>
-  //         ))}
-  //       </div>
-  //     )}
-  //
-  //     {openId !== null && (
-  //       <InventoryDrawer inventoryId={openId} onClose={() => setOpenId(null)} />
-  //     )}
-  //
-  //     {createOpen && user && (
-  //       <CreateInventoryDialog
-  //         defaultGroupId={activeGroupId ?? userGroups[0]?.id ?? 0}
-  //         onClose={() => setCreateOpen(false)}
-  //       />
-  //     )}
-  //   </div>
-  // )
-
   return (
       <div className={styles.page}>
         <div className={styles.header}>
@@ -125,13 +57,6 @@ export default function InventoriesPage() {
 
         <div className={styles.controls}>
           <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>
-            {/*<SegmentedControl*/}
-            {/*    options={KIND_OPTIONS}*/}
-            {/*    value={kind}*/}
-            {/*    onChange={setKind}*/}
-            {/*    ariaLabel="Rezeptart filtern"*/}
-            {/*/>*/}
-
             <select
                 className={`input ${styles.ownerFilter}`}
                 value={ownerFilter === 'all' ? 'all' : String(ownerFilter)}

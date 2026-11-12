@@ -1,16 +1,12 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { ingredientsApi } from '../../../../api'
-import { Spinner } from '../../../../components/ui/spinner/Spinner.tsx'
-import { Skeleton } from '../../../../components/ui/skeleton/Skeleton.tsx'
-import {
-  useEventMutations,
-  useEventOverrides,
-  useShoppingList,
-} from '../../../../hooks/queries/useEvents.ts'
-import { useStores } from '../../../../hooks/queries/useMasterData.ts'
-import { formatDecimal, toNumber } from '../../../../lib/format.ts'
-import { t } from '../../../../i18n'
+import {useQuery} from '@tanstack/react-query'
+import {useState} from 'react'
+import {ingredientsApi} from '../../../../api'
+import {Skeleton} from '../../../../components/patterns/skeleton/Skeleton.tsx'
+import {Spinner} from '../../../../components/ui/spinner/Spinner.tsx'
+import {useEventMutations, useEventOverrides, useShoppingList,} from '../../../../hooks/queries/useEvents.ts'
+import {useStores} from '../../../../hooks/queries/useMasterData.ts'
+import {t} from '../../../../i18n'
+import {formatDecimal, toNumber} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
 
 /**

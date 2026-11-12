@@ -6,7 +6,7 @@ import { formatDateRange, formatDecimal, toNumber } from '../../../lib/format.ts
 import { t } from '../../../i18n'
 import type { StringKey } from '../../../i18n'
 import type { WorkspaceContext } from './workspaceContext.ts'
-import styles from './EventWorkspace.module.css'
+import styles from './workspace.module.css'
 
 const TABS = [
   { path: '', labelKey: 'event.tab.overview', end: true },

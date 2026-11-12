@@ -1,18 +1,15 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { IngredientDrawer } from './view/IngredientView.tsx'
-import { ErrorState, EmptyState, LoadingState } from '../../components/layout/state_views/StateViews.tsx'
-import { Dialog } from '../../components/ui/dialog/Dialog.tsx'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue.ts'
-import {
-  useCreateIngredient,
-  useIngredients,
-} from '../../hooks/queries/useIngredients.ts'
-import { useActiveGroup } from '../../hooks/useActiveGroup.ts'
-import { useGroups } from '../../hooks/queries/useMasterData.ts'
-import { t } from '../../i18n'
-import { formatDecimal } from '../../lib/format.ts'
+import type {FormEvent} from 'react'
+import {useState} from 'react'
+import {EmptyState, ErrorState, LoadingState} from '../../components/layout/state_views/StateViews.tsx'
+import {Dialog} from "../../components/patterns/dialog/Dialog.tsx";
+import {useCreateIngredient, useIngredients,} from '../../hooks/queries/useIngredients.ts'
+import {useGroups} from '../../hooks/queries/useMasterData.ts'
+import {useActiveGroup} from '../../hooks/useActiveGroup.ts'
+import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
+import {t} from '../../i18n'
+import {formatDecimal} from '../../lib/format.ts'
 import styles from './IngredientsPage.module.css'
+import {IngredientDrawer} from './view/IngredientView.tsx'
 
 /**
  * Zutaten-Hub (UI_Spec §3.2): Suche, Data-Grid und Inspektion als

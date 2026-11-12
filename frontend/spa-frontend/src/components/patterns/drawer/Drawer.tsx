@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Overlay } from '../../layout/overlay/Overlay.tsx'
+import { Overlay } from '../../ui/overlay/Overlay.tsx'
 
 interface Props {
   title: string

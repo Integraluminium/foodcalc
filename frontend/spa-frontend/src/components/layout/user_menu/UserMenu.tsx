@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useCurrentUser, useLogout } from '../../../hooks/useAuth.ts'
-import { t } from '../../../i18n'
+import {useEffect, useRef, useState} from 'react'
+import {useNavigate} from 'react-router-dom'
+import {useCurrentUser, useLogout} from '../../../hooks/useAuth.ts'
+import {t} from '../../../i18n'
 import styles from './UserMenu.module.css'
 
 /**

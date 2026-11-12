@@ -1,17 +1,12 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useEventMutations } from '../../../../hooks/queries/useEvents.ts'
-import {
-  formatDayLabel,
-  formatDecimal,
-  formatTime,
-  toNumber,
-} from '../../../../lib/format.ts'
-import { portionCost } from '../../../../lib/scaling.ts'
-import { t } from '../../../../i18n'
-import type { EventDetail, PlannerMeal } from '../../../../api/types.ts'
-import { MealDrawer } from './MealDrawer.tsx'
+import {useMemo, useState} from 'react'
+import {Link} from 'react-router-dom'
+import type {EventDetail, PlannerMeal} from '../../../../api/types.ts'
+import {useEventMutations} from '../../../../hooks/queries/useEvents.ts'
+import {t} from '../../../../i18n'
+import {formatDayLabel, formatDecimal, formatTime, toNumber,} from '../../../../lib/format.ts'
+import {portionCost} from '../../../../lib/scaling.ts'
 import styles from '../EventDetailPage.module.css'
+import {MealDrawer} from './MealDrawer.tsx'
 
 /** Speiseplan tab: meals grouped by day with the planner base values. */
 export function MealPlanTab({ detail }: { detail: EventDetail }) {

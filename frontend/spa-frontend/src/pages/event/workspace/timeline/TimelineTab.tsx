@@ -1,16 +1,12 @@
-import { useMemo, useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { notify } from '../../../../components/ui/toast/toast.ts'
-import { SkeletonCards } from '../../../../components/ui/skeleton/Skeleton.tsx'
-import { t } from '../../../../i18n'
-import {
-  useEventMutations,
-  useEventPreps,
-  useEventTours,
-} from '../../../../hooks/queries/useEvents.ts'
-import { formatDayLabel, formatTime } from '../../../../lib/format.ts'
-import type { PlannerMeal } from '../../../../api/types.ts'
+import {useQueryClient} from '@tanstack/react-query'
+import type {PointerEvent as ReactPointerEvent} from 'react'
+import {useMemo, useRef, useState} from 'react'
+import type {PlannerMeal} from '../../../../api'
+import {SkeletonCards} from '../../../../components/patterns/skeleton/Skeleton.tsx'
+import {notify} from '../../../../components/ui/toast/toast.ts'
+import {useEventMutations, useEventPreps, useEventTours,} from '../../../../hooks/queries/useEvents.ts'
+import {t} from '../../../../i18n'
+import {formatDayLabel, formatTime} from '../../../../lib/format.ts'
 import styles from './TimelineTab.module.css'
 
 /**

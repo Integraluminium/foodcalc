@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
-import { t } from '../../../i18n'
-import { SkeletonTable } from '../../ui/skeleton/Skeleton.tsx'
+import type {ReactNode} from 'react'
+import {t} from '../../../i18n'
+import {SkeletonTable} from "../../patterns/skeleton/Skeleton.tsx";
 import styles from './StateViews.module.css'
+
 
 /** Consistent loading / error / empty states for hub lists and sections. */
 

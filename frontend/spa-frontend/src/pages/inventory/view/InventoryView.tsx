@@ -1,18 +1,14 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import type { Inventory, InventoryItemWithName } from '../../../api/types.ts'
-import {
-  useInventory,
-  useInventoryItems,
-  useInventoryMutations,
-} from '../../../hooks/queries/useInventories.ts'
-import { useIngredients } from '../../../hooks/queries/useIngredients.ts'
-import { usePermissions } from '../../../hooks/usePermissions.ts'
-import { formatDecimal, toNumber } from '../../../lib/format.ts'
-import { ConfirmDialog } from '../../../components/ui/dialog/ConfirmDialog.tsx'
-import { Drawer } from '../../../components/ui/drawer/Drawer.tsx'
-import { SegmentedControl } from '../../../components/ui/segented_control/SegmentedControl.tsx'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
+import type {FormEvent} from 'react'
+import {useState} from 'react'
+import type {Inventory, InventoryItemWithName} from '../../../api/types.ts'
+import {useInventory, useInventoryItems, useInventoryMutations,} from '../../../hooks/queries/useInventories.ts'
+import {useIngredients} from '../../../hooks/queries/useIngredients.ts'
+import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {formatDecimal, toNumber} from '../../../lib/format.ts'
+import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
+import {SegmentedControl} from '../../../components/patterns/segmented_control/SegmentedControl.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import styles from './InventoryView.module.css'
 
 export type InventoryMutations = ReturnType<typeof useInventoryMutations>

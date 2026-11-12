@@ -14,10 +14,15 @@ export type Decimal = string
 /** Backend `time::OffsetDateTime`, transported as RFC3339 ("2026-10-24T18:02:00Z"). */
 export type IsoDateTime = string
 
+/** Role of a member in a group (level-based ABAC). */
+export type GroupRole = 'viewer' | 'editor' | 'manager'
+
+
 export interface Group {
   id: number
   name: string
   is_personal: boolean
+  role?: GroupRole
 }
 
 export interface User {
@@ -205,7 +210,9 @@ export interface AdminUserWithGroups extends AdminUser {
   groups: Group[]
 }
 
-export interface GroupMember extends AdminUser {}
+export interface GroupMember extends AdminUser {
+    role: GroupRole
+}
 
 export interface UserUpdateInput {
   username?: string

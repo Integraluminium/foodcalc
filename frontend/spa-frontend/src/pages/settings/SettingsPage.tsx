@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { ApiError } from '../../api'
-import { SegmentedControl } from '../../components/ui/segented_control/SegmentedControl.tsx'
-import { GroupsSection } from '../../components/patterns/settings/GroupsSection.tsx'
-import { Spinner } from '../../components/ui/spinner/Spinner.tsx'
-import { useCurrentUser } from '../../hooks/useAuth.ts'
+import type {FormEvent} from 'react'
+import {useState} from 'react'
+import {ApiError} from '../../api'
+import {ConfirmDialog} from '../../components/patterns/dialog/ConfirmDialog.tsx'
+import {SegmentedControl} from '../../components/patterns/segmented_control/SegmentedControl.tsx'
+import {GroupsSection} from '../../components/patterns/settings/GroupsSection.tsx'
+import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
+import {useGroups} from '../../hooks/queries/useMasterData.ts'
 import {useUserAdminMutations, useUsers} from '../../hooks/queries/useUsers.ts'
-import { useGroups } from '../../hooks/queries/useMasterData.ts'
+import {useCurrentUser} from '../../hooks/useAuth.ts'
 import styles from './SettingsPage.module.css'
-import {ConfirmDialog} from "../../components/ui/dialog/ConfirmDialog.tsx";
 
 type Tab = 'account' | 'groups'
 

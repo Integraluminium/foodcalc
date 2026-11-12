@@ -1,8 +1,8 @@
-import { useEventMutations, useEventInventories, useInventoryCoverage } from '../../../../hooks/queries/useEvents.ts'
-import { useInventories } from '../../../../hooks/queries/useInventories.ts'
-import { formatDecimal, toNumber } from '../../../../lib/format.ts'
-import { Skeleton } from '../../../../components/ui/skeleton/Skeleton.tsx'
-import { t } from '../../../../i18n'
+import {Skeleton} from '../../../../components/patterns/skeleton/Skeleton.tsx'
+import {useEventInventories, useEventMutations, useInventoryCoverage} from '../../../../hooks/queries/useEvents.ts'
+import {useInventories} from '../../../../hooks/queries/useInventories.ts'
+import {t} from '../../../../i18n'
+import {formatDecimal, toNumber} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
 
 /**

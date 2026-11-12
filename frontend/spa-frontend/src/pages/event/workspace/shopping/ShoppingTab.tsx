@@ -1,26 +1,17 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Dialog } from '../../../../components/ui/dialog/Dialog.tsx'
-import { Spinner } from '../../../../components/ui/spinner/Spinner.tsx'
-import { SkeletonCards } from '../../../../components/ui/skeleton/Skeleton.tsx'
-import { ExportButton } from '../../../../components/ui/button/ExportButton.tsx'
-import { SegmentedControl } from '../../../../components/ui/segented_control/SegmentedControl.tsx'
-import {
-  useEventMutations,
-  useShoppingList,
-} from '../../../../hooks/queries/useEvents.ts'
-import { useStores } from '../../../../hooks/queries/useMasterData.ts'
-import {
-  dateInputToRfc3339,
-  formatDayLabel,
-  formatDecimal,
-} from '../../../../lib/format.ts'
-import { t } from '../../../../i18n'
-import type { IngredientWithoutTour, TourWithItems } from '../../../../api/types.ts'
-import { InventorySection } from './InventorySection.tsx'
-import { OverridesSection } from './OverridesSection.tsx'
+import type {FormEvent} from 'react'
+import {useState} from 'react'
+import type {IngredientWithoutTour, TourWithItems} from '../../../../api'
+import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
+import {SegmentedControl} from '../../../../components/patterns/segmented_control/SegmentedControl.tsx'
+import {SkeletonCards} from "../../../../components/patterns/skeleton/Skeleton.tsx";
+import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
+import {useEventMutations, useShoppingList,} from '../../../../hooks/queries/useEvents.ts'
+import {useStores} from '../../../../hooks/queries/useMasterData.ts'
+import {t} from '../../../../i18n'
+import {dateInputToRfc3339, formatDayLabel, formatDecimal,} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
-import {Drawer} from "../../../../components/ui/drawer/Drawer.tsx";
+import {InventorySection} from './InventorySection.tsx'
+import {OverridesSection} from './OverridesSection.tsx'
 
 /** Today as `YYYY-MM-DD` (pure module helper for lint purity). */
 function todayIsoDate(): string {
@@ -28,7 +19,7 @@ function todayIsoDate(): string {
 }
 
 /** Einkäufe tab: tours with their shopping lists plus uncovered ingredients. */
-export function ShoppingTab({ eventId }: { eventId: number }) {
+export function ShoppingTab({eventId}: { eventId: number }) {
   const shopping = useShoppingList(eventId)
   const mutations = useEventMutations(eventId)
   const stores = useStores()
@@ -43,9 +34,9 @@ export function ShoppingTab({ eventId }: { eventId: number }) {
         <span className="muted">
           {shopping.data
             ? t('shopping.summary', {
-                tours: shopping.data.tours.length,
-                uncovered: shopping.data.without_tour.length,
-              })
+              tours: shopping.data.tours.length,
+              uncovered: shopping.data.without_tour.length,
+            })
             : t('shopping.loading')}
         </span>
         <button
@@ -61,13 +52,13 @@ export function ShoppingTab({ eventId }: { eventId: number }) {
       </div>
 
       {shopping.isPending ? (
-        <SkeletonCards count={2} />
+        <SkeletonCards count={2}/>
       ) : shopping.isError ? (
         <p className="secondary">
-          {t('shopping.loadError', { error: String(shopping.error) })}
+          {t('shopping.loadError', {error: String(shopping.error)})}
         </p>
       ) : shopping.data.tours.length === 0 &&
-        shopping.data.without_tour.length === 0 ? (
+      shopping.data.without_tour.length === 0 ? (
         <p className="muted">{t('shopping.empty')}</p>
       ) : (
         <>
@@ -98,39 +89,39 @@ export function ShoppingTab({ eventId }: { eventId: number }) {
               </div>
               <table className="table">
                 <thead>
-                  <tr>
-                    <th>{t('shopping.col.ingredient')}</th>
-                    <th className="num">{t('shopping.col.amount')}</th>
-                    <th>{t('shopping.col.store')}</th>
-                    <th />
-                  </tr>
+                <tr>
+                  <th>{t('shopping.col.ingredient')}</th>
+                  <th className="num">{t('shopping.col.amount')}</th>
+                  <th>{t('shopping.col.store')}</th>
+                  <th/>
+                </tr>
                 </thead>
                 <tbody>
-                  {shopping.data.without_tour.map((item) => (
-                    <tr key={item.ingredient_id}>
-                      <td>{item.ingredient_name}</td>
-                      <td className="num">{formatDecimal(item.weight)} kg</td>
-                      <td className="secondary">{item.store_name}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="btn btn--ghost"
-                          disabled={item.store_name === 'No Store'}
-                          onClick={() => {
-                            const store = stores.data?.find(
-                              (candidate) => candidate.name === item.store_name,
-                            )
-                            if (store) {
-                              setPrefillStore(store.id)
-                              setTourDialogOpen(true)
-                            }
-                          }}
-                        >
-                          {t('shopping.addTour').replace('+ ', '')}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                {shopping.data.without_tour.map((item) => (
+                  <tr key={item.ingredient_id}>
+                    <td>{item.ingredient_name}</td>
+                    <td className="num">{formatDecimal(item.weight)} kg</td>
+                    <td className="secondary">{item.store_name}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        disabled={item.store_name === 'No Store'}
+                        onClick={() => {
+                          const store = stores.data?.find(
+                            (candidate) => candidate.name === item.store_name,
+                          )
+                          if (store) {
+                            setPrefillStore(store.id)
+                            setTourDialogOpen(true)
+                          }
+                        }}
+                      >
+                        {t('shopping.addTour').replace('+ ', '')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
                 </tbody>
               </table>
             </div>
@@ -148,17 +139,17 @@ export function ShoppingTab({ eventId }: { eventId: number }) {
         />
       )}
 
-      <InventorySection eventId={eventId} />
-      <OverridesSection eventId={eventId} />
+      <InventorySection eventId={eventId}/>
+      <OverridesSection eventId={eventId}/>
     </section>
   )
 }
 
 function TourCard({
-  tour,
-  uncovered,
-  onRemove,
-}: {
+                    tour,
+                    uncovered,
+                    onRemove,
+                  }: {
   tour: TourWithItems
   uncovered: IngredientWithoutTour[]
   onRemove: () => void
@@ -226,42 +217,42 @@ function TourCard({
       ) : (
         <table className="table">
           <thead>
-            <tr>
-              <th>{t('shopping.col.category')}</th>
-              <th>{t('shopping.col.ingredient')}</th>
-              <th className="num">{t('shopping.col.amount')}</th>
-              <th className="num">{t('shopping.col.price')}</th>
-              {!completed && <th />}
-            </tr>
+          <tr>
+            <th>{t('shopping.col.category')}</th>
+            <th>{t('shopping.col.ingredient')}</th>
+            <th className="num">{t('shopping.col.amount')}</th>
+            <th className="num">{t('shopping.col.price')}</th>
+            {!completed && <th/>}
+          </tr>
           </thead>
           <tbody>
-            {tour.items.map((item) => (
-              <tr key={item.ingredient_id}>
-                <td className="secondary">{item.category ?? '–'}</td>
-                <td>{item.ingredient_name}</td>
-                <td className="num">{formatDecimal(item.weight)} kg</td>
-                <td className="num">
-                  {item.price === null ? '–' : `${formatDecimal(item.price)} €`}
+          {tour.items.map((item) => (
+            <tr key={item.ingredient_id}>
+              <td className="secondary">{item.category ?? '–'}</td>
+              <td>{item.ingredient_name}</td>
+              <td className="num">{formatDecimal(item.weight)} kg</td>
+              <td className="num">
+                {item.price === null ? '–' : `${formatDecimal(item.price)} €`}
+              </td>
+              {!completed && (
+                <td className={styles.rowActions}>
+                  <button
+                    type="button"
+                    className={styles.iconButton}
+                    title={t('shopping.unassignItem')}
+                    onClick={() =>
+                      mutations.removeTourItem.mutate({
+                        tourId: tour.id,
+                        ingredientId: item.ingredient_id,
+                      })
+                    }
+                  >
+                    ✕
+                  </button>
                 </td>
-                {!completed && (
-                  <td className={styles.rowActions}>
-                    <button
-                      type="button"
-                      className={styles.iconButton}
-                      title={t('shopping.unassignItem')}
-                      onClick={() =>
-                        mutations.removeTourItem.mutate({
-                          tourId: tour.id,
-                          ingredientId: item.ingredient_id,
-                        })
-                      }
-                    >
-                      ✕
-                    </button>
-                  </td>
-                )}
-              </tr>
-            ))}
+              )}
+            </tr>
+          ))}
           </tbody>
         </table>
       )}
@@ -304,12 +295,12 @@ function TourCard({
 }
 
 function AddTourDialog({
-  eventId,
-  prefillStoreId,
-  defaultDate,
-  uncovered,
-  onClose,
-}: {
+                         eventId,
+                         prefillStoreId,
+                         defaultDate,
+                         uncovered,
+                         onClose,
+                       }: {
   eventId: number
   prefillStoreId: number | null
   defaultDate: string
@@ -377,7 +368,7 @@ function AddTourDialog({
     // pinnen — die decken auch den „Privat/Genesis“-Fall ab, bei dem kein
     // Händler-Fit existiert.
     mutations.addTour.mutate(
-      { tour_date: dateInputToRfc3339(date), store_id: Number(storeId) },
+      {tour_date: dateInputToRfc3339(date), store_id: Number(storeId)},
       {
         onSuccess: (created) => {
           for (const ingredientId of checked) {
@@ -454,9 +445,9 @@ function AddTourDialog({
               ohne Händler-Fit (Privat-Bestand etc.). */}
           <SegmentedControl
             options={[
-              { value: 'relevant', label: t('shopping.preset.relevant') },
-              { value: 'none', label: t('shopping.preset.none') },
-              { value: 'all', label: t('shopping.preset.all') },
+              {value: 'relevant', label: t('shopping.preset.relevant')},
+              {value: 'none', label: t('shopping.preset.none')},
+              {value: 'all', label: t('shopping.preset.all')},
             ]}
             value={preset}
             onChange={applyPreset}

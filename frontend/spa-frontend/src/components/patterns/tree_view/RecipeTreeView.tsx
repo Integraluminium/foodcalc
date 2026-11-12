@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { formatDecimal } from '../../../lib/format.ts'
-import type { RecipeTreeNode } from '../../../api/types.ts'
+import {useState} from 'react'
+import {Link} from 'react-router-dom'
+import type {RecipeTreeNode} from '../../../api'
+import {formatDecimal} from '../../../lib/format.ts'
 import styles from './RecipeTreeView.module.css'
 
 /**

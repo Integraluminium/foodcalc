@@ -1,5 +1,5 @@
-import { Dialog } from './Dialog.tsx'
-import { Spinner } from '../spinner/Spinner.tsx'
+import {Spinner} from '../../ui/spinner/Spinner.tsx'
+import {Dialog} from './Dialog.tsx'
 
 interface Props {
   title: string

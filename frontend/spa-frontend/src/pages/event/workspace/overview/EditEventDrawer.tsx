@@ -1,11 +1,12 @@
 import type {FormEvent} from 'react'
 import {useEventMutations} from '../../../../hooks/queries/useEvents.ts'
-import type {Event} from '../../../../api/types.ts'
-import {Drawer} from "../../../../components/ui/drawer/Drawer.tsx";
+import type {Event} from '../../../../api'
+import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
 import {t} from "../../../../i18n";
+import {useNavigate} from "react-router-dom";
 
 /** Edit the event's frame data (name, budget, comment). */
-export function EditEventDialog({
+export function EditEventDrawer({
                                     eventId,
                                     event,
                                     onClose,
@@ -19,6 +20,7 @@ export function EditEventDialog({
     const handleSubmit = (formEvent: FormEvent<HTMLFormElement>) => {
         formEvent.preventDefault()
         const data = new FormData(formEvent.currentTarget)
+        const navigate = useNavigate()
         mutations.update.mutate(
             {
                 name: String(data.get('name') ?? '').trim(),

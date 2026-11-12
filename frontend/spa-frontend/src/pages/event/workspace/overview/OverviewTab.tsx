@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useGroups } from '../../../../hooks/queries/useMasterData.ts'
-import { useEventInventories } from '../../../../hooks/queries/useEvents.ts'
-import { formatDateRange, formatDecimal, toNumber } from '../../../../lib/format.ts'
-import { ConfirmDialog } from '../../../../components/ui/dialog/ConfirmDialog.tsx'
-import { ExportButton } from '../../../../components/ui/button/ExportButton.tsx'
-import { t } from '../../../../i18n'
+import {useState} from 'react'
+import {useNavigate} from 'react-router-dom'
+import {ConfirmDialog} from '../../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
+import {useEventInventories} from '../../../../hooks/queries/useEvents.ts'
+import {useGroups} from '../../../../hooks/queries/useMasterData.ts'
+import {t} from '../../../../i18n'
+import {formatDateRange, formatDecimal, toNumber} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
-import { EditEventDialog } from './EditEventDialog.tsx'
-import { useWorkspace } from '../workspaceContext.ts'
+import {useWorkspace} from '../workspaceContext.ts'
+import {EditEventDrawer} from './EditEventDrawer.tsx'
 
 /**
  * Übersicht-Tab (Mockup „Event overview Editing"): Rahmen des Events mit
@@ -163,7 +163,7 @@ export function OverviewTab() {
       {/*</div>*/}
 
       {editOpen && (
-        <EditEventDialog
+        <EditEventDrawer
           eventId={detail.event.id}
           event={detail.event}
           onClose={() => setEditOpen(false)}

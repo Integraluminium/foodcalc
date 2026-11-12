@@ -1,20 +1,16 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import type { RecipeDetail } from '../../../api/types.ts'
-import { useGroups } from '../../../hooks/queries/useMasterData.ts'
-import {
-  useRecipe,
-  useRecipeMutations,
-  useRecipeTree,
-} from '../../../hooks/queries/useRecipes.ts'
-import { usePermissions } from '../../../hooks/usePermissions.ts'
-import { t } from '../../../i18n'
-import { ExportButton } from '../../../components/ui/button/ExportButton.tsx'
-import { formatDecimal, formatKjPerG, formatMinutes } from '../../../lib/format.ts'
-import { ConfirmDialog } from '../../../components/ui/dialog/ConfirmDialog.tsx'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
+import {useState} from 'react'
+import {Link, useNavigate} from 'react-router-dom'
+import type {RecipeDetail} from '../../../api'
+import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {RecipeTreeView} from '../../../components/patterns/tree_view/RecipeTreeView.tsx'
+import {ExportButton} from '../../../components/ui/button/ExportButton.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {useGroups} from '../../../hooks/queries/useMasterData.ts'
+import {useRecipe, useRecipeMutations, useRecipeTree,} from '../../../hooks/queries/useRecipes.ts'
+import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {t} from '../../../i18n'
+import {formatDecimal, formatKjPerG, formatMinutes} from '../../../lib/format.ts'
 import styles from './RecipeView.module.css'
-import { RecipeTreeView } from '../tree_view/RecipeTreeView.tsx'
 
 export type RecipeViewVariant = 'overlay' | 'page'
 

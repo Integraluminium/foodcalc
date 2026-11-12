@@ -1,11 +1,8 @@
-import { useCallback, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
-import type { Group } from '../../api/types.ts'
-import {
-  ActiveGroupContext,
-  type ActiveGroupContextValue,
-} from '../../hooks/useActiveGroup.ts'
-import { useCurrentUser } from '../../hooks/useAuth.ts'
+import type {ReactNode} from 'react'
+import {useCallback, useMemo, useState} from 'react'
+import type {Group} from '../../api/types.ts'
+import {ActiveGroupContext, type ActiveGroupContextValue,} from '../../hooks/useActiveGroup.ts'
+import {useCurrentUser} from '../../hooks/useAuth.ts'
 
 /**
  * Provides the app-wide active group context (see `useActiveGroup` for the
