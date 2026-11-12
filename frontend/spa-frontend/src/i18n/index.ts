@@ -1,21 +1,23 @@
-import { STRINGS } from './de'
+import {DE} from './de'
 
-export type StringKey = keyof typeof STRINGS
+export type StringKey = keyof typeof DE
+
 
 /**
- * Löst einen UI-Text auf. Keys sind zur Compile-Zeit geprüft; unbekannte
- * Keys können daher nicht ins UI gelangen. Platzhalter (`{name}`) werden
- * über `vars` ersetzt.
+ * Löst einen Pfad wie `plan.col.time` im Wörterbuch auf und ersetzt `{name}`-Platzhalter.
+ * Fehlt der Schlüssel, wird der Pfad selbst zurückgegeben (sichtbar im UI, leicht zu finden).
  */
-export function t(
-  key: StringKey,
-  vars?: Record<string, string | number>,
-): string {
-  let text: string = STRINGS[key]
-  if (vars) {
-    for (const [name, value] of Object.entries(vars)) {
-      text = text.replaceAll(`{${name}}`, String(value))
-    }
-  }
-  return text
+export function t(path: string, params: Record<string, string | number> = {}): string {
+  const value = path
+    .split('.')
+    .reduce<unknown>(
+      (node, key) => (node && typeof node === 'object' ? (node as Record<string, unknown>)[key] : undefined),
+      DE,
+    )
+
+  if (typeof value !== 'string') return path
+
+  return value.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in params ? String(params[name]) : match,
+  )
 }

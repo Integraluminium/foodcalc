@@ -63,9 +63,9 @@ export default function IngredientsPage() {
               <tr>
                 <th>Name</th>
                 <th className="num">Energie (kJ/g)</th>
+                <th>ca. (€/kg)</th>
                 <th>Kommentar</th>
-                <th>Besitzer</th>
-                <th>Quellen</th>
+
               </tr>
             </thead>
             <tbody>
@@ -77,21 +77,8 @@ export default function IngredientsPage() {
                 >
                   <td>{ingredient.name}</td>
                   <td className="num">{formatDecimal(ingredient.energy, 2)}</td>
+                  <td className="num">???</td>
                   <td className="secondary">{ingredient.comment || '–'}</td>
-                  <td className="secondary">
-                    {groupName(ingredient.group_id)}
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        ingredient.has_sources
-                          ? 'badge--success'
-                          : 'badge--warning'
-                      }`}
-                    >
-                      {ingredient.has_sources ? 'vorhanden' : 'fehlen'}
-                    </span>
-                  </td>
                 </tr>
               ))}
             </tbody>

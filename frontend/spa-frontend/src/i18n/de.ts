@@ -1,269 +1,303 @@
 /**
  * Zentrale deutsche UI-Texte. Komponenten lesen Beschriftungen ausschließlich
- * über `t('key')` aus diesem Wörterbuch — das garantiert eine konsistente
- * Sprache und macht spätere i18n trivial (z. B. `en.ts` mit identischen
- * Keys + Locale-Umschalter), ohne eine einzige Komponente anzufassen.
+ * über `t('bereich.zweck')` aus diesem Wörterbuch.
  *
- * Konvention: Keys als `bereich.zweck` (z. B. `nav.recipes`, `state.loading`).
+ * Struktur: verschachtelte Objekte, Zugriff per Pfad (z. B. `plan.col.time`).
  * Interpolation mit `{name}`-Platzhaltern.
+ * Für i18n: `en.ts` mit identischer Struktur anlegen und `DE` über einen Locale-Umschalter ersetzen.
  */
-export const STRINGS = {
-  // Navigation / Shell
-  'nav.ingredients': 'Zutaten',
-  'nav.recipes': 'Rezepte',
-  'nav.events': 'Events',
-  'nav.inventories': 'Inventare',
-    'nav.documents': 'allg. Dokumente',
-  'shell.activeGroup': 'Aktive Gruppe',
-  'shell.activeGroupHint': 'Steuert Besitz und Sichtbarkeit',
-  'shell.userMenu': 'Benutzermenü',
-  'shell.profileSettings': 'Profil & Einstellungen',
-  'shell.admin': 'Verwaltung',
-  'shell.logout': 'Abmelden',
 
-  // Zustände (Hub-Listen)
-  'state.loading': 'Wird geladen…',
-  'state.error': 'Laden fehlgeschlagen',
+export const DE = {
+  nav: {
+    ingredients: 'Zutaten',
+    recipes: 'Rezepte',
+    events: 'Events',
+    inventories: 'Inventare',
+    documents: 'allg. Dokumente',
+  },
 
-  // Häufige Aktionen
-  'action.close': 'Schließen',
-  'action.cancel': 'Abbrechen',
-  'action.save': 'Speichern',
-  'action.create': 'Anlegen',
-  'action.delete': 'Löschen',
-  'action.edit': 'Bearbeiten',
+  shell: {
+    activeGroup: 'Aktive Gruppe',
+    activeGroupHint: 'Steuert Besitz und Sichtbarkeit',
+    userMenu: 'Benutzermenü',
+    profileSettings: 'Profil & Einstellungen',
+    admin: 'Verwaltung',
+    logout: 'Abmelden',
+  },
 
-  // Status-Vokabular der Event-Zutaten (By Meal / Combined / By Source)
-  'status.available': 'Verfügbar',
-  'status.planned': 'Geplant',
-  'status.missing': 'Fehlt',
-  'status.unknown': 'Unbekannt',
+  state: {
+    loading: 'Wird geladen…',
+    error: 'Laden fehlgeschlagen',
+  },
 
-  // Event-Workspace
-  'event.tab.overview': 'Übersicht',
-  'event.tab.plan': 'Speiseplan',
-  'event.tab.shopping': 'Einkäufe & Logistik',
-  'event.tab.calc': 'Kalkulation',
-  'event.tab.timeline': 'Zeitplan',
-  'event.areas': 'Event-Bereiche',
-  'workspace.invalidId': 'Ungültige Event-ID.',
-  'workspace.backToList': 'Zurück zur Liste',
-  'workspace.loadError': 'Event konnte nicht geladen werden: {error}',
-  'workspace.mealsBadge': '{count} Mahlzeiten',
+  action: {
+    close: 'Schließen',
+    cancel: 'Abbrechen',
+    save: 'Speichern',
+    create: 'Anlegen',
+    delete: 'Löschen',
+    edit: 'Bearbeiten',
+  },
 
-  // Übersicht-Tab
-  'overview.frame': 'Rahmen',
-  'overview.period': 'Zeitraum',
-  'overview.meals': 'Mahlzeiten',
-  'overview.portions': 'Portionen',
-  'overview.cookingAmount': 'Kochmenge',
-  'overview.cost': 'Kosten',
-  'overview.comment': 'Kommentar',
-  'overview.groupFallback': 'Gruppe {id}',
-  'overview.linkedInventories': 'Gekoppelte Inventare',
-  'overview.linkedInventoriesHint': 'Verwaltung im Tab „Einkäufe & Logistik“',
-  'overview.noInventories': 'Keine — Bestände decken dann nichts ab.',
-  'overview.actions': 'Aktionen',
-  'overview.clone': 'Klonen (Vorlage für neues Event)',
-  'overview.cloneHint': 'Kopiert Mahlzeiten, Touren und Overrides als Vorlage',
-  'overview.exports': 'Exporte',
-  'overview.exportsHint':
-    'PDFs mit allen geplanten Mengen; Einzel-PDFs einer Mahlzeit im Speiseplan-Drawer, Touren-Listen im Einkäufe-Tab.',
-  'overview.exportOverview': 'Event-Übersicht (PDF)',
-  'overview.exportOverviewHint':
-    'Management-Übersicht: Rahmen, Mahlzeiten, Touren, Vorkochen',
-  'overview.exportRecipes': 'Rezepte-PDF (alle Mahlzeiten)',
-  'overview.exportAllergens': 'Allergenliste',
-  'overview.exportLabels': 'Gerichte-Labels (Zeltkarten)',
-  'overview.deleteTitle': 'Event löschen',
-  'overview.deleteMessage':
-    '„{name}“ inklusive Mahlzeitenplanung und Einkaufstouren wirklich löschen?',
-  'overview.budget': 'Budget (€)',
-  'overview.name': 'Name',
+  status: {
+    available: 'Verfügbar',
+    planned: 'Geplant',
+    missing: 'Fehlt',
+    unknown: 'Unbekannt',
+  },
 
-  // Speiseplan
-  'plan.addMeal': '+ Mahlzeit planen',
-  'plan.summary': '{meals} Mahlzeiten · {cost} € eingekauft',
-  'plan.empty': 'Noch keine Mahlzeiten geplant — oben rechts hinzufügen.',
-  'plan.dayTotals': '{portions} Portionen · {weight} kg · {cost} €',
-  'plan.col.time': 'Zeit',
-  'plan.col.dish': 'Gericht',
-  'plan.col.place': 'Ort',
-  'plan.col.servings': 'Portionen',
-  'plan.col.kjPerPortion': 'kJ / Portion',
-  'plan.col.weight': 'Gewicht',
-  'plan.col.costPerPortion': '€ / Portion',
-  'plan.col.cost': 'Kosten',
-  'plan.duplicate': 'Duplizieren',
-  'plan.removeFromPlan': 'Aus dem Plan entfernen',
-  'plan.notWeighedHint': 'Rezept ist nicht eingewogen — Mengen können abweichen',
+  event: {
+    tab: {
+      overview: 'Übersicht',
+      plan: 'Speiseplan',
+      shopping: 'Einkäufe & Logistik',
+      calc: 'Kalkulation',
+      timeline: 'Zeitplan',
+    },
+    areas: 'Event-Bereiche',
+  },
 
-  // Mahlzeiten-Drawer
-  'mealDrawer.edit': 'Mahlzeit bearbeiten',
-  'mealDrawer.plan': 'Mahlzeit planen',
-  'mealDrawer.save': 'Speichern',
-  'mealDrawer.recipe': 'Rezept',
-  'mealDrawer.chooseRecipe': 'Rezept wählen…',
-  'mealDrawer.componentSuffix': ' (Komponente)',
-  'mealDrawer.servings': 'Portionen',
-  'mealDrawer.energyPerPortion': 'Energie / Portion (kJ)',
-  'mealDrawer.time': 'Zeitpunkt',
-  'mealDrawer.place': 'Ort',
-  'mealDrawer.comment': 'Kommentar',
-  'mealDrawer.optional': 'optional',
-  'mealDrawer.calc': 'Kalkulation',
-  'mealDrawer.energy': 'Energie',
-  'mealDrawer.cookAmount': 'Kochmenge',
-  'mealDrawer.density': 'Dichte',
-  'mealDrawer.noDensity':
-    'Keine Energie-Dichte berechenbar — Zutaten/Energiewerte im Rezept prüfen.',
-  'mealDrawer.calcHint':
-    'Die Kochmenge wird über die Energie-Dichte des Rezepts skaliert.',
-  'mealDrawer.recipeOverview': 'Rezept-Überblick',
-  'mealDrawer.weighed': 'Eingewogen ✓',
-  'mealDrawer.notWeighed': 'Nicht eingewogen ~',
-  'mealDrawer.weighedHint': 'Alle Mengen wurden eingewogen',
-  'mealDrawer.notWeighedHint': 'Nicht eingewogen — Mengen können abweichen',
-  'mealDrawer.noIngredients': 'Noch keine Zutaten hinterlegt.',
-  'mealDrawer.treeError': 'Baum konnte nicht geladen werden: {error}',
-  'mealDrawer.export': 'Export',
-  'mealDrawer.exportHint':
-    'Kochanweisung, auf die geplante Menge skaliert. Basis-PDF: am Rezept · Sammel-Exporte: Übersicht-Tab.',
-  'mealDrawer.exportMealPdf': 'Mahlzeit-PDF (skaliert)',
-  'mealDrawer.exportMealPdfHint':
-    'Kochanweisung, vom Server auf die geplante Menge skaliert',
+  workspace: {
+    invalidId: 'Ungültige Event-ID.',
+    backToList: 'Zurück zur Liste',
+    loadError: 'Event konnte nicht geladen werden: {error}',
+    mealsBadge: '{count} Mahlzeiten',
+  },
 
-  // Einkäufe & Logistik
-  'shopping.summary': '{tours} Touren · {uncovered} Zutaten ohne Tour',
-  'shopping.loading': 'Einkaufsliste wird geladen…',
-  'shopping.addTour': '+ Tour anlegen',
-  'shopping.empty':
-    'Keine Einkäufe nötig (oder die Rezepte haben keine quellenbezogenen Zutaten).',
-  'shopping.loadError': 'Einkaufsliste konnte nicht geladen werden: {error}',
-  'shopping.toursHeading': 'Einkaufstouren',
-  'shopping.toursHint':
-    'Pro Tour die Zutaten mit passendem „besorgen bis“-Zeitfenster; ⤓ lädt die Liste als Text.',
-  'shopping.withoutTour': 'Ohne Tour',
-  'shopping.statusMissing': 'Fehlt',
-  'shopping.withoutTourHint':
-    'Zutaten, deren Händler-Store noch keine Tour im passenden Zeitfenster hat.',
-  'shopping.col.ingredient': 'Zutat',
-  'shopping.col.amount': 'Menge',
-  'shopping.col.store': 'Store',
-  'shopping.col.category': 'Kategorie',
-  'shopping.col.price': 'Preis',
-  'shopping.noItems': 'Keine Zutaten in diesem Zeitfenster.',
-  'shopping.removeTour': 'Tour entfernen',
-  'shopping.tourForm.title': 'Einkaufstour anlegen',
-  'shopping.tourForm.store': 'Händler / Store',
-  'shopping.tourForm.date': 'Datum',
-  'shopping.tourForm.hint':
-    'Zutaten dieses Stores mit passendem „besorgen bis“-Zeitfenster landen automatisch auf der Tour.',
-  'shopping.tourForm.submit': 'Anlegen',
-  'shopping.downloadList': 'Liste als Text herunterladen',
+  overview: {
+    frame: 'Rahmen',
+    period: 'Zeitraum',
+    meals: 'Mahlzeiten',
+    portions: 'Portionen',
+    cookingAmount: 'Kochmenge',
+    cost: 'Kosten',
+    comment: 'Kommentar',
+    groupFallback: 'Gruppe {id}',
+    linkedInventories: 'Gekoppelte Inventare',
+    linkedInventoriesHint: 'Verwaltung im Tab „Einkäufe & Logistik“',
+    noInventories: 'Keine — Bestände decken dann nichts ab.',
+    actions: 'Aktionen',
+    clone: 'Klonen (Vorlage für neues Event)',
+    cloneHint: 'Kopiert Mahlzeiten, Touren und Overrides als Vorlage',
+    exports: 'Exporte',
+    exportsHint:
+      'PDFs mit allen geplanten Mengen; Einzel-PDFs einer Mahlzeit im Speiseplan-Drawer, Touren-Listen im Einkäufe-Tab.',
+    exportOverview: 'Event-Übersicht (PDF)',
+    exportOverviewHint:
+      'Management-Übersicht: Rahmen, Mahlzeiten, Touren, Vorkochen',
+    exportRecipes: 'Rezepte-PDF (alle Mahlzeiten)',
+    exportAllergens: 'Allergenliste',
+    exportLabels: 'Gerichte-Labels (Zeltkarten)',
+    deleteTitle: 'Event löschen',
+    deleteMessage:
+      '„{name}“ inklusive Mahlzeitenplanung und Einkaufstouren wirklich löschen?',
+    budget: 'Budget (€)',
+    name: 'Name',
+  },
 
-  // Inventare-Sektion (Event)
-  'eventInventory.heading': 'Inventare',
-  'eventInventory.hint':
-    'Bestände, die für dieses Event eingeplant werden — die Tabelle zeigt pro Zutat, was abgedeckt ist und was noch gekauft werden muss.',
-  'eventInventory.unlink': 'Inventar vom Event abkoppeln',
-  'eventInventory.noneLinked': 'Noch keine Inventare gekoppelt.',
-  'eventInventory.link': 'Inventar koppeln…',
-  'eventInventory.coveragePending': 'Abdeckung wird berechnet…',
-  'eventInventory.coverageError': 'Abdeckung konnte nicht geladen werden: {error}',
-  'eventInventory.nothingToCover':
-    'Keine Zutaten im Speiseplan — es gibt nichts abzudecken.',
-  'eventInventory.col.ingredient': 'Zutat',
-  'eventInventory.col.demand': 'Bedarf',
-  'eventInventory.col.covered': 'Abgedeckt',
-  'eventInventory.col.missing': 'Fehlt',
+  plan: {
+    addMeal: '+ Mahlzeit planen',
+    summary: '{meals} Mahlzeiten · {cost} € eingekauft',
+    empty: 'Noch keine Mahlzeiten geplant — oben rechts hinzufügen.',
+    dayTotals: '{portions} Portionen · {weight} kg · {cost} €',
+    col: {
+      time: 'Zeit',
+      dish: 'Gericht',
+      place: 'Ort',
+      servings: 'Portionen',
+      kjPerPortion: 'kJ / Portion',
+      weight: 'Gewicht',
+      costPerPortion: '€ / Portion',
+      cost: 'Kosten',
+    },
+    duplicate: 'Duplizieren',
+    removeFromPlan: 'Aus dem Plan entfernen',
+    notWeighedHint: 'Rezept ist nicht eingewogen — Mengen können abweichen',
+  },
 
-  // Source-Overrides
-  'overrides.heading': 'Source-Overrides',
-  'overrides.hint':
-    'Zutaten, die für dieses Event von einer bestimmten Quelle bezogen werden (z. B. privater Bestand, anderer Händler).',
-  'overrides.chooseIngredient': 'Zutat wählen…',
-  'overrides.chooseSource': 'Quelle überschreiben mit…',
-  'overrides.none':
-    'Keine Overrides gesetzt — alle Zutaten laufen über ihre Standardquellen.',
-  'overrides.col.ingredient': 'Zutat',
-  'overrides.col.source': 'Quelle (Store)',
-  'overrides.remove': 'Override entfernen',
-  'overrides.storeFallback': 'Store {id}',
+  mealDrawer: {
+    edit: 'Mahlzeit bearbeiten',
+    plan: 'Mahlzeit planen',
+    save: 'Speichern',
+    recipe: 'Rezept',
+    chooseRecipe: 'Rezept wählen…',
+    componentSuffix: ' (Komponente)',
+    servings: 'Portionen',
+    energyPerPortion: 'Energie / Portion (kJ)',
+    time: 'Zeitpunkt',
+    place: 'Ort',
+    comment: 'Kommentar',
+    optional: 'optional',
+    calc: 'Kalkulation',
+    energy: 'Energie',
+    cookAmount: 'Kochmenge',
+    density: 'Dichte',
+    noDensity:
+      'Keine Energie-Dichte berechenbar — Zutaten/Energiewerte im Rezept prüfen.',
+    calcHint: 'Die Kochmenge wird über die Energie-Dichte des Rezepts skaliert.',
+    recipeOverview: 'Rezept-Überblick',
+    weighed: 'Eingewogen ✓',
+    notWeighed: 'Nicht eingewogen ~',
+    weighedHint: 'Alle Mengen wurden eingewogen',
+    notWeighedHint: 'Nicht eingewogen — Mengen können abweichen',
+    noIngredients: 'Noch keine Zutaten hinterlegt.',
+    treeError: 'Baum konnte nicht geladen werden: {error}',
+    export: 'Export',
+    exportHint:
+      'Kochanweisung, auf die geplante Menge skaliert. Basis-PDF: am Rezept · Sammel-Exporte: Übersicht-Tab.',
+    exportMealPdf: 'Mahlzeit-PDF (skaliert)',
+    exportMealPdfHint:
+      'Kochanweisung, vom Server auf die geplante Menge skaliert',
+  },
 
-  // Kalkulation
-  'calc.heading': 'Kennzahlen',
-  'calc.hint': 'Abgeleitet aus Speiseplan, Touren und Inventar-Abdeckung.',
-  'calc.costTotal': 'Kosten gesamt',
-  'calc.costPerPerson': '€ / Person',
-  'calc.energyPerPerson': 'Energie / Person',
-  'calc.energyPerPersonHint':
-    'Summe der kJ/Portion-Werte über alle Mahlzeiten (Richtwert 8.500–10.500 kJ/Tag).',
-  'calc.costPerMeal': 'Kosten je Mahlzeit',
-  'calc.col.meal': 'Mahlzeit',
-  'calc.col.servings': 'Portionen',
-  'calc.col.total': 'Summe',
-  'calc.costPerTour': 'Kosten je Tour',
-  'calc.col.tour': 'Tour',
-  'calc.col.positions': 'Positionen',
-  'calc.noShopping': 'Keine Einkäufe nötig.',
-  'calc.tourSum': 'Summe Touren',
-  'calc.coverage': 'Abdeckung durch Inventare',
-  'calc.covered': 'Gedeckt',
-  'calc.demand': 'Bedarf',
-  'calc.fromStock': 'Aus Bestand',
-  'calc.toBuy': 'Zu kaufen',
-  'calc.noDemand':
-    'Keine Bedarfspositionen (Inventare koppeln und Speiseplan füllen).',
-  'calc.noPrices': 'keine Preise',
-  'calc.unassigned': 'Nicht zugeordnet',
+  shopping: {
+    summary: '{tours} Touren · {uncovered} Zutaten ohne Tour',
+    loading: 'Einkaufsliste wird geladen…',
+    addTour: '+ Tour anlegen',
+    empty:
+      'Keine Einkäufe nötig (oder die Rezepte haben keine quellenbezogenen Zutaten).',
+    loadError: 'Einkaufsliste konnte nicht geladen werden: {error}',
+    toursHeading: 'Einkaufstouren',
+    toursHint:
+      'Pro Tour die Zutaten mit passendem „besorgen bis“-Zeitfenster; ⤓ lädt die Liste als Text.',
+    withoutTour: 'Ohne Tour',
+    withoutTourHint:
+      'Zutaten, deren Händler-Store noch keine Tour im passenden Zeitfenster hat.',
+    statusMissing: 'Fehlt',
+    col: {
+      ingredient: 'Zutat',
+      amount: 'Menge',
+      store: 'Store',
+      category: 'Kategorie',
+      price: 'Preis',
+    },
+    noItems: 'Keine Zutaten in diesem Zeitfenster.',
+    removeTour: 'Tour entfernen',
+    tourForm: {
+      title: 'Einkaufstour anlegen',
+      store: 'Händler / Store',
+      date: 'Datum',
+      hint:
+        'Zutaten dieses Stores mit passendem „besorgen bis“-Zeitfenster landen automatisch auf der Tour.',
+      submit: 'Anlegen',
+    },
+    downloadList: 'Liste als Text herunterladen',
+    completed: 'Erledigt',
+    completedHint:
+      'Abgeschlossene Touren sind gesperrt (✓ markieren, 🔓 wieder öffnen). Zutaten lassen sich hier zuordnen oder entfernen.',
+    markCompleted: 'Tour als erledigt markieren (sperrt sie)',
+    reopen: 'Tour wieder öffnen',
+    unassignItem: 'Zuordnung aufheben (fällt zurück auf automatisch)',
+    addItem: 'Zutat hinzufügen…',
+    addItemHint:
+      'Zugeordnete Zutaten landen garantiert auf dieser Tour — auch ohne Händler-Fit (z. B. Privat, Genesis).',
+    preset: {
+      relevant: 'Passende vorauswählen',
+      none: 'Keine',
+      all: 'Alle',
+      aria: 'Vorauswahl der Zutaten',
+      noUncovered:
+        'Alle Zutaten sind bereits zugeordnet — die Tour wird leer angelegt.',
+      relevantHint: 'Store passt zu dieser Tour (automatisch zuordenbar)',
+      manualHint:
+        'Wird dieser Tour fest zugeordnet (manuell, unabhängig vom Store)',
+    },
+  },
 
-  // Zeitplan
-  'timeline.kind.meal': 'Essen',
-  'timeline.kind.tour': 'Einkauf',
-  'timeline.kind.prep': 'Vorkochen',
-  'timeline.hint':
-    'Kategorie in der Legende anklicken zum Ein-/Ausblenden. Mahlzeiten und Touren ziehen (30-Minuten-Raster, über Tagesgrenzen hinweg); Mahlzeiten an der rechten Kante in der Endzeit ziehen. Vorkochen ist read-only, bis das REST-API Preps-CRUD erhält.',
-  'timeline.empty': 'Noch keine Termine: Mahlzeiten, Touren oder Vorkochen anlegen.',
-  'timeline.loadError': 'Zeitplan konnte nicht geladen werden: {error}',
-  'timeline.today': 'Heute',
-  'timeline.moveFailed': 'Verschieben fehlgeschlagen — Zeitplan wird neu geladen.',
+  eventInventory: {
+    heading: 'Inventare',
+    hint:
+      'Bestände, die für dieses Event eingeplant werden — die Tabelle zeigt pro Zutat, was abgedeckt ist und was noch gekauft werden muss.',
+    unlink: 'Inventar vom Event abkoppeln',
+    noneLinked: 'Noch keine Inventare gekoppelt.',
+    link: 'Inventar koppeln…',
+    coveragePending: 'Abdeckung wird berechnet…',
+    coverageError: 'Abdeckung konnte nicht geladen werden: {error}',
+    nothingToCover: 'Keine Zutaten im Speiseplan — es gibt nichts abzudecken.',
+    col: {
+      ingredient: 'Zutat',
+      demand: 'Bedarf',
+      covered: 'Abgedeckt',
+      missing: 'Fehlt',
+    },
+  },
 
-  // Rezept-Ansicht (Drawer + Seite)
-  'recipe.kind.meal': 'Gericht',
-  'recipe.kind.component': 'Komponente',
-  'recipe.pdf': 'Rezept-PDF',
-  'recipe.pdfHint': 'Kochanweisung als PDF (Basis-Mengen)',
-  'recipe.totalWeight': 'Gesamtgewicht',
-  'recipe.totalEnergy': 'Energie gesamt',
-  'recipe.energyDensity': 'Energie-Dichte',
-  'recipe.tree': 'Rezept-Baum',
-  'recipe.steps': 'Arbeitsschritte',
-  'recipe.noSteps': 'Keine Arbeitsschritte hinterlegt.',
-  'recipe.properties': 'Eigenschaften & Allergene',
-  'recipe.deleteTitle': 'Rezept löschen',
-  'recipe.clone': 'Klonen',
-  'recipe.deleteMessage':
-    '„{name}“ und alle zugehörigen Rezeptdaten wirklich löschen?',
+  overrides: {
+    heading: 'Source-Overrides',
+    hint:
+      'Zutaten, die für dieses Event von einer bestimmten Quelle bezogen werden (z. B. privater Bestand, anderer Händler).',
+    chooseIngredient: 'Zutat wählen…',
+    chooseSource: 'Quelle überschreiben mit…',
+    none:
+      'Keine Overrides gesetzt — alle Zutaten laufen über ihre Standardquellen.',
+    col: {
+      ingredient: 'Zutat',
+      source: 'Quelle (Store)',
+    },
+    remove: 'Override entfernen',
+    storeFallback: 'Store {id}',
+  },
 
-  // Shopping-Tour-Lifecycle & manuelle Items
-  'shopping.completed': 'Erledigt',
-  'shopping.completedHint':
-    'Abgeschlossene Touren sind gesperrt (✓ markieren, 🔓 wieder öffnen). Zutaten lassen sich hier zuordnen oder entfernen.',
-  'shopping.markCompleted': 'Tour als erledigt markieren (sperrt sie)',
-  'shopping.reopen': 'Tour wieder öffnen',
-  'shopping.unassignItem': 'Zuordnung aufheben (fällt zurück auf automatisch)',
-  'shopping.addItem': 'Zutat hinzufügen…',
-  'shopping.addItemHint':
-    'Zugeordnete Zutaten landen garantiert auf dieser Tour — auch ohne Händler-Fit (z. B. Privat, Genesis).',
-  'shopping.preset.relevant': 'Passende vorauswählen',
-  'shopping.preset.none': 'Keine',
-  'shopping.preset.all': 'Alle',
-  'shopping.preset.aria': 'Vorauswahl der Zutaten',
-  'shopping.preset.noUncovered':
-    'Alle Zutaten sind bereits zugeordnet — die Tour wird leer angelegt.',
-  'shopping.preset.relevantHint':
-    'Store passt zu dieser Tour (automatisch zuordenbar)',
-  'shopping.preset.manualHint':
-    'Wird dieser Tour fest zugeordnet (manuell, unabhängig vom Store)',
+  calc: {
+    heading: 'Kennzahlen',
+    hint: 'Abgeleitet aus Speiseplan, Touren und Inventar-Abdeckung.',
+    costTotal: 'Kosten gesamt',
+    costPerPerson: '€ / Person',
+    energyPerPerson: 'Energie / Person',
+    energyPerPersonHint:
+      'Summe der kJ/Portion-Werte über alle Mahlzeiten (Richtwert 8.500–10.500 kJ/Tag).',
+    costPerMeal: 'Kosten je Mahlzeit',
+    costPerTour: 'Kosten je Tour',
+    col: {
+      meal: 'Mahlzeit',
+      servings: 'Portionen',
+      total: 'Summe',
+      tour: 'Tour',
+      positions: 'Positionen',
+    },
+    noShopping: 'Keine Einkäufe nötig.',
+    tourSum: 'Summe Touren',
+    coverage: 'Abdeckung durch Inventare',
+    covered: 'Gedeckt',
+    demand: 'Bedarf',
+    fromStock: 'Aus Bestand',
+    toBuy: 'Zu kaufen',
+    noDemand:
+      'Keine Bedarfspositionen (Inventare koppeln und Speiseplan füllen).',
+    noPrices: 'keine Preise',
+    unassigned: 'Nicht zugeordnet',
+  },
+
+  timeline: {
+    kind: {
+      meal: 'Essen',
+      tour: 'Einkauf',
+      prep: 'Vorkochen',
+    },
+    hint:
+      'Kategorie in der Legende anklicken zum Ein-/Ausblenden. Mahlzeiten und Touren ziehen (30-Minuten-Raster, über Tagesgrenzen hinweg); Mahlzeiten an der rechten Kante in der Endzeit ziehen. Vorkochen ist read-only, bis das REST-API Preps-CRUD erhält.',
+    empty: 'Noch keine Termine: Mahlzeiten, Touren oder Vorkochen anlegen.',
+    loadError: 'Zeitplan konnte nicht geladen werden: {error}',
+    today: 'Heute',
+    moveFailed: 'Verschieben fehlgeschlagen — Zeitplan wird neu geladen.',
+  },
+
+  recipe: {
+    kind: {
+      meal: 'Gericht',
+      component: 'Komponente',
+    },
+    pdf: 'Rezept-PDF',
+    pdfHint: 'Kochanweisung als PDF (Basis-Mengen)',
+    totalWeight: 'Gesamtgewicht',
+    totalEnergy: 'Energie gesamt',
+    energyDensity: 'Energie-Dichte',
+    tree: 'Rezept-Baum',
+    steps: 'Arbeitsschritte',
+    noSteps: 'Keine Arbeitsschritte hinterlegt.',
+    properties: 'Eigenschaften & Allergene',
+    deleteTitle: 'Rezept löschen',
+    clone: 'Klonen',
+    deleteMessage: '„{name}“ und alle zugehörigen Rezeptdaten wirklich löschen?',
+  },
 } as const
