@@ -21,6 +21,8 @@ export function usePermissions() {
     isAdmin,
     groupIds,
     roleOf,
+    /** Can the user see resources of this group? (any membership) */
+    canViewGroup: (groupId: number) => roleOf(groupId) !== undefined,
     /** Can the user edit resources of this group? (editor and above) */
     canEditGroup: (groupId: number) =>
       roleOf(groupId) === 'editor' || roleOf(groupId) === 'manager',

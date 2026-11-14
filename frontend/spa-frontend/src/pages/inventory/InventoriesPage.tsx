@@ -2,11 +2,11 @@ import type {FormEvent} from 'react'
 import {useMemo, useState} from 'react'
 import type {Inventory} from '../../api/types.ts'
 import {Drawer} from '../../components/patterns/drawer/Drawer.tsx'
-import {GroupFilterSelect} from '../../components/patterns/group_filter/GroupFilterSelect.tsx'
+import SearchBar from "../../components/patterns/seachbar/SearchBar.tsx";
 import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
 import {useCreateInventory, useInventories} from '../../hooks/queries/useInventories.ts'
-import {useCurrentUser} from '../../hooks/useAuth.ts'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
+import {useCurrentUser} from '../../hooks/useAuth.ts'
 import {useOwnerFilter} from '../../hooks/useOwnerFilter.ts'
 import {t} from '../../i18n'
 import styles from './InventoriesPage.module.css'
@@ -73,19 +73,7 @@ export default function InventoriesPage() {
                 </button>
             </div>
 
-            <div className={styles.controls}>
-                <GroupFilterSelect
-                    groups={userGroups}
-                    value={ownerFilter}
-                    onChange={setOwnerFilter}
-                />
-                <input
-                    className={`input ${styles.search}`}
-                    placeholder="Inventare durchsuchen…"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                />
-            </div>
+            <SearchBar value={search} onChange={(event) => setSearch(event.target.value)} userGroups={userGroups} ownerFilter={ownerFilter} onChange1={setOwnerFilter} placeholder1="Inventare durchsuchen…"/>
 
             <DataTable
                 columns={columns}

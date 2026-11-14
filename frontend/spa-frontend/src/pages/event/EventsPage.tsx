@@ -1,8 +1,7 @@
 import {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import type {EventListItem} from '../../api'
-import {EventFormDrawer} from './EventFormDrawer.tsx'
-import {GroupFilterSelect} from '../../components/patterns/group_filter/GroupFilterSelect.tsx'
+import SearchBar from "../../components/patterns/seachbar/SearchBar.tsx";
 import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
 import {useEvents} from '../../hooks/queries/useEvents.ts'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
@@ -10,6 +9,7 @@ import {useCurrentUser} from '../../hooks/useAuth.ts'
 import {useOwnerFilter} from '../../hooks/useOwnerFilter.ts'
 import {t} from '../../i18n'
 import {formatDateRange, formatDecimal, toNumber} from '../../lib/format.ts'
+import {EventFormDrawer} from './EventFormDrawer.tsx'
 import styles from './EventsPage.module.css'
 
 /**
@@ -105,19 +105,8 @@ export default function EventsPage() {
         </button>
       </div>
 
-      <div className={styles.controls}>
-        <input
-          className={`input ${styles.search}`}
-          placeholder="Events durchsuchen…"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-        <GroupFilterSelect
-          groups={userGroups}
-          value={ownerFilter}
-          onChange={setOwnerFilter}
-        />
-      </div>
+      <SearchBar value={search} onChange={(event) => setSearch(event.target.value)} userGroups={userGroups}
+                     ownerFilter={ownerFilter} onChange1={setOwnerFilter} placeholder1={t('event.searchPlaceholder')}/>
 
       <DataTable
         columns={columns}

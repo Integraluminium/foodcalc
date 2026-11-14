@@ -90,10 +90,16 @@
 }
 
 .stepHead {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.stepName {
+  flex: 1 1 14rem;
+  min-width: 10rem;
+  min-width: 0;
 }
 
 .stepNum {
@@ -115,4 +121,23 @@
 .stepDesc {
   width: 100%;
   resize: vertical;
+}
+
+/* HACCP: markierte Karte + Checkbox in der Fußzeile. */
+.stepCardHaccp {
+  border-left: 3px solid var(--warning, #d97706);
+}
+
+.stepFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.haccpCheck {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
 }

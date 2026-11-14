@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest'
 import type {RecipeDetail} from '../../../api/types'
-import {draftFromDetail, draftStats, emptyDraft, reducer, type Draft} from './editorModel'
+import {dirtyDraft, draftFromDetail, draftStats, emptyDraft, reducer, type Draft} from './editorModel'
 
 function detail(): RecipeDetail {
     return {
@@ -23,6 +23,7 @@ function detail(): RecipeDetail {
                 description: 'Zwiebeln',
                 fixed_duration_seconds: 600,
                 duration_per_kg_seconds: 1500,
+                is_haccp: false,
             },
         ],
     } as unknown as RecipeDetail
@@ -134,5 +135,36 @@ describe('draftStats', () => {
             energy: 0,
             density: null,
         })
+    })
+})
+describe('dirtyDraft', () => {
+    it('strips derived kg/density so refetch resolution is not dirty', () => {
+        const draft = draftFromDetail(detail())
+        // kg/density-Nachfüllung durch Detail-Refetch — kein user change:
+        const resolved: Draft = {
+            ...draft,
+            ingredients: draft.ingredients.map((row) => ({
+                ...row,
+                kg: 2,
+                density: 4,
+            })),
+            subRecipes: draft.subRecipes.map((row) => ({ ...row, density: 1 })),
+        }
+        expect(JSON.stringify(dirtyDraft(resolved))).toBe(
+            JSON.stringify(dirtyDraft(draft)),
+        )
+    })
+
+    it('flags real user changes (amount, steps, isHaccp)', () => {
+        const draft = draftFromDetail(detail())
+        const changed: Draft = {
+            ...draft,
+            steps: draft.steps.map((step, i) =>
+                i === 0 ? { ...step, isHaccp: !step.isHaccp } : step,
+            ),
+        }
+        expect(JSON.stringify(dirtyDraft(changed))).not.toBe(
+            JSON.stringify(dirtyDraft(draft)),
+        )
     })
 })

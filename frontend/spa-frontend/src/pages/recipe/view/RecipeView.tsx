@@ -1,13 +1,17 @@
-import {useState} from 'react'
+import {type ReactNode, useState} from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 import type {RecipeDetail} from '../../../api'
+import CardSection from "../../../components/patterns/card_section/CardSection.tsx";
 import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {EntityHeader, type StatItem} from "../../../components/patterns/entity_header/EntityHeader.tsx";
 import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
 import {RecipeTreeView} from '../../../components/patterns/tree_view/RecipeTreeView.tsx'
-import {ExportButton} from '../../../components/ui/button/ExportButton.tsx'
+import {Badge, type BadgeItem} from "../../../components/ui/badge/Badge.tsx";
+import {ExportButton} from "../../../components/ui/button/ExportButton.tsx";
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../../hooks/queries/useMasterData.ts'
 import {useRecipe, useRecipeMutations, useRecipeTree,} from '../../../hooks/queries/useRecipes.ts'
+import {useCurrentUser} from '../../../hooks/useAuth.ts'
 import {usePermissions} from '../../../hooks/usePermissions.ts'
 import {t} from '../../../i18n'
 import {formatDecimal, formatKjPerG, formatMinutes} from '../../../lib/format.ts'
@@ -59,6 +63,48 @@ export function RecipeView({ recipeId, variant, onDeleted }: RecipeViewProps) {
   )
 }
 
+function buildRecipeBadges(isMeal: boolean, recipe: RecipeDetail, groupName: string): BadgeItem[] {
+  return [
+    {
+      variant: isMeal ? 'success' : 'info',
+      children: isMeal ? t('recipe.kind.meal') : t('recipe.kind.component'),
+    },
+    {
+      variant: recipe.weighed_in ? 'success' : 'warning',
+      label: recipe.weighed_in
+        ? t('mealDrawer.weighedHint')
+        : t('plan.notWeighedHint'),
+      children: recipe.weighed_in
+        ? t('mealDrawer.weighed')
+        : t('mealDrawer.notWeighed'),
+    },
+    {
+      variant: 'neutral',
+      children: "owner: " + groupName,
+    },
+  ];
+}
+
+function buildStatsData(recipe: RecipeDetail): StatItem[] {
+  return [
+    {
+      key: 'weight',
+      label: t('recipe.totalWeight'),
+      stats: recipe.stats ? `${formatDecimal(recipe.stats.weight_kg)} kg` : '– kg',
+    },
+    {
+      key: 'energy',
+      label: t('recipe.totalEnergy'),
+      stats: recipe.stats ? `${formatDecimal(recipe.stats.energy_kj, 0)} kJ` : '– kJ',
+    },
+    {
+      key: 'density',
+      label: t('recipe.energyDensity'),
+      stats: recipe.stats ? formatKjPerG(recipe.stats.energy_kj_per_g) : '–',
+    },
+  ];
+}
+
 function RecipeViewContent({
   recipe,
   variant,
@@ -72,7 +118,12 @@ function RecipeViewContent({
   const groups = useGroups()
   const tree = useRecipeTree(recipe.id)
   const mutations = useRecipeMutations(recipe.id)
-  const { canEditGroup, canManageGroup } = usePermissions()
+  const { canViewGroup, canEditGroup, canManageGroup } = usePermissions()
+  const { data: user } = useCurrentUser()
+  const personalGroupId =
+    user?.groups.find((group) => group.is_personal)?.id ??
+    user?.groups[0]?.id ??
+    0
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const [drawer, setDrawer] = useState<'meta' | 'ingredients' | 'steps' | null>(null)
@@ -82,6 +133,74 @@ function RecipeViewContent({
     groups.data?.find((group) => group.id === recipe.group_id)?.name ??
     `Gruppe ${recipe.group_id}`
   const isPage = variant === 'page'
+  const isMeal = recipe.kind === 'meal';
+
+  const closeDrawer = () => setDrawer(null);
+
+  const drawers: Record<NonNullable<typeof drawer>, ReactNode> = {
+    meta: <RecipeMetaDrawer recipe={recipe} onClose={closeDrawer} />,
+    ingredients: <RecipeIngredientsDrawer recipeId={recipe.id} onClose={closeDrawer} />,
+    steps: <RecipeStepsDrawer recipeId={recipe.id} onClose={closeDrawer} />,
+  };
+
+  const badgeItems: BadgeItem[] = buildRecipeBadges(isMeal, recipe, groupName);
+
+  const statsData: StatItem[] = buildStatsData(recipe);
+
+  const actions = (
+    <>
+      <ExportButton
+        path={`/recipes/${recipe.id}/export`}
+        filename={`${recipe.name}.pdf`}
+        title={t('recipe.pdfHint')}
+      >
+        {t('recipe.pdf')}
+      </ExportButton>
+      {canManageGroup(recipe.group_id) && (
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => setTransferOpen(true)}
+        >
+          {t('transfer.button')}
+        </button>
+      )}
+      {editable && (
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => setDrawer('meta')}
+        >
+          {t('editor.drawer.triggerMeta')}
+        </button>
+      )}
+      {canViewGroup(recipe.group_id) && (
+        <button
+          type="button"
+          className="btn btn--ghost"
+          title={t('recipe.cloneHint')}
+          onClick={() =>
+            mutations.clone.mutate({ group_id: personalGroupId }, {
+              onSuccess: (created) =>
+                void navigate(`/recipes/${created.id}`),
+            })
+          }
+          disabled={mutations.clone.isPending || personalGroupId === 0}
+        >
+          {t('recipe.clone')}
+        </button>
+      )}
+      {editable && (
+        <button
+          type="button"
+          className="btn btn--danger"
+          onClick={() => setConfirmDelete(true)}
+        >
+          {t('action.delete')}
+        </button>
+      )}
+    </>
+  )
 
   return (
     <div className={isPage ? styles.page : styles.overlayBody}>
@@ -91,87 +210,10 @@ function RecipeViewContent({
         </Link>
       )}
 
-      <div className={`card ${styles.header}`}>
-        <div className={styles.headerMain}>
-          <h1 className="section-title">{recipe.name}</h1>
-          <div className={styles.badges}>
-            <span
-              className={`badge ${
-                recipe.kind === 'meal' ? 'badge--success' : 'badge--info'
-              }`}
-            >
-              {recipe.kind === 'meal'
-                ? t('recipe.kind.meal')
-                : t('recipe.kind.component')}
-            </span>
-            <span
-              className={`badge ${recipe.weighed_in ? 'badge--success' : 'badge--warning'}`}
-              title={
-                recipe.weighed_in
-                  ? t('mealDrawer.weighedHint')
-                  : t('plan.notWeighedHint')
-              }
-            >
-              {recipe.weighed_in
-                ? t('mealDrawer.weighed')
-                : t('mealDrawer.notWeighed')}
-            </span>
-            <span className="badge badge--neutral">{groupName}</span>
-          </div>
-          {recipe.comment && <p className="muted">{recipe.comment}</p>}
-        </div>
-        <div className={styles.headerActions}>
-          <ExportButton
-            path={`/recipes/${recipe.id}/export`}
-            filename={`${recipe.name}.pdf`}
-            title={t('recipe.pdfHint')}
-          >
-            {t('recipe.pdf')}
-          </ExportButton>
-          {canManageGroup(recipe.group_id) && (
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setTransferOpen(true)}
-            >
-              {t('transfer.button')}
-            </button>
-          )}
-          {editable && (
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setDrawer('meta')}
-            >
-              {t('editor.drawer.triggerMeta')}
-            </button>
-          )}
-          {editable && (
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() =>
-                mutations.clone.mutate(undefined, {
-                  onSuccess: (created) =>
-                    void navigate(`/recipes/${created.id}`),
-                })
-              }
-              disabled={mutations.clone.isPending}
-            >
-              {t('recipe.clone')}
-            </button>
-          )}
-          {editable && (
-            <button
-              type="button"
-              className="btn btn--danger"
-              onClick={() => setConfirmDelete(true)}
-            >
-              {t('action.delete')}
-            </button>
-          )}
-        </div>
-      </div>
+
+
+
+      <EntityHeader actions={actions} badges={badgeItems} stats={statsData} comment={recipe.comment}/>
 
       {!isPage && (
         <Link to={`/recipes/${recipe.id}`} className="secondary">
@@ -179,70 +221,46 @@ function RecipeViewContent({
         </Link>
       )}
 
-      <div className={styles.stats}>
-        <div className={`card ${styles.stat}`}>
-          <span className="muted">{t('recipe.totalWeight')}</span>
-          <strong>
-            {recipe.stats ? formatDecimal(recipe.stats.weight_kg) : '–'} kg
-          </strong>
-        </div>
-        <div className={`card ${styles.stat}`}>
-          <span className="muted">{t('recipe.totalEnergy')}</span>
-          <strong>
-            {recipe.stats ? formatDecimal(recipe.stats.energy_kj, 0) : '–'} kJ
-          </strong>
-        </div>
-        <div className={`card ${styles.stat}`}>
-          <span className="muted">{t('recipe.energyDensity')}</span>
-          <strong>
-            {recipe.stats ? formatKjPerG(recipe.stats.energy_kj_per_g) : '–'}
-          </strong>
-        </div>
-      </div>
       <p className={`muted ${styles.hint}`}>
         Die Energie-Dichte skaliert die Menge: Portionen × Energie-Zielwert pro
         Portion bestimmen später die Kochmenge.
       </p>
 
-      <section className={`card ${styles.section}`}>
-        <h2 className="section-subtitle">{t('recipe.tree')}</h2>
-        {tree.isPending ? (
-          <Spinner size="sm" />
-        ) : tree.isError ? (
-          <p className="muted">
-            Baum konnte nicht geladen werden: {String(tree.error)}
-          </p>
-        ) : tree.data.ingredients.length === 0 &&
-          tree.data.children.length === 0 ? (
-          <p className="muted">
-            Noch keine Zutaten oder Sub-Komponenten hinterlegt — im Wizard
-            bearbeiten.
-          </p>
-        ) : (
-          <RecipeTreeView root={tree.data} />
-        )}
-        {editable && (
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={() => setDrawer('ingredients')}
-          >
-            {t('editor.drawer.triggerIngredients')}
-          </button>
-        )}
-      </section>
+      <CardSection
+        title={t('recipe.tree')}
+        action={
+          editable
+            ? { label: t('editor.drawer.triggerIngredients'), onClick: () => setDrawer('ingredients') }
+            : undefined
+        }
+      >{tree.isPending ? (
+        <Spinner size="sm" />
+      ) : tree.isError ? (
+        <p className="muted">Baum konnte nicht geladen werden: {String(tree.error)}</p>
+      ) : tree.data.ingredients.length === 0 && tree.data.children.length === 0 ? (
+        <p className="muted">
+          Noch keine Zutaten oder Sub-Komponenten hinterlegt — im Wizard bearbeiten.
+        </p>
+      ) : (
+        <RecipeTreeView root={tree.data} />
+      )}
+      </CardSection>
 
-      <section className={`card ${styles.section}`}>
-        <h2 className="section-subtitle">{t('recipe.steps')}</h2>
+      <CardSection
+        title={t('recipe.steps')}
+        action={
+          editable
+            ? { label: t('editor.drawer.triggerSteps'), onClick: () => setDrawer('steps') }
+            : undefined
+        }
+      >
         {recipe.steps.length === 0 ? (
           <p className="muted">{t('recipe.noSteps')}</p>
         ) : (
           <div className={styles.steps}>
             {recipe.steps.map((step) => (
               <div key={step.id} className={styles.stepRow}>
-                <span className={`badge badge--neutral ${styles.stepOrder}`}>
-                  #{Math.round(step.order)}
-                </span>
+                <Badge key={step.id} variant="neutral" className={styles.stepOrder}> #{Math.round(step.order)} </Badge>
                 <div className={styles.stepFields}>
                   <strong>{step.name || 'Schritt'}</strong>
                   {step.description && (
@@ -258,30 +276,19 @@ function RecipeViewContent({
             ))}
           </div>
         )}
-        {editable && (
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={() => setDrawer('steps')}
-          >
-            {t('editor.drawer.triggerSteps')}
-          </button>
-        )}
-      </section>
+      </CardSection>
 
       {recipe.properties.length > 0 && (
-        <section className={`card ${styles.section}`}>
-          <h2 className="section-subtitle">{t('recipe.properties')}</h2>
+        <CardSection title={t('recipe.properties')}>
           <div className={styles.chips}>
             {recipe.properties.map((property) => (
-              <span key={property.id} className="badge badge--warning">
+              <Badge key={property.id} variant="info">
                 {property.name}
-              </span>
+              </Badge>
             ))}
           </div>
-        </section>
+        </CardSection>
       )}
-
       {transferOpen && (
         <OwnerTransferDialog
           kind="recipes"
@@ -308,18 +315,8 @@ function RecipeViewContent({
         />
       )}
 
-      {drawer === 'meta' && (
-        <RecipeMetaDrawer recipe={recipe} onClose={() => setDrawer(null)} />
-      )}
-      {drawer === 'ingredients' && (
-        <RecipeIngredientsDrawer
-          recipeId={recipe.id}
-          onClose={() => setDrawer(null)}
-        />
-      )}
-      {drawer === 'steps' && (
-        <RecipeStepsDrawer recipeId={recipe.id} onClose={() => setDrawer(null)} />
-      )}
+      {drawer && drawers[drawer]}
     </div>
   )
 }
+

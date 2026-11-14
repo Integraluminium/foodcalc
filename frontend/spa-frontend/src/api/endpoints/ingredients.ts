@@ -6,6 +6,7 @@ import type {
   IngredientWeight,
   IngredientWithSources,
   Property,
+  Recipe,
 } from '../types'
 
 export interface IngredientSourceInput {
@@ -21,6 +22,7 @@ export const ingredientsApi = {
   list: (params?: { search?: string; property_id?: number }) =>
     api.get<IngredientWithSources[]>(`/ingredients${buildQuery(params ?? {})}`),
   detail: (id: number) => api.get<IngredientDetail>(`/ingredients/${id}`),
+  usages: (id: number) => api.get<Recipe[]>(`/ingredients/${id}/usages`),
   create: (input: {
     name: string
     energy: string

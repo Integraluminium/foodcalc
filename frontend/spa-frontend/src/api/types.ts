@@ -53,7 +53,7 @@ export type RecipeKind = 'meal' | 'component'
 export interface Recipe {
   id: number
   name: string
-  comment: string | null
+  comment: string | undefined
   group_id: number
   kind: RecipeKind
   weighed_in: boolean
@@ -95,6 +95,8 @@ export interface RecipeStep {
   description: string
   fixed_duration_seconds: number
   duration_per_kg_seconds: number
+  /** Marks this step as a HACCP control point. */
+  is_haccp: boolean
 }
 
 export interface RecipeProperty {

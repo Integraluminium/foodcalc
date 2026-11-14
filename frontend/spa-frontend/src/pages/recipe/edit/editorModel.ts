@@ -28,6 +28,8 @@ export interface DraftStep {
     description: string
     fixedSeconds: number
     perKgSeconds: number
+    /** Marks this step as a HACCP control point. */
+    isHaccp: boolean
 }
 
 export interface Draft {
@@ -92,7 +94,7 @@ export function reducer(state: Draft, action: Action): Draft {
                 ...state,
                 steps: [
                     ...state.steps,
-                    {name: '', description: '', fixedSeconds: 0, perKgSeconds: 0},
+                    {name: '', description: '', fixedSeconds: 0, perKgSeconds: 0, isHaccp: false},
                 ],
             }
         case 'update-step':
@@ -161,6 +163,7 @@ export function draftFromDetail(detail: RecipeDetail): Draft {
             description: step.description,
             fixedSeconds: step.fixed_duration_seconds,
             perKgSeconds: step.duration_per_kg_seconds,
+            isHaccp: step.is_haccp,
         })),
     }
 }
@@ -198,5 +201,18 @@ export function draftStats(draft: Draft): DraftStats {
         weight,
         energy,
         density: weight > 0 ? energy / (weight * 1000) : null,
+    }
+}
+
+/**
+ * Entwurf ohne abgeleitete Werte (kg/Dichte) — Basis des Dirty-Vergleichs:
+ * Server-Refetches der Detail-Queries füllen die Auflösung nach und sollen
+ * NICHT als ungespeicherte Änderung gelten.
+ */
+export function dirtyDraft(draft: Draft): unknown {
+    return {
+        ...draft,
+        ingredients: draft.ingredients.map(({ kg: _kg, density: _density, ...rest }) => rest),
+        subRecipes: draft.subRecipes.map(({ density: _density, ...rest }) => rest),
     }
 }

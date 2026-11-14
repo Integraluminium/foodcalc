@@ -48,6 +48,15 @@ export function useCreateIngredient() {
   })
 }
 
+/** Rezepte, die diese Zutat verwenden (Verwendungsliste + Lösch-Warnung). */
+export function useIngredientUsages(id: number | null) {
+  return useQuery({
+    queryKey: ['ingredients', 'usages', id] as const,
+    queryFn: () => ingredientsApi.usages(id as number),
+    enabled: id !== null && Number.isFinite(id) && id > 0,
+  })
+}
+
 export function useIngredientMutations(ingredientId: number) {
   const invalidate = useInvalidateIngredients()
 
@@ -70,8 +79,8 @@ export function useIngredientMutations(ingredientId: number) {
     onSuccess: invalidate,
   })
   const updateSource = useMutation({
-    mutationFn: (args: { sourceId: number } & IngredientSourceInput) =>
-      ingredientsApi.updateSource(ingredientId, args.sourceId, args),
+    mutationFn: ({ sourceId, ...input }: { sourceId: number } & IngredientSourceInput) =>
+      ingredientsApi.updateSource(ingredientId, sourceId, input),
     onSuccess: invalidate,
   })
   const removeSource = useMutation({

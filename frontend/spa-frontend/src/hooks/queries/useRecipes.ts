@@ -75,7 +75,8 @@ export function useRecipeMutations(recipeId: number) {
     onSuccess: invalidate,
   })
   const clone = useMutation({
-    mutationFn: (input?: { name?: string }) => recipesApi.clone(recipeId, input),
+    mutationFn: (input?: { name?: string; group_id?: number }) =>
+      recipesApi.clone(recipeId, input),
     onSuccess: invalidate,
   })
   const addIngredient = useMutation({

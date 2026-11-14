@@ -40,6 +40,8 @@ export interface RecipeStepInput {
   description: string
   fixed_duration_seconds: number
   duration_per_kg_seconds: number
+  /** Marks this step as a HACCP control point. */
+  is_haccp: boolean
 }
 
 export const recipesApi = {
@@ -52,7 +54,7 @@ export const recipesApi = {
   remove: (id: number) => api.delete<void>(`/recipes/${id}`),
   setOwner: (id: number, groupId: number) =>
     api.put<void>(`/recipes/${id}/owner`, { group_id: groupId }),
-  clone: (id: number, input?: { name?: string }) =>
+  clone: (id: number, input?: { name?: string; group_id?: number }) =>
     api.post<{ id: number }>(`/recipes/${id}/clone`, input ?? {}),
   addIngredient: (id: number, input: RecipeIngredientInput) =>
     api.post<RecipeIngredient>(`/recipes/${id}/ingredients`, input),

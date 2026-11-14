@@ -1,9 +1,8 @@
-import {useMemo, useState} from 'react'
+import {type ReactNode, useMemo, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import type {RecipeKind, RecipeListItem} from '../../api/types.ts'
 import {Drawer} from '../../components/patterns/drawer/Drawer.tsx'
-import {GroupFilterSelect} from '../../components/patterns/group_filter/GroupFilterSelect.tsx'
-import {SegmentedControl} from '../../components/patterns/segmented_control/SegmentedControl.tsx'
+import SearchBar from "../../components/patterns/seachbar/SearchBar.tsx";
 import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
 import {useRecipes} from '../../hooks/queries/useRecipes.ts'
 import {useCurrentUser} from '../../hooks/useAuth.ts'
@@ -97,28 +96,32 @@ export default function RecipesPage() {
                 </button>
             </div>
 
-            <div className={styles.controls}>
-                <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>
-                    <SegmentedControl
-                        options={KIND_OPTIONS}
-                        value={kind}
-                        onChange={setKind}
-                        ariaLabel="Rezeptart filtern"
-                    />
-                    <GroupFilterSelect
-                        groups={userGroups}
-                        value={ownerFilter}
-                        onChange={setOwnerFilter}
-                    />
-                </div>
+            <SearchBar value={search} onChange={(event) => setSearch(event.target.value)} userGroups={userGroups} ownerFilter={ownerFilter} onChange1={setOwnerFilter} placeholder1="Rezepte durchsuchen…"/>
+            // TODO: SegmentedControl is needed in the SearchBar component, but it is currently commented out because of easy migration to other components.
+            {/*<div className={styles.controls}>*/}
 
-                <input
-                    className={`input ${styles.search}`}
-                    placeholder="Rezepte durchsuchen…"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                />
-            </div>
+            {/*    <input*/}
+            {/*      className={`input ${styles.search}`}*/}
+            {/*      placeholder="Rezepte durchsuchen…"*/}
+            {/*      value={search}*/}
+            {/*      onChange={(event) => setSearch(event.target.value)}*/}
+            {/*    />*/}
+
+            {/*    <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>*/}
+            {/*        <SegmentedControl*/}
+            {/*            options={KIND_OPTIONS}*/}
+            {/*            value={kind}*/}
+            {/*            onChange={setKind}*/}
+            {/*            ariaLabel="Rezeptart filtern"*/}
+            {/*        />*/}
+            {/*        <GroupFilterSelect*/}
+            {/*            groups={userGroups}*/}
+            {/*            value={ownerFilter}*/}
+            {/*            onChange={setOwnerFilter}*/}
+            {/*        />*/}
+            {/*    </div>*/}
+
+            {/*</div>*/}
 
             <DataTable
                 columns={columns}
@@ -135,7 +138,7 @@ export default function RecipesPage() {
 
             {drawerRecipe && (
                 <Drawer
-                    title={drawerRecipe.name}
+                    title={<DrawerHeader title={drawerRecipe.name} recipeKind={drawerRecipe.kind} owner={drawerRecipe.group_name}/>}
                     onClose={() => setDrawerRecipe(null)}
                 >
                     <RecipeView
@@ -147,4 +150,29 @@ export default function RecipesPage() {
             )}
         </div>
     )
+}
+
+interface DrawerHeaderProps {
+    title: string
+    recipeKind?: RecipeKind
+    owner?: ReactNode
+    comment?: string
+    // onClose: () => void
+}
+
+function DrawerHeader({title, recipeKind, owner, comment}: DrawerHeaderProps) {
+    return (<>
+        <h1 className="section-title">{title}</h1>
+        <span
+          className={`badge ${
+            recipeKind === 'meal' ? 'badge--success' : 'badge--info'
+          }`}
+        >
+              {recipeKind === 'meal'
+                ? t('recipe.kind.meal')
+                : t('recipe.kind.component')}
+            </span>
+        {owner && <span className="muted">Owner: {owner}</span>}
+        {comment && <p className="muted">{comment}</p>}
+    </>)
 }

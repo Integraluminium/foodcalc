@@ -10,6 +10,7 @@ import EventsPage from './pages/event/EventsPage.tsx'
 import EventWorkspace from './pages/event/workspace/EventWorkspace.tsx'
 import {OverviewTab} from './pages/event/workspace/overview/OverviewTab.tsx'
 import {KalkulationRoute, PlanRoute, ShoppingRoute, TimelineRoute,} from './pages/event/workspace/tabRoutes.tsx'
+import IngredientDetailPage from './pages/ingredient/details/IngredientDetailPage.tsx'
 import IngredientsPage from './pages/ingredient/IngredientsPage.tsx'
 import InventoriesPage from './pages/inventory/InventoriesPage.tsx'
 import LoginPage from './pages/login/LoginPage.tsx'
@@ -84,6 +85,8 @@ export default function App() {
             <Route path="/recipes/:recipeId" element={<RecipeDetailPage />}/>
             <Route path="/recipes/:recipeId/edit" element={<RecipeEditRedirect />}/>
             <Route path="/ingredients" element={<IngredientsPage />}/>
+            <Route path="/ingredients/new" element={<IngredientDetailPage />}/>
+            <Route path="/ingredients/:ingredientId" element={<IngredientDetailPage />}/>
             <Route path="/events" element={<EventsPage />}/>
             <Route path="/events/:eventId" element={<EventWorkspace />}>
               <Route index element={<OverviewTab />} />

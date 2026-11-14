@@ -150,7 +150,15 @@ export const EN = {
         addProperty: '+ Add property…',
         weightsTitle: 'Weight per unit',
         weightsEmpty: 'No unit weights recorded.',
-        colWeightKg: 'kg',
+        colWeightKg: 'Weight (kg)',
+        weightsHint:
+            'Amount conversion: 1 unit = X kg — the recipe editor converts amounts into kg (and kJ) automatically.',
+        done: 'Done',
+        addSourceButton: '+ Add source',
+        sourceAdded: 'Source added.',
+        sourceSaved: 'Source saved.',
+        noStores:
+            'No stores exist yet — sources need at least one store (master data).',
         pickUnit: 'Pick a unit…',
         usagesTitle: 'Used in recipes',
         usagesEmpty: 'Not used in any recipe.',
@@ -205,6 +213,7 @@ export const EN = {
             pickerCreateComment: 'Comment (optional)',
             pickerCreateSubmit: 'Create & select',
             filterAll: 'All',
+            stepDescPlaceholder: 'Description…',
             pickerHint:
                 'Enter: add & keep open · Shift+Enter: add & close · Esc: close',
         },

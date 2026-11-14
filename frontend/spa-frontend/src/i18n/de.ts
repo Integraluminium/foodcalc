@@ -1,12 +1,3 @@
-/**
- * Zentrale deutsche UI-Texte. Komponenten lesen Beschriftungen ausschließlich
- * über `t('bereich.zweck')` aus diesem Wörterbuch.
- *
- * Struktur: verschachtelte Objekte, Zugriff per Pfad (z. B. `plan.col.time`).
- * Interpolation mit `{name}`-Platzhaltern.
- * Für i18n: `en.ts` mit identischer Struktur anlegen und `DE` über einen Locale-Umschalter ersetzen.
- */
-
 export const DE = {
   nav: {
     ingredients: 'Zutaten',
@@ -58,6 +49,7 @@ export const DE = {
       timeline: 'Zeitplan',
     },
     areas: 'Event-Bereiche',
+    searchPlaceholder: 'Events durchsuchen…',
   },
 
   workspace: {
@@ -300,6 +292,9 @@ export const DE = {
     noSteps: 'Keine Arbeitsschritte hinterlegt.',
     properties: 'Eigenschaften & Allergene',
     deleteTitle: 'Rezept löschen',
+    cloneHint: 'Der Klon gehört dir (deine persönliche Gruppe) — bearbeite ihn frei.',
+    haccpLabel: 'HACCP-Kontrollpunkt',
+    haccpBadge: 'HACCP',
     clone: 'Klonen',
     deleteMessage: '„{name}“ und alle zugehörigen Rezeptdaten wirklich löschen?',
   },
@@ -356,6 +351,49 @@ export const DE = {
     selfGrantDone: 'Mitgliedschaft eingetragen.',
   },
 
+  ingredient: {
+    fullView: 'Vollansicht öffnen →',
+    loadError: 'Zutat konnte nicht geladen werden: {error}',
+    triggerData: 'Daten',
+    triggerSources: 'Bezugsquellen',
+    dataTitle: 'Zutat bearbeiten',
+    createTitle: 'Neue Zutat',
+    name: 'Name',
+    energy: 'Energie (kJ/g)',
+    energyHint: 'Energiedichte — Basis der energiebasierten Skalierung in Events.',
+    sourcesTitle: 'Bezugsquellen',
+    sourcesDrawerTitle: 'Bezugsquellen',
+    sourcesEmpty: 'Keine Bezugsquellen erfasst.',
+    addSourceTitle: 'Bezugsquelle hinzufügen',
+    colStore: 'Händler',
+    colPackage: 'Packungsgröße',
+    colUnit: 'Einheit',
+    colPrice: 'Preis (€)',
+    colUrl: 'URL',
+    openUrl: 'Shop',
+    propertiesTitle: 'Eigenschaften',
+    propertiesEmpty: 'Keine Eigenschaften.',
+    addProperty: '+ Eigenschaft hinzufügen…',
+    weightsTitle: 'Gewichte pro Einheit',
+    weightsEmpty: 'Keine Einheitsgewichte erfasst.',
+    colWeightKg: 'Gewicht (kg)',
+    weightsHint:
+      'Mengen-Umrechnung: 1 Einheit = X kg — der Rezept-Editor rechnet damit Mengen automatisch in kg (und kJ) um.',
+    done: 'Fertig',
+    addSourceButton: '+ Bezugsquelle hinzufügen',
+    sourceAdded: 'Bezugsquelle hinzugefügt.',
+    sourceSaved: 'Bezugsquelle gespeichert.',
+    noStores:
+      'Es sind noch keine Händler angelegt — Bezugsquellen brauchen mindestens einen Händler (Master-Daten).',
+    pickUnit: 'Einheit wählen…',
+    usagesTitle: 'Verwendet in Rezepten',
+    usagesEmpty: 'Wird in keinen Rezepten verwendet.',
+    deleteTitle: 'Zutat löschen',
+    deleteConfirm: 'Zutat „{name}“ wirklich löschen?',
+    deleteUsagesWarning:
+      'Zutat „{name}“ wird in {count} Rezept(en) verwendet — deren Zutatenzeilen brechen beim Löschen. Wirklich löschen?',
+  },
+
   editor: {
     drawer: {
       metaTitle: 'Rezeptdaten',
@@ -401,6 +439,7 @@ export const DE = {
       pickerCreateComment: 'Kommentar (optional)',
       pickerCreateSubmit: 'Anlegen & wählen',
       filterAll: 'Alle',
+      stepDescPlaceholder: 'Beschreibung…',
       pickerHint:
         'Enter: hinzufügen & weiter · Shift+Enter: hinzufügen & schließen · Esc: schließen',
     },

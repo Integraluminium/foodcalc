@@ -12,6 +12,7 @@ import { useRecipe, useRecipes } from '../../../hooks/queries/useRecipes.ts'
 import { useUnits } from '../../../hooks/queries/useMasterData.ts'
 import { formatDecimal, toNumber } from '../../../lib/format.ts'
 import {
+  dirtyDraft,
   draftFromDetail,
   draftStats,
   reducer,
@@ -70,14 +71,20 @@ function IngredientsEditor({
   const queryClient = useQueryClient()
   const [draft, dispatch] = useReducer(reducer, undefined, () => draftFromDetail(detail))
   // Snapshot bei Mount (useState statt useRef: render-sicher, lint-clean).
-  const [original] = useState(draft)
+  const [original] = useState(() => dirtyDraft(draft))
   const [picker, setPicker] = useState<'ingredient' | 'sub' | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmCancel, setConfirmCancel] = useState(false)
 
-  const dirty = JSON.stringify(draft) !== JSON.stringify(original)
+  const dirty = JSON.stringify(dirtyDraft(draft)) !== JSON.stringify(original)
   const stats = draftStats(draft)
+
+  const requestClose = () => {
+    if (saving) return
+    if (dirty) setConfirmCancel(true)
+    else onClose()
+  }
 
   const commit = async () => {
     setSaving(true)
@@ -143,7 +150,7 @@ function IngredientsEditor({
       <button
         type="button"
         className="btn btn--ghost"
-        onClick={() => (dirty ? setConfirmCancel(true) : onClose())}
+        onClick={requestClose}
       >
         {t('action.cancel')}
       </button>
@@ -163,7 +170,7 @@ function IngredientsEditor({
   return (
     <Drawer
       title={t('editor.drawer.ingredientsTitle')}
-      onClose={() => (dirty ? setConfirmCancel(true) : onClose())}
+      onClose={requestClose}
       footer={footer}
     >
       <div className={styles.calcLine}>
