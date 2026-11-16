@@ -1,7 +1,7 @@
+import {t} from "i18next";
 import {useEffect, useRef, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {useCurrentUser, useLogout} from '../../../../hooks/useAuth.ts'
-import {t} from '../../../../i18n'
 import styles from './UserMenu.module.css'
 
 /**
@@ -54,7 +54,7 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={t('shell.userMenu')}
+        aria-label={t('nav:shell.userMenu')}
       >
         <span className={styles.avatar}>{initial}</span>
         {!compact && (
@@ -77,7 +77,7 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
               void navigate('/settings')
             }}
           >
-            {t('shell.profileSettings')}
+            {t('nav:shell.profileSettings')}
           </button>
           {user?.is_admin && (
             <button
@@ -89,7 +89,7 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
                 void navigate('/admin')
               }}
             >
-              {t('shell.admin')}
+              {t('nav:shell.admin')}
             </button>
           )}
           <div className={styles.separator} />
@@ -100,7 +100,7 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
             onClick={handleLogout}
             disabled={logout.isPending}
           >
-            {t('shell.logout')}
+            {t('nav:shell.logout')}
           </button>
         </div>
       )}

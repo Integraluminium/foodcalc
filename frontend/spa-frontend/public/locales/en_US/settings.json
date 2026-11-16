@@ -1,0 +1,47 @@
+{
+  "password": {
+    "current": "Current password",
+    "failed": "Password change failed.",
+    "new": "New password",
+    "repeat": "Repeat password",
+    "saved": "Password changed successfully.",
+    "submit": "Change password",
+    "title": "Change password"
+  },
+  "profile": {
+    "email": "Email:",
+    "roleAdmin": "Administrator",
+    "roleMember": "Member",
+    "title": "Profile",
+    "username": "Username:"
+  },
+  "rights": {
+    "addMemberButton": "+ Add",
+    "addMemberPlaceholder": "Username or email…",
+    "createButton": "+ Create group",
+    "createPlaceholder": "New group name…",
+    "deleteGroup": "Delete group",
+    "deleteGroupConfirm": "Delete group “{{name}}”? Only possible if it no longer owns any resources.",
+    "legendEditor": "Editor — can edit the group's resources",
+    "legendManager": "Manager — also manages members and roles",
+    "legendTitle": "Roles",
+    "legendViewer": "Viewer — can view the group's resources",
+    "loadError": "Could not load groups: {{error}}",
+    "membersLoadError": "Could not load members: {{error}}",
+    "myGroups": "My groups & permissions",
+    "myGroupsHint": "You act in each group according to your assigned role.",
+    "noMembers": "No members yet.",
+    "personalNote": "Personal groups always belong to a single user and are managed with the account.",
+    "removeMember": "Remove from group",
+    "roleLabel": "Role",
+    "roleLegend": "Viewer: read · Editor: edit · Manager: manages members and roles",
+    "rolePersonal": "your owner group"
+  },
+  "tabs": {
+    "account": "Account",
+    "groups": "Groups",
+    "label": "Section"
+  },
+  "tabsAria": "Select settings section",
+  "title": "Settings"
+}

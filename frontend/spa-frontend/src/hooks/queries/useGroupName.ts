@@ -1,5 +1,5 @@
+import {t} from "i18next";
 import {useCallback} from 'react'
-import {t} from '../../i18n'
 import {useGroups} from './useMasterData.ts'
 
 export function useGroupName() {
@@ -7,7 +7,7 @@ export function useGroupName() {
   return useCallback(
     (groupId: number) =>
       groups?.find((g) => g.id === groupId)?.name ??
-      t('overview.groupFallback', { id: groupId }),
+     t('events:overview.groupFallback', { id: groupId }),
     [groups],
   )
 }

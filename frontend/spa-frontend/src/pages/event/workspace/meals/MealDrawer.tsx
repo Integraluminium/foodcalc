@@ -1,6 +1,7 @@
 import {Copy, File, Trash2} from "lucide-react";
 import type {FormEvent} from 'react'
 import {useMemo, useState} from 'react'
+import {useTranslation} from "react-i18next";
 import type {PlannerMeal} from '../../../../api/types.ts'
 import {Drawer} from "../../../../components/patterns/drawer/Drawer.tsx";
 import {Skeleton} from '../../../../components/patterns/skeleton/Skeleton.tsx'
@@ -11,7 +12,6 @@ import {Spinner} from '../../../../components/ui/spinner/Spinner.tsx'
 import {useEventMutations} from '../../../../hooks/queries/useEvents.ts'
 import {usePlaces} from '../../../../hooks/queries/useMasterData.ts'
 import {useRecipe, useRecipes, useRecipeTree,} from '../../../../hooks/queries/useRecipes.ts'
-import {t} from '../../../../i18n'
 import {
   formatDecimal,
   formatKjPerG,
@@ -41,6 +41,7 @@ export function MealDialog({
   defaultStart?: string
   onClose: () => void
 }) {
+  const { t } = useTranslation([])
   const recipes = useRecipes()
   const places = usePlaces()
   const mutations = useEventMutations(eventId)
@@ -105,13 +106,13 @@ export function MealDialog({
   return (
     <Drawer
       size="lg"
-      title={meal ? t('mealDrawer.edit') + ' : ' + meal.name : t('mealDrawer.plan')}
+      title={meal ?t('events:mealDrawer.edit') + ' : ' + meal.name :t('events:mealDrawer.plan')}
       onClose={onClose}
       footer={
         <>
           <span style={{flex: 1}}/>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            {t('action.cancel')}
+            {t('common:actions.cancel')}
           </button>
           <button
             type="submit"
@@ -119,7 +120,7 @@ export function MealDialog({
             className="btn btn--primary"
             disabled={!recipeId || pending}
           >
-            {pending ? <Spinner size="sm"/> : meal ? t('action.save') : t('mealDrawer.plan')}
+            {pending ? <Spinner size="sm"/> : meal ?t('common:actions.save') :t('events:mealDrawer.plan')}
           </button>
         </>
       }
@@ -131,7 +132,7 @@ export function MealDialog({
         </thead>
         <tbody>
         <tr>
-          <td>{t('mealDrawer.servings')}</td>
+          <td>{t('events:mealDrawer.servings')}</td>
           <td><input
             className="input"
             type="number"
@@ -143,7 +144,7 @@ export function MealDialog({
           /></td>
         </tr>
         <tr>
-          <td>{t('mealDrawer.energyPerPortion')}</td>
+          <td>{t('events:mealDrawer.energyPerPortion')}</td>
           <td>
             <SegmentedControl options={ENERGY_PRESETS.map((p) => ({label: p.label, value: p.kj}))}
                               value={energyPerServing} onChange={(value) => setEnergyPerServing(value)}/>
@@ -190,9 +191,9 @@ export function MealDialog({
           </td>
         </tr>
         <tr>
-          <td>{t('mealDrawer.place')}</td>
+          <td>{t('events:mealDrawer.place')}</td>
           <td>
-            {/*<SearchBar value={recipeSearch} onChange={setRecipeSearch} placeholder={t('mealDrawer.searchPlaceholder')} />*/}
+            {/*<SearchBar value={recipeSearch} onChange={setRecipeSearch} placeholder={t('events:mealDrawer.searchPlaceholder')} />*/}
             <select
               className="input"
               value={placeId}
@@ -207,12 +208,12 @@ export function MealDialog({
             </select></td>
         </tr>
         <tr>
-          <td>{t('mealDrawer.comment')}</td>
+          <td>{t('events:mealDrawer.comment')}</td>
           <td><textarea
             className="input"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder={t('mealDrawer.optional')}
+            placeholder={t('events:mealDrawer.optional')}
           /></td>
         </tr>
 
@@ -224,7 +225,7 @@ export function MealDialog({
                 className="btn btn--ghost"
                 path={`/events/${eventId}/exports/meal/${meal?.meal_id ?? 0}`}
                 filename={`${meal?.name ?? 'meal'}.pdf`}
-                title={t('mealDrawer.exportMealPdfHint')}
+                title={t('events:mealDrawer.exportMealPdfHint')}
               >
                 <File size={15}/>
                 Skaliertes Rezept
@@ -233,7 +234,7 @@ export function MealDialog({
                 className="btn btn--ghost"
                 path={`/events/${eventId}/exports/meal/${meal?.meal_id ?? 0}`}
                 filename={`${meal?.name ?? 'meal'}.pdf`}
-                title={t('mealDrawer.exportMealPdfHint')}
+                title={t('events:mealDrawer.exportMealPdfHint')}
               >
                 <File size={15}/>
                 Allergen- und Nährwerttabelle
@@ -242,7 +243,7 @@ export function MealDialog({
                 className="btn btn--ghost"
                 path={`/events/${eventId}/exports/meal/${meal?.meal_id ?? 0}`}
                 filename={`${meal?.name ?? 'meal'}.pdf`}
-                title={t('mealDrawer.exportMealPdfHint')}
+                title={t('events:mealDrawer.exportMealPdfHint')}
               >
                 <File size={15}/>
                 Tischkarte
@@ -257,12 +258,12 @@ export function MealDialog({
             <div style={{display: 'flex', flexDirection: 'row', gap: 'var(--space-2)'}}>
               <button type="button" className="btn btn--ghost" onClick={() => onDuplicate(meal)}>
                 <Copy size={15}/>
-                {t('plan.duplicate')}
+                {t('events:plan.duplicate')}
               </button>
-              <button type="button" className="btn btn--danger" title={t('plan.removeFromPlan')}
+              <button type="button" className="btn btn--danger" title={t('events:plan.removeFromPlan')}
                       onClick={() => onRemove(meal)}>
                 <Trash2 size={15}/>
-                {t('plan.removeFromPlan')}
+                {t('events:plan.removeFromPlan')}
               </button>
             </div>
           </td>
@@ -281,15 +282,15 @@ export function MealDialog({
           </div>
         ) : preview !== null && recipeId !== null ? (
           <div className={styles.previewGrid}>
-            <span>{t('mealDrawer.servings')}</span>
+            <span>{t('events:mealDrawer.servings')}</span>
             <strong>{servings}</strong>
-            <span>{t('mealDrawer.energy')}</span>
+            <span>{t('events:mealDrawer.energy')}</span>
             <strong>
               {formatDecimal(Number(energyPerServing) * Number(servings), 0)} kJ
             </strong>
-            <span>{t('mealDrawer.cookAmount')}</span>
+            <span>{t('events:mealDrawer.cookAmount')}</span>
             <strong>{formatDecimal(preview)} kg</strong>
-            <span>{t('mealDrawer.density')}</span>
+            <span>{t('events:mealDrawer.density')}</span>
             <strong>
               {formatKjPerG(
                 energyDensityKjPerG(
@@ -300,7 +301,7 @@ export function MealDialog({
             </strong>
           </div>
         ) : (
-          <span className="muted">{t('mealDrawer.calcHint')}</span>
+          <span className="muted">{t('events:mealDrawer.calcHint')}</span>
         )}
       </div>
 
@@ -310,7 +311,7 @@ export function MealDialog({
       {/*      className="btn btn--ghost"*/}
       {/*      path={`/events/${eventId}/exports/meal/${meal?.meal_id ?? 0}`}*/}
       {/*      filename={`${meal?.name ?? 'meal'}.pdf`}*/}
-      {/*      title={t('mealDrawer.exportMealPdfHint')}*/}
+      {/*      title={t('events:mealDrawer.exportMealPdfHint')}*/}
       {/*    >*/}
       {/*      <File size={15}/>*/}
       {/*      Skaliertes Rezept*/}
@@ -319,7 +320,7 @@ export function MealDialog({
       {/*      className="btn btn--ghost"*/}
       {/*      path={`/events/${eventId}/exports/meal/${meal?.meal_id ?? 0}`}*/}
       {/*      filename={`${meal?.name ?? 'meal'}.pdf`}*/}
-      {/*      title={t('mealDrawer.exportMealPdfHint')}*/}
+      {/*      title={t('events:mealDrawer.exportMealPdfHint')}*/}
       {/*    >*/}
       {/*      <File size={15}/>*/}
       {/*      Allergen- und Nährwerttabelle*/}
@@ -328,7 +329,7 @@ export function MealDialog({
       {/*      className="btn btn--ghost"*/}
       {/*      path={`/events/${eventId}/exports/meal/${meal?.meal_id ?? 0}`}*/}
       {/*      filename={`${meal?.name ?? 'meal'}.pdf`}*/}
-      {/*      title={t('mealDrawer.exportMealPdfHint')}*/}
+      {/*      title={t('events:mealDrawer.exportMealPdfHint')}*/}
       {/*    >*/}
       {/*      <File size={15}/>*/}
       {/*      Tischkarte*/}
@@ -338,17 +339,17 @@ export function MealDialog({
 
       {recipeId !== null && tree.data && (
         <div className={styles.preview}>
-          <p>{t('mealDrawer.recipeOverview')}
+          <p>{t('events:mealDrawer.recipeOverview')}
             {recipe.data && (
               <Badge variant={recipe.data.weighed_in ? 'success' : 'warning'}>
                 {recipe.data.weighed_in
-                  ? t('mealDrawer.weighed')
-                  : t('mealDrawer.notWeighed')}
+                  ?t('events:mealDrawer.weighed')
+                  :t('events:mealDrawer.notWeighed')}
               </Badge>
             )}
           </p>
           {tree.data.ingredients.length === 0 && tree.data.children.length === 0 ? (
-            <p className="muted">{t('mealDrawer.noIngredients')}</p>
+            <p className="muted">{t('events:mealDrawer.noIngredients')}</p>
           ) : (
             <RecipeTreeView root={tree.data}/>
           )}

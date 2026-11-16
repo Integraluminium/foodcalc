@@ -1,12 +1,14 @@
-import type { FormEvent } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { ApiError } from '../../api'
-import { Spinner } from '../../components/ui/spinner/Spinner.tsx'
-import { BrandIcon } from '../../components/ui/icons/icons.tsx'
-import { useCurrentUser, useLogin } from '../../hooks/useAuth.ts'
+import type {FormEvent} from 'react'
+import {useTranslation} from "react-i18next";
+import {Link, Navigate, useLocation, useNavigate} from 'react-router-dom'
+import {ApiError} from '../../api'
+import {BrandIcon} from '../../components/ui/icons/icons.tsx'
+import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
+import {useCurrentUser, useLogin} from '../../hooks/useAuth.ts'
 import styles from './LoginPage.module.css'
 
 export default function LoginPage() {
+  const { t } = useTranslation([])
   const { data: user } = useCurrentUser()
   const login = useLogin()
   const navigate = useNavigate()
@@ -32,7 +34,7 @@ export default function LoginPage() {
     login.isError && login.error instanceof ApiError
       ? login.error.message
       : login.isError
-        ? 'Login fehlgeschlagen.'
+        ?t('auth:login.failed')
         : null
 
   return (
@@ -44,9 +46,9 @@ export default function LoginPage() {
           </span>
           <span className={styles.brandName}>Foodcalc</span>
         </div>
-        <p className={styles.title}>Anmelden</p>
+        <p className={styles.title}>{t('auth:login.title')}</p>
         <label className={styles.label}>
-          Benutzername
+          {t('auth:fields.username')}
           <input
             className="input"
             name="username"
@@ -56,7 +58,7 @@ export default function LoginPage() {
           />
         </label>
         <label className={styles.label}>
-          Passwort
+          {t('auth:fields.password')}
           <input
             className="input"
             type="password"
@@ -75,10 +77,10 @@ export default function LoginPage() {
           className="btn btn--primary"
           disabled={login.isPending}
         >
-          {login.isPending ? <Spinner size="sm" /> : 'Anmelden'}
+          {login.isPending ? <Spinner size="sm" /> : '' +t('auth:login.submit')}
         </button>
         <p className={styles.switch}>
-          Noch kein Konto? <Link to="/register">Registrieren</Link>
+          Noch kein Konto? <Link to="/register">{t('auth:login.registerLink')}</Link>
         </p>
       </form>
     </div>

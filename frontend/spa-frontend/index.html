@@ -1,13 +1,48 @@
 <!doctype html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Foodcalc</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #0b1120;
+            color: #e8ecf4;
+            font-family: Inter, system-ui, -apple-system, sans-serif;
+        }
+
+        .boot-center {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .boot-spinner {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2.5px solid #223050;
+            border-top-color: #3b82f6;
+            animation: boot-spin 700ms linear infinite;
+        }
+
+        @keyframes boot-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="root">
+    <div class="boot-center" role="status" aria-label="Wird geladen">
+        <div class="boot-spinner"></div>
+    </div>
+</div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
 </html>

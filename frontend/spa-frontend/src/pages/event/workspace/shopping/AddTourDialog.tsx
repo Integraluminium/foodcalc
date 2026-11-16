@@ -1,4 +1,5 @@
 import {type FormEvent, useState} from "react";
+import {useTranslation} from "react-i18next";
 import type {IngredientWithoutTour} from "../../../../api";
 import {Drawer} from "../../../../components/patterns/drawer/Drawer.tsx";
 import {Badge} from "../../../../components/ui/badge/Badge.tsx";
@@ -6,7 +7,6 @@ import {SegmentedControl} from "../../../../components/ui/segmented_control/Segm
 import {Spinner} from "../../../../components/ui/spinner/Spinner.tsx";
 import {useEventMutations} from "../../../../hooks/queries/useEvents.ts";
 import {useStores} from "../../../../hooks/queries/useMasterData.ts";
-import {t} from "../../../../i18n";
 import {dateInputToRfc3339, formatDecimal} from "../../../../lib/format.ts";
 import styles from "../EventDetailPage.module.css";
 
@@ -23,6 +23,7 @@ export function AddTourDialog({
   uncovered: IngredientWithoutTour[]
   onClose: () => void
 }) {
+  const { t } = useTranslation([])
   const stores = useStores()
   const mutations = useEventMutations(eventId)
   const [storeId, setStoreId] = useState(
@@ -88,12 +89,12 @@ export function AddTourDialog({
 
   return (
     <Drawer
-      title={t('shopping.tourForm.title')}
+      title={t('events:shopping.tourForm.title')}
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            {t('action.cancel')}
+            {t('common:actions.cancel')}
           </button>
           <button
             type="submit"
@@ -101,7 +102,7 @@ export function AddTourDialog({
             className="btn btn--primary"
             disabled={!storeId || busy}
           >
-            {busy ? <Spinner size="sm"/> : t('shopping.tourForm.submit')}
+            {busy ? <Spinner size="sm"/> :t('events:shopping.tourForm.submit')}
           </button>
         </>
       }
@@ -109,7 +110,7 @@ export function AddTourDialog({
       <form id="tour-form" className="form-stack" onSubmit={handleSubmit}>
         <div className="form-row">
           <label className="field">
-            {t('shopping.tourForm.store')}
+            {t('events:shopping.tourForm.store')}
             <select
               className="input"
               value={storeId}
@@ -127,7 +128,7 @@ export function AddTourDialog({
             </select>
           </label>
           <label className="field">
-            {t('shopping.tourForm.date')}
+            {t('events:shopping.tourForm.date')}
             <input
               className="input"
               type="date"
@@ -138,21 +139,21 @@ export function AddTourDialog({
           </label>
         </div>
 
-        <p className="muted">{t('shopping.tourForm.hint')}</p>
+        <p className="muted">{t('events:shopping.tourForm.hint')}</p>
 
         <SegmentedControl
           options={[
-            {value: 'relevant', label: t('shopping.preset.relevant')},
-            {value: 'none', label: t('shopping.preset.none')},
-            {value: 'all', label: t('shopping.preset.all')},
+            {value: 'relevant', label:t('events:shopping.preset.relevant')},
+            {value: 'none', label:t('events:shopping.preset.none')},
+            {value: 'all', label:t('events:shopping.preset.all')},
           ]}
           value={preset}
           onChange={applyPreset}
-          ariaLabel={t('shopping.preset.aria')}
+          ariaLabel={t('events:shopping.preset.aria')}
         />
 
         {uncovered.length === 0 ? (
-          <p className="muted">{t('shopping.preset.noUncovered')}</p>
+          <p className="muted">{t('events:shopping.preset.noUncovered')}</p>
         ) : (
           <div className={styles.checkList}>
             {uncovered.map((item) => {

@@ -1,5 +1,6 @@
 import {Plus} from 'lucide-react'
 import {useMemo, useState} from 'react'
+import {useTranslation} from "react-i18next";
 import type {PlannerMeal} from '../../../../api'
 import {CardSection} from '../../../../components/patterns/card_section/CardSection.tsx'
 import {SkeletonCards} from "../../../../components/patterns/skeleton/Skeleton.tsx";
@@ -7,13 +8,13 @@ import {EmptyState, ErrorState} from '../../../../components/patterns/state_view
 import {DataTable, type DataTableColumn} from "../../../../components/patterns/table/DataTable.tsx";
 import {Badge} from '../../../../components/ui/badge/Badge.tsx'
 import {useEvent, useEventId, useEventMutations,} from '../../../../hooks/queries/useEvents.ts'
-import {t} from '../../../../i18n'
 import {formatDayLabel, formatDecimal, formatTime, toNumber,} from '../../../../lib/format.ts'
 import {portionCost} from '../../../../lib/scaling.ts'
 import styles from '../EventDetailPage.module.css'
 import {MealDialog} from "./MealDrawer.tsx";
 
 export function MealPlanTab() {
+  const { t } = useTranslation([])
   const eventId = useEventId()
   const eventData = useEvent(eventId);
   const detail = eventData.data
@@ -39,7 +40,7 @@ export function MealPlanTab() {
     <section className="tab-section">
       <div className="tab-toolbar">
         <span className="muted">
-          {t('plan.summary', {
+          {t('events:plan.summary', {
             meals: detail.meals.length,
             cost: formatDecimal(toNumber(detail.total_cost) ?? 0),
           })}
@@ -49,7 +50,7 @@ export function MealPlanTab() {
           className="btn btn--primary"
           onClick={() => setEditing(null)}
         >
-          <Plus size={16}/> {t('plan.addMeal')}
+          <Plus size={16}/> {t('events:plan.addMeal')}
         </button>
       </div>
 
@@ -57,13 +58,13 @@ export function MealPlanTab() {
         eventData.isPending ? (
           <SkeletonCards count={2}/>
         ) : eventData.isError ? (
-            <ErrorState message={t('shopping.toursHeading') + ': ' + eventData.error}/>
+            <ErrorState message={t('events:shopping.toursHeading') + ': ' + eventData.error}/>
           ) :
           days.length === 0 ? (
-            <EmptyState message={t('plan.empty')}/>
+            <EmptyState message={t('events:plan.empty')}/>
           ) : (
             <CardSection
-              // title={t('plan.heading')}
+              // title={t('events:plan.heading')}
               // className={styles.mealPlan}
               highlight={false}
             >
@@ -94,11 +95,12 @@ export function MealPlanTab() {
 }
 
 function formatDish(meal: PlannerMeal) {
+  const {t} = useTranslation([])
   return (
     <>
       {meal.name}
       {!meal.weighed_in && (
-        <Badge variant="warning" title={t('plan.notWeighedHint')}>
+        <Badge variant="warning" title={t('events:plan.notWeighedHint')}>
           ~
         </Badge>
       )}
@@ -136,6 +138,7 @@ function DayGroup({
   onDuplicate: (meal: PlannerMeal) => void
   onRemove: (meal: PlannerMeal) => void
 }) {
+  const {t} = useTranslation([])
   const portions = meals.reduce((sum, m) => sum + m.servings, 0)
   const weight = meals.reduce((sum, m) => sum + (toNumber(m.weight) ?? 0), 0)
   const cost = meals.reduce((sum, m) => sum + (toNumber(m.price) ?? 0), 0)
@@ -143,39 +146,39 @@ function DayGroup({
   const columns: DataTableColumn<PlannerMeal>[] = [
     {
       key: 'time',
-      label: t('plan.col.time'),
+      label:t('events:plan.col.time'),
       render: (meal) => formatTime(meal.start_time)
     },
     {
       key: 'dish',
-      label: t('plan.col.dish'),
+      label:t('events:plan.col.dish'),
       render: (meal) => formatDish(meal)
     },
     {
       key: 'place',
-      label: t('plan.col.place'),
+      label:t('events:plan.col.place'),
       render: (meal) => meal.place
     },
     {
       key: 'servings',
-      label: t('plan.col.servings'),
+      label:t('events:plan.col.servings'),
       align: 'num',
       render: (meal) => meal.servings
     },
     {
       key: 'energy',
-      label: t('plan.col.kjPerPortion'),
+      label:t('events:plan.col.kjPerPortion'),
       align: 'num',
       render: (meal) => formatKjPerPortion(meal)
     },
     {
       key: 'weight',
-      label: t('plan.col.weight'),
+      label:t('events:plan.col.weight'),
       align: 'num', render: (meal) => formatDecimal(meal.weight) + ' kg'
     },
     {
       key: 'costPerPortion',
-      label: t('plan.col.costPerPortion'),
+      label:t('events:plan.col.costPerPortion'),
       align: 'num',
       render: (meal) => {
         const cost = portionCost(meal.price, meal.servings)
@@ -185,7 +188,7 @@ function DayGroup({
     },
     {
       key: 'cost',
-      label: t('plan.col.cost'),
+      label:t('events:plan.col.cost'),
       align: 'num',
       render: (meal) => formatDecimal(meal.price) + ' €'
     },
@@ -199,7 +202,7 @@ function DayGroup({
         title={label}
         actions={
           <span className={`muted ${styles.dayTotals}`}>
-          {t('plan.dayTotals', {
+          {t('events:plan.dayTotals', {
             portions,
             weight: formatDecimal(weight),
             cost: formatDecimal(cost),

@@ -1,3 +1,4 @@
+import {t} from "i18next";
 import {Check, X} from "lucide-react";
 import {useState} from 'react'
 import type {Ingredient} from '../../api'
@@ -6,7 +7,6 @@ import type {DataTableColumn} from '../../components/patterns/table/DataTable.ts
 import {useIngredients} from '../../hooks/queries/useIngredients.ts'
 import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
 import {useFilteredList} from '../../hooks/useFilteredList.ts'
-import {t} from '../../i18n'
 import {formatDecimal} from '../../lib/format.ts'
 import {IngredientDataDrawer} from './drawers/IngredientDataDrawer.tsx'
 import {IngredientDrawer} from './view/IngredientView.tsx'
@@ -55,12 +55,12 @@ export default function IngredientsPage() {
 
   return (
     <ListPage
-      title={t('nav.ingredients')}
+      title={t('nav:ingredients')}
       createLabel="+ Neue Zutat"
       onCreate={() => setCreateOpen(true)}
       search={search}
       onSearchChange={setSearch}
-      searchPlaceholder={t('ingredient.searchPlaceholder')}
+      searchPlaceholder={t('ingredients:list.searchPlaceholder')}
       ownerFilter={ownerFilter}
       onOwnerFilterChange={setOwnerFilter}
       columns={columns}

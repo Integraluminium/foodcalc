@@ -1,12 +1,12 @@
 import {CalendarDays, Clock, LayoutDashboard, Pencil, Printer, ShoppingCart, Utensils,} from 'lucide-react'
 import {type ReactNode, useState} from 'react'
+import {useTranslation} from "react-i18next";
 import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router-dom'
 import {WorkspaceLayout} from "../../../components/layout/workspace/WorkSpaceLayout.tsx";
 import {BudgetBar} from '../../../components/patterns/budget_bar/BudgetBar.tsx'
 import {Badge} from '../../../components/ui/badge/Badge.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useEvent, useEventMutations} from '../../../hooks/queries/useEvents.ts'
-import {t} from '../../../i18n'
 import {eventAggregates} from '../../../lib/eventAggregation.ts'
 import {formatDateRange, toNumber} from '../../../lib/format.ts'
 import {EventMetadataDrawer} from './overview/EventMetadataDrawer.tsx'
@@ -14,6 +14,7 @@ import {EventMetadataDrawer} from './overview/EventMetadataDrawer.tsx'
 type TabPath = '' | 'plan' | 'shopping' | 'kalkulation' | 'timeline'
 
 export default function EventWorkspace() {
+  const { t } = useTranslation([])
   const { eventId: rawId } = useParams()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -28,8 +29,8 @@ export default function EventWorkspace() {
   if (!isValidId) {
     return (
       <p className="secondary">
-        {t('workspace.invalidId')}{' '}
-        <Link to="/events">{t('workspace.backToList')}</Link>
+        {t('events:workspace.invalidId')}{' '}
+        <Link to="/events">{t('events:workspace.backToList')}</Link>
       </p>
     )
   }
@@ -45,7 +46,7 @@ export default function EventWorkspace() {
   if (detailQuery.isError || !detailQuery.data) {
     return (
       <p className="secondary">
-        {t('workspace.loadError', { error: String(detailQuery.error) })}
+        {t('events:workspace.loadError', { error: String(detailQuery.error) })}
       </p>
     )
   }
@@ -58,11 +59,11 @@ export default function EventWorkspace() {
   const activeTab = (pathname.slice(basePath.length).replace(/^\//, '').split('/')[0] || '') as TabPath
 
   const tabs: { value: TabPath; label: string; icon: ReactNode }[] = [
-    { value: '', label: t('event.tab.overview'), icon: <LayoutDashboard size={16} /> },
-    { value: 'plan', label: t('event.tab.plan'), icon: <Utensils size={16} /> },
-    { value: 'shopping', label: t('event.tab.shopping'), icon: <ShoppingCart size={16} /> },
-    { value: 'kalkulation', label: t('event.tab.calc'), icon: <Printer size={16} /> },
-    { value: 'timeline', label: t('event.tab.timeline'), icon: <CalendarDays size={16} /> },
+    { value: '', label:t('events:workspace.tabs.overview'), icon: <LayoutDashboard size={16} /> },
+    { value: 'plan', label:t('events:workspace.tabs.plan'), icon: <Utensils size={16} /> },
+    { value: 'shopping', label:t('events:workspace.tabs.shopping'), icon: <ShoppingCart size={16} /> },
+    { value: 'kalkulation', label:t('events:workspace.tabs.calc'), icon: <Printer size={16} /> },
+    { value: 'timeline', label:t('events:workspace.tabs.timeline'), icon: <CalendarDays size={16} /> },
   ]
 
   return (
@@ -70,7 +71,7 @@ export default function EventWorkspace() {
       title={detail.event.name}
       meta={
         <>
-          <Badge variant="success">{t('workspace.statusBadge')}</Badge>
+          <Badge variant="success">{t('events:workspace.statusBadge')}</Badge>
           <Badge variant="neutral" icon={<Clock size={12} />}>
             {formatDateRange(
               detail.meals[0]?.start_time ?? null,
@@ -78,7 +79,7 @@ export default function EventWorkspace() {
             )}
           </Badge>
           <Badge variant="info" icon={<Utensils size={12} />}>
-            {t('workspace.mealsBadge', { count: detail.meals.length })}
+            {t('events:workspace.mealsBadge', { count: detail.meals.length })}
           </Badge>
           {detail.event.comment && (
             <span className="muted">{detail.event.comment}</span>
@@ -91,14 +92,14 @@ export default function EventWorkspace() {
           className="btn btn--ghost btn--sm"
           onClick={() => setEditOpen(true)}
         >
-          <Pencil size={14} /> {t('action.edit')}
+          <Pencil size={14} /> {t('common:actions.edit')}
         </button>
       }
       summaryRow={<BudgetBar cost={aggregates.cost} budget={budget} />}
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={(tab) => void navigate(tab ? `${basePath}/${tab}` : basePath)}
-      tabsAriaLabel={t('event.areas')}
+      tabsAriaLabel={t('events:workspace.areas')}
     >
       <Outlet />
 

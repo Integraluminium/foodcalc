@@ -1,0 +1,91 @@
+{
+  "actions": {
+    "add": "Add",
+    "backToList": "Back to list",
+    "cancel": "Cancel",
+    "close": "Close",
+    "create": "Create",
+    "delete": "Delete",
+    "done": "Done",
+    "duplicate": "Duplicate",
+    "edit": "Edit",
+    "moveDown": "Move down",
+    "moveUp": "Move up",
+    "openFullView": "Open full view →",
+    "save": "Save",
+    "search": "Search…"
+  },
+  "filter": {
+    "all": "All",
+    "allGroups": "All groups",
+    "byOwner": "Filter by owner group",
+    "kind": "Type"
+  },
+  "groups": {
+    "chooseGroup": "Choose group…",
+    "groupFallback": "Group {{id}}",
+    "owner": "Owner",
+    "ownerGroup": "Owner group",
+    "personal": "Personal group",
+    "personalGroupSuffix": "(personal group)",
+    "personalSuffix": "(personal)"
+  },
+  "labels": {
+    "comment": "Comment",
+    "name": "Name",
+    "optional": "optional",
+    "unitKg": "kg"
+  },
+  "list": {
+    "emptyFiltered": "No {{noun}} match this filter.",
+    "emptyInitial": "No {{noun}} found. Create the first one via “{{createLabel}}”."
+  },
+  "placeholder": {
+    "comingIn": "This view will be implemented in <strong>{{phase}}</strong>.",
+    "inProgress": "In progress"
+  },
+  "roles": {
+    "editor": "Editor",
+    "manager": "Manager",
+    "viewer": "Viewer"
+  },
+  "state": {
+    "dirty": "Unsaved changes",
+    "discard": "Discard",
+    "discardConfirm": "Discard unsaved changes?",
+    "discardTitle": "Unsaved changes",
+    "error": "Failed to load",
+    "loading": "Loading…",
+    "saveError": "Failed to save."
+  },
+  "status": {
+    "available": "Available",
+    "missing": "Missing",
+    "planned": "Planned",
+    "unknown": "Unknown"
+  },
+  "table": {
+    "actions": "Actions",
+    "comment": "Comment",
+    "name": "Name",
+    "owner": "Owner"
+  },
+  "transfer": {
+    "button": "Transfer ownership",
+    "chooseGroup": "Choose group…",
+    "confirm": "Transfer",
+    "currentOwner": "current",
+    "newRoleHint": "Your role in the target group: {{role}}",
+    "open": "Transfer ownership",
+    "target": "New owner group",
+    "title": "Transfer ownership",
+    "warning": "After transferring, you will only keep the permissions of your membership in the target group — managers of the target group control membership from then on."
+  },
+  "units": {
+    "currency": "{{value}} €",
+    "currencyPerKg": "{{value}} €/kg",
+    "kg": "{{value}} kg",
+    "kj": "{{value}} kJ",
+    "kjPerG": "{{value}} kJ/g"
+  }
+}

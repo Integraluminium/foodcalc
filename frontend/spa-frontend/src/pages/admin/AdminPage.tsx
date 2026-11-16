@@ -1,3 +1,4 @@
+import {t} from "i18next";
 import {useState} from 'react'
 import type {GroupRole} from '../../api/types.ts'
 import {ConfirmDialog} from '../../components/patterns/dialog/ConfirmDialog.tsx'
@@ -6,7 +7,6 @@ import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
 import {useAdminSelfGrant, useUserAdminMutations, useUsers,} from '../../hooks/queries/useUsers.ts'
 import {usePermissions} from '../../hooks/usePermissions.ts'
-import {t} from '../../i18n'
 import {GroupsSection} from '../settings/GroupsSection.tsx'
 import styles from './AdminPage.module.css'
 
@@ -200,8 +200,8 @@ function SelfGrantCard() {
 
   return (
     <div className={`card ${styles.panel}`}>
-      <h2 className="section-subtitle">{t('admin.selfGrantTitle')}</h2>
-      <p className="muted">{t('admin.selfGrantHint')}</p>
+      <h2 className="section-subtitle">{t('admin:selfGrantTitle')}</h2>
+      <p className="muted">{t('admin:selfGrantHint')}</p>
       <div className={styles.toolbar}>
         <select
           className="input"
@@ -210,7 +210,7 @@ function SelfGrantCard() {
             setGroupId(event.target.value === '' ? '' : Number(event.target.value))
           }
         >
-          <option value="">{t('transfer.chooseGroup')}</option>
+          <option value="">{t('common:transfer.chooseGroup')}</option>
           {(groups.data ?? []).map((group) => (
             <option key={group.id} value={group.id}>
               {group.name}
@@ -223,9 +223,9 @@ function SelfGrantCard() {
           value={role}
           onChange={(event) => setRole(event.target.value as GroupRole)}
         >
-          <option value="viewer">{t('roles.viewer')}</option>
-          <option value="editor">{t('roles.editor')}</option>
-          <option value="manager">{t('roles.manager')}</option>
+          <option value="viewer">{t('common:roles.viewer')}</option>
+          <option value="editor">{t('common:roles.editor')}</option>
+          <option value="manager">{t('common:roles.manager')}</option>
         </select>
         <button
           type="button"
@@ -233,11 +233,11 @@ function SelfGrantCard() {
           disabled={typeof groupId !== 'number' || selfGrant.isPending}
           onClick={submit}
         >
-          {t('admin.selfGrantButton')}
+          {t('admin:selfGrantButton')}
         </button>
       </div>
       {selfGrant.isSuccess && (
-        <p className="muted">{t('admin.selfGrantDone')}</p>
+        <p className="muted">{t('admin:selfGrantDone')}</p>
       )}
     </div>
   )

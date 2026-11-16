@@ -1,0 +1,31 @@
+{
+  "forbidden": "This page is restricted to administrators.",
+  "selfGrantButton": "Add membership",
+  "selfGrantDone": "Membership added.",
+  "selfGrantGroup": "Group",
+  "selfGrantHint": "Admins follow group roles: join a group to view or edit its resources.",
+  "selfGrantRole": "Role",
+  "selfGrantTitle": "Own memberships (Admin)",
+  "tabs": {
+    "groups": "Groups",
+    "users": "Users"
+  },
+  "tabsAria": "Select administration section",
+  "title": "Administration",
+  "users": {
+    "colAdmin": "Admin",
+    "colEmail": "Email",
+    "colGroups": "Groups",
+    "colUser": "User",
+    "count_one": "{{count}} user",
+    "count_other": "{{count}} users",
+    "deleteMessage": "Delete “{{username}}” including their personal group? This is only possible if the personal group no longer owns any recipes, ingredients, inventories, or events.",
+    "deleteTitle": "Delete user",
+    "deleteUser": "Delete user",
+    "loadError": "Could not load users: {{error}}",
+    "resetPassword": "Reset password",
+    "resetPasswordPrompt": "New password for {{username}} (min. 8 characters):",
+    "searchPlaceholder": "Search users (name / email)…",
+    "toggleAdmin": "Toggle admin status"
+  }
+}

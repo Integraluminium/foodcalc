@@ -1,34 +1,27 @@
-import {MutationCache, QueryCache, QueryClient, QueryClientProvider,} from '@tanstack/react-query'
-import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom'
+import {MutationCache, QueryCache, QueryClient, QueryClientProvider} from '@tanstack/react-query'
+import type {ComponentType} from 'react'
+import {createBrowserRouter, Navigate, RouterProvider} from 'react-router-dom'
 import {ApiError} from './api'
 import RequireAuth from './components/layout/RequireAuth.tsx'
 import AppShell from './components/layout/shell/AppShell.tsx'
 import {notify} from './components/ui/toast/toast.ts'
-import AdminPage from './pages/admin/AdminPage.tsx'
-import DocumentsPage from "./pages/documents/DocumentsPage.tsx";
-import EventsPage from './pages/event/EventsPage.tsx'
-import {KalkulationTab} from "./pages/event/workspace/calculation/KalkulationTab.tsx";
-import EventWorkspace from './pages/event/workspace/EventWorkspace.tsx'
-import {MealPlanTab} from "./pages/event/workspace/meals/MealPlanTab.tsx";
-import {OverviewTab} from './pages/event/workspace/overview/OverviewTab.tsx'
-import {ShoppingTab} from "./pages/event/workspace/shopping/ShoppingTab.tsx";
-import {TimelineTab} from "./pages/event/workspace/timeline/TimelineTab.tsx";
-import IngredientDetailPage from './pages/ingredient/details/IngredientDetailPage.tsx'
-import IngredientsPage from './pages/ingredient/IngredientsPage.tsx'
-import InventoriesPage from './pages/inventory/InventoriesPage.tsx'
-import LoginPage from './pages/login/LoginPage.tsx'
-import RegisterPage from './pages/login/RegisterPage.tsx'
 import PlaceholderPage from './pages/placeholder/PlaceholderPage.tsx'
-import RecipeDetailPage, {RecipeEditRedirect} from './pages/recipe/details/RecipeDetailPage.tsx'
-import RecipesPage from './pages/recipe/RecipesPage.tsx'
-import SettingsPage from './pages/settings/SettingsPage.tsx'
 
 /**
- * Unerwartete Fehler (5xx, Netzwerk, nicht-ApiError-Würfe) laufen app-weit
- * in den Toast unten rechts; 4xx werden lokal am Aufrufort gerendert, 401
- * führt der Unauthorized-Handler zum Login. So hat jede Server-Panne eine
- * sichtbare Rückmeldung, auch wo eine Seite selbst keine Fehleranzeige hat.
+ * Helper for React Router's `lazy` route property.
+ * Supports default exports (`lazyRoute(() => import('./Page'))`)
+ * and named exports (`lazyRoute(() => import('./Page'), 'NamedExport')`).
  */
+function lazyRoute<T extends Record<string, any>>(
+  importer: () => Promise<T>,
+  exportName: keyof T = 'default',
+) {
+  return async () => {
+    const module = await importer()
+    return { Component: module[exportName] as ComponentType }
+  }
+}
+
 function isUnexpected(error: unknown): boolean {
   if (error instanceof ApiError) return error.status >= 500 || error.status === 0
   return true
@@ -54,8 +47,6 @@ const queryClient = new QueryClient({
   }),
   defaultOptions: {
     queries: {
-      // Never retry client errors (4xx) — e.g. validation failures or
-      // 401s — only transient/server issues.
       retry: (failureCount, error) => {
         if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
           return false
@@ -67,50 +58,130 @@ const queryClient = new QueryClient({
   },
 })
 
+const router = createBrowserRouter([
+  {
+    path: '/login',
+    lazy: lazyRoute(() => import('./pages/login/LoginPage.tsx')),
+  },
+  {
+    path: '/register',
+    lazy: lazyRoute(() => import('./pages/login/RegisterPage.tsx')),
+  },
+  {
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
+    children: [
+      { path: '/', element: <Navigate to="/events" replace /> },
+      {
+        path: '/recipes',
+        lazy: lazyRoute(() => import('./pages/recipe/RecipesPage.tsx')),
+      },
+      {
+        path: '/recipes/new',
+        lazy: lazyRoute(() => import('./pages/recipe/details/RecipeDetailPage.tsx')),
+      },
+      {
+        path: '/recipes/:recipeId',
+        lazy: lazyRoute(() => import('./pages/recipe/details/RecipeDetailPage.tsx')),
+      },
+      {
+        path: '/recipes/:recipeId/edit',
+        lazy: lazyRoute(
+          () => import('./pages/recipe/details/RecipeDetailPage.tsx'),
+          'RecipeEditRedirect',
+        ),
+      },
+      {
+        path: '/ingredients',
+        lazy: lazyRoute(() => import('./pages/ingredient/IngredientsPage.tsx')),
+      },
+      {
+        path: '/ingredients/new',
+        lazy: lazyRoute(() => import('./pages/ingredient/details/IngredientDetailPage.tsx')),
+      },
+      {
+        path: '/ingredients/:ingredientId',
+        lazy: lazyRoute(() => import('./pages/ingredient/details/IngredientDetailPage.tsx')),
+      },
+      {
+        path: '/events',
+        lazy: lazyRoute(() => import('./pages/event/EventsPage.tsx')),
+      },
+      {
+        path: '/events/:eventId',
+        lazy: lazyRoute(() => import('./pages/event/workspace/EventWorkspace.tsx')),
+        children: [
+          {
+            index: true,
+            lazy: lazyRoute(
+              () => import('./pages/event/workspace/overview/OverviewTab.tsx'),
+              'OverviewTab',
+            ),
+          },
+          {
+            path: 'plan',
+            lazy: lazyRoute(
+              () => import('./pages/event/workspace/meals/MealPlanTab.tsx'),
+              'MealPlanTab',
+            ),
+          },
+          {
+            path: 'shopping',
+            lazy: lazyRoute(
+              () => import('./pages/event/workspace/shopping/ShoppingTab.tsx'),
+              'ShoppingTab',
+            ),
+          },
+          {
+            path: 'kalkulation',
+            lazy: lazyRoute(
+              () => import('./pages/event/workspace/calculation/KalkulationTab.tsx'),
+              'KalkulationTab',
+            ),
+          },
+          {
+            path: 'timeline',
+            lazy: lazyRoute(
+              () => import('./pages/event/workspace/timeline/TimelineTab.tsx'),
+              'TimelineTab',
+            ),
+          },
+        ],
+      },
+      {
+        path: '/settings',
+        lazy: lazyRoute(() => import('./pages/settings/SettingsPage.tsx')),
+      },
+      { path: '/account', element: <Navigate to="/settings" replace /> },
+      {
+        path: '/admin',
+        lazy: lazyRoute(() => import('./pages/admin/AdminPage.tsx')),
+      },
+      {
+        path: '/inventories',
+        lazy: lazyRoute(() => import('./pages/inventory/InventoriesPage.tsx')),
+      },
+      {
+        path: '/static/Documents',
+        lazy: lazyRoute(() => import('./pages/documents/DocumentsPage.tsx')),
+      },
+      {
+        path: '*',
+        element: (
+          <PlaceholderPage title="Nicht gefunden" phase="—" hint="Diese URL existiert nicht." />
+        ),
+      },
+    ],
+  },
+])
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            element={
-              <RequireAuth>
-                <AppShell />
-              </RequireAuth>
-            }
-          >
-            <Route path="/" element={<Navigate to="/events" replace />} />
-            <Route path="/recipes" element={<RecipesPage />}/>
-            <Route path="/recipes/new" element={<RecipeDetailPage />}/>
-            <Route path="/recipes/:recipeId" element={<RecipeDetailPage />}/>
-            <Route path="/recipes/:recipeId/edit" element={<RecipeEditRedirect />}/>
-            <Route path="/ingredients" element={<IngredientsPage />}/>
-            <Route path="/ingredients/new" element={<IngredientDetailPage />}/>
-            <Route path="/ingredients/:ingredientId" element={<IngredientDetailPage />}/>
-            <Route path="/events" element={<EventsPage />}/>
-            <Route path="/events/:eventId" element={<EventWorkspace />}>
-              <Route index element={<OverviewTab />} />
-              <Route path="plan" element={<MealPlanTab />} />
-              <Route path="shopping" element={<ShoppingTab />} />
-              <Route path="kalkulation" element={<KalkulationTab />} />
-              <Route path="timeline" element={<TimelineTab />} />
-            </Route>
-            <Route path="/settings" element={<SettingsPage />}/>
-            <Route path="/account" element={<Navigate to="/settings" replace />}/>
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/inventories" element={<InventoriesPage />}/>
-            <Route path="/static/Documents" element={<DocumentsPage />} />
-            <Route
-              path="*"
-              element={
-                <PlaceholderPage title="Nicht gefunden" phase="—" hint="Diese URL existiert nicht." />
-              }
-            />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   )
 }

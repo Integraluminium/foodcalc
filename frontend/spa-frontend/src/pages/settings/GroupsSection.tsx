@@ -1,11 +1,11 @@
 import type {FormEvent} from 'react'
 import {useState} from 'react'
-import type {GroupRole} from '../../api/types.ts'
+import {useTranslation} from "react-i18next";
+import type {GroupRole} from '../../api'
 import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
 import {useGroupAdminMutations, useGroupMembers,} from '../../hooks/queries/useUsers.ts'
 import {usePermissions} from '../../hooks/usePermissions.ts'
-import {t} from '../../i18n'
 import styles from './GroupsSection.module.css'
 
 /**
@@ -15,6 +15,7 @@ import styles from './GroupsSection.module.css'
  * create and delete groups.
  */
 export function GroupsSection() {
+  const { t } = useTranslation([])
   const { isAdmin, canManageGroup } = usePermissions()
   const groups = useGroups()
   const { createGroup, removeGroup } = useGroupAdminMutations()
@@ -37,7 +38,7 @@ export function GroupsSection() {
         >
           <input
             className="input"
-            placeholder={t('rights.createPlaceholder')}
+            placeholder={t('settings:rights.createPlaceholder')}
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
           />
@@ -46,7 +47,7 @@ export function GroupsSection() {
             className="btn btn--primary"
             disabled={!newName.trim() || createGroup.isPending}
           >
-            {t('rights.createButton')}
+            {t('settings:rights.createButton')}
           </button>
         </form>
       )}
@@ -55,7 +56,7 @@ export function GroupsSection() {
         <Spinner />
       ) : groups.isError ? (
         <p className="secondary">
-          {t('rights.loadError', { error: String(groups.error) })}
+          {t('settings:rights.loadError', { error: String(groups.error) })}
         </p>
       ) : (
         groups.data
@@ -69,7 +70,7 @@ export function GroupsSection() {
               onRemove={() => {
                 if (
                   window.confirm(
-                    t('rights.deleteGroupConfirm', { name: group.name }),
+                   t('settings:rights.deleteGroupConfirm', { name: group.name }),
                   )
                 ) {
                   removeGroup.mutate(group.id)
@@ -79,13 +80,13 @@ export function GroupsSection() {
           ))
       )}
       <div className={styles.legend}>
-        <h3 className="section-subtitle">{t('rights.legendTitle')}</h3>
-        <p>{t('rights.legendViewer')}</p>
-        <p>{t('rights.legendEditor')}</p>
-        <p>{t('rights.legendManager')}</p>
+        <h3 className="section-subtitle">{t('settings:rights.legendTitle')}</h3>
+        <p>{t('settings:rights.legendViewer')}</p>
+        <p>{t('settings:rights.legendEditor')}</p>
+        <p>{t('settings:rights.legendManager')}</p>
       </div>
       <p className="muted">
-        {t('rights.personalNote')}
+        {t('settings:rights.personalNote')}
       </p>
     </div>
   )
@@ -102,6 +103,7 @@ function GroupCard({
   canManage: boolean
   onRemove: () => void
 }) {
+  const { t } = useTranslation([])
   const [expanded, setExpanded] = useState(false)
   const members = useGroupMembers(expanded ? groupId : 0)
   const { addMember, removeMember, setMemberRole } = useGroupAdminMutations()
@@ -131,7 +133,7 @@ function GroupCard({
             <button
               type="button"
               className={styles.iconButton}
-              title={t('rights.deleteGroup')}
+              title={t('settings:rights.deleteGroup')}
               onClick={onRemove}
             >
               🗑
@@ -145,7 +147,7 @@ function GroupCard({
           <Spinner size="sm" />
         ) : members.isError ? (
           <p className="secondary">
-            {t('rights.membersLoadError', { error: String(members.error) })}
+            {t('settings:rights.membersLoadError', { error: String(members.error) })}
           </p>
         ) : (
           <>
@@ -164,7 +166,7 @@ function GroupCard({
                       className={`input ${styles.roleSelect}`}
                       value={member.role}
                       disabled={setMemberRole.isPending}
-                      title={t('rights.roleLabel')}
+                      title={t('settings:rights.roleLabel')}
                       onChange={(event) =>
                         setMemberRole.mutate({
                           groupId,
@@ -173,9 +175,9 @@ function GroupCard({
                         })
                       }
                     >
-                      <option value="viewer">{t('roles.viewer')}</option>
-                      <option value="editor">{t('roles.editor')}</option>
-                      <option value="manager">{t('roles.manager')}</option>
+                      <option value="viewer">{t('common:roles.viewer')}</option>
+                      <option value="editor">{t('common:roles.editor')}</option>
+                      <option value="manager">{t('common:roles.manager')}</option>
                     </select>
                   ) : (
                     <span className="badge badge--neutral">
@@ -186,7 +188,7 @@ function GroupCard({
                     <button
                       type="button"
                       className={styles.iconButton}
-                      title={t('rights.removeMember')}
+                      title={t('settings:rights.removeMember')}
                       onClick={() => removeMember.mutate({ groupId, userId: member.id })}
                     >
                       ✕
@@ -195,21 +197,21 @@ function GroupCard({
                 </li>
               ))}
               {members.data.length === 0 && (
-                <li className="muted">{t('rights.noMembers')}</li>
+                <li className="muted">{t('settings:rights.noMembers')}</li>
               )}
             </ul>
             {setMemberRole.isError && (
               <p className="secondary">
                 {setMemberRole.error instanceof Error
                   ? setMemberRole.error.message
-                  : t('state.error')}
+                  :t('common:state.error')}
               </p>
             )}
             {canManage && (
               <form className={styles.addMemberRow} onSubmit={handleAdd}>
                 <input
                   className="input"
-                  placeholder={t('rights.addMemberPlaceholder')}
+                  placeholder={t('settings:rights.addMemberPlaceholder')}
                   value={newMember}
                   onChange={(event) => setNewMember(event.target.value)}
                 />
@@ -218,7 +220,7 @@ function GroupCard({
                   className="btn btn--ghost"
                   disabled={!newMember.trim() || addMember.isPending}
                 >
-                  {t('rights.addMemberButton')}
+                  {t('settings:rights.addMemberButton')}
                 </button>
               </form>
             )}

@@ -1,5 +1,5 @@
+import {t} from "i18next";
 import type {ReactNode} from 'react'
-import {t} from '../../../i18n'
 import {SkeletonTable} from "../../patterns/skeleton/Skeleton.tsx";
 import styles from './StateViews.module.css'
 
@@ -10,7 +10,7 @@ export function LoadingState() {
   return (
     <div className={styles.state}>
       <SkeletonTable rows={5} cols={4} />
-      <span className={styles.visuallyHidden}>{t('state.loading')}</span>
+      <span className={styles.visuallyHidden}>{t('common:state.loading')}</span>
     </div>
   )
 }
@@ -18,7 +18,7 @@ export function LoadingState() {
 export function ErrorState({ message }: { message?: string }) {
   return (
     <div className={styles.state}>
-      <p className="secondary">{message ?? t('state.error')}</p>
+      <p className="secondary">{message ??t('common:state.error')}</p>
     </div>
   )
 }

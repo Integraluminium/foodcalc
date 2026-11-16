@@ -1,5 +1,6 @@
 import {Pencil} from 'lucide-react'
 import {useState} from 'react'
+import {useTranslation} from "react-i18next";
 import {useNavigate} from 'react-router-dom'
 import {BudgetBar} from '../../../../components/patterns/budget_bar/BudgetBar.tsx'
 import {CardSection} from '../../../../components/patterns/card_section/CardSection.tsx'
@@ -8,13 +9,13 @@ import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
 import {useEvent, useEventId, useEventInventories, useEventMutations,} from '../../../../hooks/queries/useEvents.ts'
 import {useGroupName} from "../../../../hooks/queries/useGroupName.ts";
 import {usePermissions} from '../../../../hooks/usePermissions.ts'
-import {t} from '../../../../i18n'
 import {eventAggregates} from '../../../../lib/eventAggregation.ts'
 import {formatDateRange, formatDecimal, toNumber} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
 import {EventMetadataDrawer} from "./EventMetadataDrawer.tsx";
 
 export function OverviewTab() {
+  const { t } = useTranslation([])
   const eventId = useEventId()
   const { data: detail } = useEvent(eventId)
   useEventMutations(eventId);
@@ -34,7 +35,7 @@ export function OverviewTab() {
   return (
     <div className="tab-section">
       <CardSection
-        title={t('overview.frame')}
+        title={t('events:overview.frame')}
         actions={
           <div className="row-actions">
             <Badge variant="neutral">{groupName(detail.event.group_id)}</Badge>
@@ -44,40 +45,40 @@ export function OverviewTab() {
                 className="btn btn--ghost btn--sm"
                 onClick={() => setEditOpen(true)}
               >
-                <Pencil size={14} /> {t('action.edit')}
+                <Pencil size={14} /> {t('common:actions.edit')}
               </button>
             )}
           </div>
         }
       >
         <dl className={styles.facts}>
-          <dt>{t('overview.period')}</dt>
+          <dt>{t('events:overview.period')}</dt>
           <dd>
             {formatDateRange(
               detail.meals[0]?.start_time ?? null,
               detail.meals[detail.meals.length - 1]?.start_time ?? null,
             )}
           </dd>
-          <dt>{t('overview.meals')}</dt>
+          <dt>{t('events:overview.meals')}</dt>
           <dd>{detail.meals.length}</dd>
-          <dt>{t('overview.portions')}</dt>
+          <dt>{t('events:overview.portions')}</dt>
           <dd>{aggregates.portions}</dd>
-          <dt>{t('overview.cookingAmount')}</dt>
+          <dt>{t('events:overview.cookingAmount')}</dt>
           <dd>{formatDecimal(aggregates.weightKg)} kg</dd>
-          <dt>{t('overview.cost')}</dt>
+          <dt>{t('events:overview.cost')}</dt>
           <dd>
             <BudgetBar cost={aggregates.cost} budget={budget} />
           </dd>
           {detail.event.comment && (
             <>
-              <dt>{t('overview.comment')}</dt>
+              <dt>{t('events:overview.comment')}</dt>
               <dd>{detail.event.comment}</dd>
             </>
           )}
-          <dt>{t('overview.linkedInventories')}</dt>
+          <dt>{t('events:overview.linkedInventories')}</dt>
           <dd className="row-actions">
             {(linkedInventories.data ?? []).length === 0 ? (
-              <span className="muted">{t('overview.noInventories')}</span>
+              <span className="muted">{t('events:overview.noInventories')}</span>
             ) : (
               (linkedInventories.data ?? []).map((inv) => (
                 <Badge key={inv.id} variant="info">
@@ -90,38 +91,38 @@ export function OverviewTab() {
       </CardSection>
 
       <CardSection
-        title={t('overview.exports')}
-        subtitle={t('overview.exportsHint')}
+        title={t('events:overview.exports')}
+        subtitle={t('events:overview.exportsHint')}
       >
         <div className={styles.exportGrid}>
           <ExportButton
             className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/overview`}
             filename={`${detail.event.name}-uebersicht.pdf`}
-            title={t('overview.exportOverviewHint')}
+            title={t('events:overview.exportOverviewHint')}
           >
-            {t('overview.exportOverview')}
+            {t('events:overview.exportOverview')}
           </ExportButton>
           <ExportButton
             className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/recipes`}
             filename={`${detail.event.name}-rezepte.pdf`}
           >
-            {t('overview.exportRecipes')}
+            {t('events:overview.exportRecipes')}
           </ExportButton>
           <ExportButton
             className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/allergens`}
             filename={`${detail.event.name}-allergene.pdf`}
           >
-            {t('overview.exportAllergens')}
+            {t('events:overview.exportAllergens')}
           </ExportButton>
           <ExportButton
             className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/labels`}
             filename={`${detail.event.name}-labels.pdf`}
           >
-            {t('overview.exportLabels')}
+            {t('events:overview.exportLabels')}
           </ExportButton>
         </div>
       </CardSection>

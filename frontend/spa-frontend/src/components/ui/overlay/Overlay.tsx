@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import {X} from 'lucide-react'
+import type {CSSProperties, ReactNode} from 'react'
+import {useEffect, useRef} from 'react'
 import styles from './Overlay.module.css'
 
 export type OverlayVariant = 'drawer' | 'modal'
@@ -14,37 +15,39 @@ const MAX_WIDTHS: Record<OverlaySize, string> = {
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+let openOverlayCount = 0
+let savedBodyOverflow = ''
+
 interface OverlayProps {
   title: string
   onClose: () => void
-  /** `drawer` = Slide-over rechts (Inspektion), `modal` = zentrierter Dialog. */
   variant?: OverlayVariant
   size?: OverlaySize
   footer?: ReactNode
   children: ReactNode
 }
 
-/**
- * Einheitliches Overlay-Primitive für alle Dialog-/Drawer-Verwendungen:
- * Backdrop, ESC zum Schließen, Fokus-Falle (Tab zirkuliert im Panel) und
- * Body-Scroll-Lock an genau einer Stelle statt pro Komponente.
- */
 export function Overlay({
-  title,
-  onClose,
-  variant = 'modal',
-  size = 'md',
-  footer,
-  children,
-}: OverlayProps) {
+                          title,
+                          onClose,
+                          variant = 'modal',
+                          size = 'md',
+                          footer,
+                          children,
+                        }: OverlayProps) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     const panel = panelRef.current
     if (!panel) return
 
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    if (openOverlayCount === 0) {
+      savedBodyOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+    }
+    openOverlayCount += 1
 
     const focusables = panel.querySelectorAll<HTMLElement>(FOCUSABLE)
     focusables[0]?.focus()
@@ -52,7 +55,7 @@ export function Overlay({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation()
-        onClose()
+        onCloseRef.current()
         return
       }
       if (event.key !== 'Tab') return
@@ -69,17 +72,21 @@ export function Overlay({
         first.focus()
       }
     }
+
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      document.body.style.overflow = previousOverflow
+      openOverlayCount = Math.max(0, openOverlayCount - 1)
+      if (openOverlayCount === 0) {
+        document.body.style.overflow = savedBodyOverflow
+      }
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [onClose])
+  }, [])
 
   return (
     <div
       className={`${styles.overlay} ${variant === 'drawer' ? styles.drawer : styles.modal}`}
-      onClick={onClose}
+      onClick={() => onCloseRef.current()}
     >
       <div
         ref={panelRef}
@@ -95,10 +102,10 @@ export function Overlay({
           <button
             type="button"
             className={styles.close}
-            onClick={onClose}
+            onClick={() => onCloseRef.current()}
             aria-label="Schließen"
           >
-            ×
+            <X size={18} />
           </button>
         </div>
         <div className={styles.body}>{children}</div>

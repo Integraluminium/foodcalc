@@ -1,5 +1,6 @@
 import {Layers, Utensils} from 'lucide-react'
 import {type ReactNode, useState} from 'react'
+import {useTranslation} from "react-i18next";
 import {useNavigate} from 'react-router-dom'
 import type {RecipeKind, RecipeListItem} from '../../api'
 import {ListPage} from '../../components/layout/list_page/ListPage.tsx'
@@ -10,7 +11,6 @@ import {SegmentedControl} from '../../components/ui/segmented_control/SegmentedC
 import {useRecipes} from '../../hooks/queries/useRecipes.ts'
 import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
 import {useFilteredList} from '../../hooks/useFilteredList.ts'
-import {t} from '../../i18n'
 import {formatKjPerG} from '../../lib/format.ts'
 import {RecipeView} from './view/RecipeView.tsx'
 
@@ -23,6 +23,7 @@ export const RecipeKindOptions: { value: KindFilter; label: string; icon?: React
 ]
 
 export default function RecipesPage() {
+    const {t} = useTranslation(["recipes", "nav", "common"])
     const navigate = useNavigate()
     const [kind, setKind] = useState<KindFilter>('meal')
     const [drawerRecipe, setDrawerRecipe] = useState<RecipeListItem | null>(null)
@@ -47,7 +48,7 @@ export default function RecipesPage() {
             label: 'Typ',
             render: (recipe) => (
               <Badge variant={recipe.kind === 'meal' ? 'success' : 'info'}>
-                  {recipe.kind === 'meal' ? t('recipe.kind.meal') : t('recipe.kind.component')}
+                  {recipe.kind === 'meal' ? t('recipes:detail.kind.meal') : t('recipes:detail.kind.component')}
               </Badge>
             ),
         },
@@ -73,18 +74,18 @@ export default function RecipesPage() {
 
     return (
       <ListPage
-        title={t('nav.recipes')}
+        title={t('nav:recipes')}
         createLabel="+ Neues Rezept"
         onCreate={() => void navigate('/recipes/new')}
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder={t('recipe.searchPlaceholder')}
+        searchPlaceholder={t('recipes:list.searchPlaceholder')}
         extraFilters={
             <SegmentedControl
               options={RecipeKindOptions}
               value={kind}
               onChange={setKind}
-              ariaLabel={t('recipe.filterKind')}
+              ariaLabel={t('recipes:list.filterKind')}
             />
         }
         ownerFilter={ownerFilter}
@@ -111,8 +112,8 @@ export default function RecipesPage() {
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                     <Badge variant={drawerRecipe.kind === 'meal' ? 'success' : 'info'}>
                         {drawerRecipe.kind === 'meal'
-                          ? t('recipe.kind.meal')
-                          : t('recipe.kind.component')}
+                          ? t('recipes:detail.kind.meal')
+                          : t('recipes:detail.kind.component')}
                     </Badge>
                     <span className="muted">Owner: {drawerRecipe.group_name}</span>
                 </div>

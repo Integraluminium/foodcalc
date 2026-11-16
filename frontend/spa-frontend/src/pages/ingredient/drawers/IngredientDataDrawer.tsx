@@ -1,17 +1,17 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router'
-import { useQueryClient } from '@tanstack/react-query'
-import type { IngredientDetail } from '../../../api/types.ts'
-import { ingredientsApi } from '../../../api/endpoints/ingredients.ts'
-import { ConfirmDialog } from '../../../components/patterns/dialog/ConfirmDialog.tsx'
-import { Drawer } from '../../../components/patterns/drawer/Drawer.tsx'
-import { OwnerTransferDialog } from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
-import { t } from '../../../i18n'
-import { useCreateIngredient, useIngredientUsages } from '../../../hooks/queries/useIngredients.ts'
-import { useGroups } from '../../../hooks/queries/useMasterData.ts'
-import { usePermissions } from '../../../hooks/usePermissions.ts'
+import {useQueryClient} from '@tanstack/react-query'
+import {t} from "i18next";
+import type {FormEvent} from 'react'
+import {useState} from 'react'
+import {useNavigate} from 'react-router'
+import {ingredientsApi} from '../../../api/endpoints/ingredients.ts'
+import type {IngredientDetail} from '../../../api/types.ts'
+import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
+import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {useCreateIngredient, useIngredientUsages} from '../../../hooks/queries/useIngredients.ts'
+import {useGroups} from '../../../hooks/queries/useMasterData.ts'
+import {usePermissions} from '../../../hooks/usePermissions.ts'
 import styles from './IngredientDrawers.module.css'
 
 /**
@@ -74,7 +74,7 @@ export function IngredientDataDrawer({
         void navigate(`/ingredients/${created.id}`)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('state.error'))
+      setError(err instanceof Error ? err.message :t('common:state.error'))
     } finally {
       setSaving(false)
     }
@@ -90,7 +90,7 @@ export function IngredientDataDrawer({
       onClose()
       void navigate('/ingredients')
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('state.error'))
+      setError(err instanceof Error ? err.message :t('common:state.error'))
       setConfirmDelete(false)
     } finally {
       setSaving(false)
@@ -103,13 +103,13 @@ export function IngredientDataDrawer({
   return (
     <Drawer
       title={
-        ingredient ? t('ingredient.dataTitle') : t('ingredient.createTitle')
+        ingredient ?t('ingredients:detail.dataTitle') :t('ingredients:list.createTitle')
       }
       onClose={onClose}
     >
       <form className={styles.form} onSubmit={(event) => void handleSubmit(event)}>
         <label className="field">
-          {t('ingredient.name')}
+          {t('ingredients:detail.name')}
           <input
             className="input"
             value={name}
@@ -119,7 +119,7 @@ export function IngredientDataDrawer({
           />
         </label>
         <label className="field">
-          {t('ingredient.energy')}
+          {t('ingredients:detail.energy')}
           <input
             className="input"
             inputMode="decimal"
@@ -127,10 +127,10 @@ export function IngredientDataDrawer({
             onChange={(event) => setEnergy(event.target.value)}
             required
           />
-          <span className="muted">{t('ingredient.energyHint')}</span>
+          <span className="muted">{t('ingredients:detail.energyHint')}</span>
         </label>
         <label className="field">
-          {t('editor.drawer.comment')}
+          {t('recipes:drawers.comment')}
           <textarea
             className="input"
             rows={2}
@@ -141,7 +141,7 @@ export function IngredientDataDrawer({
 
         {ingredient ? (
           <div className="field">
-            <span>{t('editor.drawer.owner')}</span>
+            <span>{t('recipes:drawers.owner')}</span>
             <div className={styles.ownerRow}>
               <span>
                 {groups.data?.find((group) => group.id === ingredient.ingredient.group_id)
@@ -153,14 +153,14 @@ export function IngredientDataDrawer({
                   className="btn btn--ghost"
                   onClick={() => setTransferOpen(true)}
                 >
-                  {t('transfer.open')}
+                  {t('common:transfer.open')}
                 </button>
               )}
             </div>
           </div>
         ) : (
           <label className="field">
-            {t('editor.drawer.owner')}
+            {t('recipes:drawers.owner')}
             {groups.isPending ? (
               <Spinner size="sm" />
             ) : (
@@ -172,7 +172,7 @@ export function IngredientDataDrawer({
                 {groups.data?.map((group) => (
                   <option key={group.id} value={group.id}>
                     {group.name}
-                    {group.is_personal ? ` (${t('editor.drawer.personal')})` : ''}
+                    {group.is_personal ? ` (${t('recipes:drawers.personal')})` : ''}
                   </option>
                 ))}
               </select>
@@ -189,12 +189,12 @@ export function IngredientDataDrawer({
               className="btn btn--ghost"
               onClick={() => setConfirmDelete(true)}
             >
-              {t('action.delete')}
+              {t('common:actions.delete')}
             </button>
           )}
           <span className={styles.footerSpacer} />
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            {t('action.cancel')}
+            {t('common:actions.cancel')}
           </button>
           <button
             type="submit"
@@ -204,9 +204,9 @@ export function IngredientDataDrawer({
             {pending ? (
               <Spinner size="sm" />
             ) : ingredient ? (
-              t('action.save')
+             t('common:actions.save')
             ) : (
-              t('editor.drawer.create')
+             t('recipes:drawers.create')
             )}
           </button>
         </div>
@@ -214,14 +214,14 @@ export function IngredientDataDrawer({
 
       {ingredient && confirmDelete && (
         <ConfirmDialog
-          title={t('ingredient.deleteTitle')}
+          title={t('ingredients:detail.deleteTitle')}
           message={
             usageCount > 0
-              ? t('ingredient.deleteUsagesWarning', {
+              ?t('ingredients:detail.deleteUsagesWarning', {
                   name: ingredient.ingredient.name,
                   count: usageCount,
                 })
-              : t('ingredient.deleteConfirm', { name: ingredient.ingredient.name })
+              :t('ingredients:detail.deleteConfirm', { name: ingredient.ingredient.name })
           }
           pending={saving}
           onConfirm={() => void handleDelete()}

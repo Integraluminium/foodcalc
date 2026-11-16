@@ -1,0 +1,91 @@
+{
+  "actions": {
+    "add": "Hinzufügen",
+    "backToList": "Zurück zur Liste",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "create": "Anlegen",
+    "delete": "Löschen",
+    "done": "Fertig",
+    "duplicate": "Duplizieren",
+    "edit": "Bearbeiten",
+    "moveDown": "Nach unten",
+    "moveUp": "Nach oben",
+    "openFullView": "Vollansicht öffnen →",
+    "save": "Speichern",
+    "search": "Suchen…"
+  },
+  "filter": {
+    "all": "Alle",
+    "allGroups": "Alle Gruppen",
+    "byOwner": "Nach Besitzer-Gruppe filtern",
+    "kind": "Typ"
+  },
+  "groups": {
+    "chooseGroup": "Gruppe wählen…",
+    "groupFallback": "Gruppe {{id}}",
+    "owner": "Besitzer",
+    "ownerGroup": "Besitzer-Gruppe",
+    "personal": "Persönliche Gruppe",
+    "personalGroupSuffix": "(persönliche Gruppe)",
+    "personalSuffix": "(persönlich)"
+  },
+  "labels": {
+    "comment": "Kommentar",
+    "name": "Name",
+    "optional": "optional",
+    "unitKg": "kg"
+  },
+  "list": {
+    "emptyFiltered": "Keine {{noun}} für diesen Filter.",
+    "emptyInitial": "Keine {{noun}} gefunden. Lege das erste über „{{createLabel}}“ an."
+  },
+  "placeholder": {
+    "comingIn": "Diese Ansicht wird in <strong>{{phase}}</strong> implementiert.",
+    "inProgress": "In Arbeit"
+  },
+  "roles": {
+    "editor": "Bearbeiter",
+    "manager": "Verwalter",
+    "viewer": "Leser"
+  },
+  "state": {
+    "dirty": "Ungespeicherte Änderungen",
+    "discard": "Verwerfen",
+    "discardConfirm": "Ungespeicherte Änderungen verwerfen?",
+    "discardTitle": "Ungespeicherte Änderungen",
+    "error": "Laden fehlgeschlagen",
+    "loading": "Wird geladen…",
+    "saveError": "Speichern fehlgeschlagen."
+  },
+  "status": {
+    "available": "Verfügbar",
+    "missing": "Fehlt",
+    "planned": "Geplant",
+    "unknown": "Unbekannt"
+  },
+  "table": {
+    "actions": "Aktionen",
+    "comment": "Kommentar",
+    "name": "Name",
+    "owner": "Besitzer"
+  },
+  "transfer": {
+    "button": "Besitz übertragen",
+    "chooseGroup": "Gruppe wählen…",
+    "confirm": "Übertragen",
+    "currentOwner": "aktuell",
+    "newRoleHint": "Deine Rolle in der Zielgruppe: {{role}}",
+    "open": "Besitz übertragen",
+    "target": "Neue Owner-Gruppe",
+    "title": "Besitz übertragen",
+    "warning": "Nach der Übertragung hast du nur noch die Rechte deiner Mitgliedschaft in der Zielgruppe — Verwalter der Zielgruppe vergeben die Zugehörigkeit weiter."
+  },
+  "units": {
+    "currency": "{{value}} €",
+    "currencyPerKg": "{{value}} €/kg",
+    "kg": "{{value}} kg",
+    "kj": "{{value}} kJ",
+    "kjPerG": "{{value}} kJ/g"
+  }
+}

@@ -1,4 +1,5 @@
 import {useQueryClient} from '@tanstack/react-query'
+import {t} from "i18next";
 import {useReducer, useState} from 'react'
 import {recipesApi} from '../../../api/endpoints/recipes.ts'
 import type {RecipeDetail} from '../../../api/types.ts'
@@ -6,7 +7,6 @@ import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.t
 import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useRecipe} from '../../../hooks/queries/useRecipes.ts'
-import {t} from '../../../i18n'
 import {type Action, dirtyDraft, draftFromDetail, type DraftStep, reducer,} from '../edit/editorModel.ts'
 import styles from './RecipeDrawers.module.css'
 
@@ -22,7 +22,7 @@ export function RecipeStepsDrawer({
 
   if (!detailQuery.data) {
     return (
-      <Drawer title={t('editor.drawer.stepsTitle')} onClose={onClose} size="lg">
+      <Drawer title={t('recipes:drawers.stepsTitle')} onClose={onClose} size="lg">
         {detailQuery.isError ? (
           <p className="secondary">{String(detailQuery.error)}</p>
         ) : (
@@ -103,7 +103,7 @@ function StepsEditor({
       void queryClient.invalidateQueries()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('state.error'))
+      setError(err instanceof Error ? err.message :t('common:state.error'))
     } finally {
       setSaving(false)
     }
@@ -112,31 +112,31 @@ function StepsEditor({
   const footer = (
     <div className={styles.footer}>
       <button type="button" className="btn btn--ghost" onClick={requestClose}>
-        {t('action.cancel')}
+        {t('common:actions.cancel')}
       </button>
       <span className={styles.footerSpacer} />
-      {dirty && !saving && <span className="muted">{t('editor.dirty')}</span>}
+      {dirty && !saving && <span className="muted">{t('recipes:editor.dirty')}</span>}
       <button
         type="button"
         className="btn btn--primary"
         disabled={saving || !dirty}
         onClick={() => void commit()}
       >
-        {saving ? <Spinner size="sm" /> : t('action.save')}
+        {saving ? <Spinner size="sm" /> :t('common:actions.save')}
       </button>
     </div>
   )
 
   return (
     <Drawer
-      title={t('editor.drawer.stepsTitle')}
+      title={t('recipes:drawers.stepsTitle')}
       onClose={requestClose}
       footer={footer}
       size="lg"
     >
       <div className={styles.stepList}>
         {draft.steps.length === 0 && (
-          <p className="muted">{t('editor.drawer.stepsEmpty')}</p>
+          <p className="muted">{t('recipes:drawers.stepsEmpty')}</p>
         )}
         {draft.steps.map((row, index) => (
           <StepCard
@@ -156,7 +156,7 @@ function StepsEditor({
           className="btn btn--ghost"
           onClick={() => dispatch({ type: 'add-step' })}
         >
-          {t('editor.drawer.addStep')}
+          {t('recipes:drawers.addStep')}
         </button>
       </div>
 
@@ -164,9 +164,9 @@ function StepsEditor({
 
       {confirmCancel && (
         <ConfirmDialog
-          title={t('editor.discardTitle')}
-          message={t('editor.discardConfirm')}
-          confirmLabel={t('editor.discard')}
+          title={t('recipes:editor.discardTitle')}
+          message={t('recipes:editor.discardConfirm')}
+          confirmLabel={t('recipes:editor.discard')}
           onConfirm={() => {
             setConfirmCancel(false)
             onClose()
@@ -223,13 +223,13 @@ function StepCard({
         <input
           className={`input ${styles.stepName}`}
           value={row.name}
-          placeholder={t('editor.drawer.colStep')}
+          placeholder={t('recipes:drawers.colStep')}
           onChange={(event) =>
             dispatch({ type: 'update-step', index, patch: { name: event.target.value } })
           }
         />
         <label className={styles.stepDur}>
-          <span>{t('editor.drawer.colFixed')}</span>
+          <span>{t('recipes:drawers.colFixed')}</span>
           <input
             className={`input ${styles.minInput}`}
             inputMode="decimal"
@@ -239,7 +239,7 @@ function StepCard({
           />
         </label>
         <label className={styles.stepDur}>
-          <span>{t('editor.drawer.colPerKg')}</span>
+          <span>{t('recipes:drawers.colPerKg')}</span>
           <input
             className={`input ${styles.minInput}`}
             inputMode="decimal"
@@ -253,7 +253,7 @@ function StepCard({
         className={`input ${styles.stepDesc}`}
         rows={2}
         value={row.description}
-        placeholder={t('editor.drawer.stepDescPlaceholder')}
+        placeholder={t('recipes:drawers.stepDescPlaceholder')}
         onChange={(event) =>
           dispatch({ type: 'update-step', index, patch: { description: event.target.value } })
         }
@@ -267,13 +267,13 @@ function StepCard({
               dispatch({ type: 'update-step', index, patch: { isHaccp: !row.isHaccp } })
             }
           />{' '}
-          ⚠ {t('recipe.haccpLabel')}
+          ⚠ {t('recipes:detail.haccpLabel')}
         </label>
         <span className={styles.stepActions}>
           <button
             type="button"
             className="btn btn--ghost"
-            title={t('editor.drawer.moveUp')}
+            title={t('recipes:drawers.moveUp')}
             disabled={isFirst}
             onClick={() => dispatch({ type: 'move-step', index, direction: -1 })}
           >
@@ -282,7 +282,7 @@ function StepCard({
           <button
             type="button"
             className="btn btn--ghost"
-            title={t('editor.drawer.moveDown')}
+            title={t('recipes:drawers.moveDown')}
             disabled={isLast}
             onClick={() => dispatch({ type: 'move-step', index, direction: 1 })}
           >
@@ -291,7 +291,7 @@ function StepCard({
           <button
             type="button"
             className="btn btn--ghost"
-            title={t('action.delete')}
+            title={t('common:actions.delete')}
             onClick={() => dispatch({ type: 'remove-step', index })}
           >
             ✕

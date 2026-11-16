@@ -1,4 +1,5 @@
 import {useQuery, useQueryClient} from '@tanstack/react-query'
+import {t} from "i18next";
 import {useEffect, useReducer, useState} from 'react'
 import type {RecipeDetail} from '../../../api'
 import {ingredientsApi, recipesApi} from '../../../api'
@@ -8,7 +9,6 @@ import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredients} from '../../../hooks/queries/useIngredients.ts'
 import {useUnits} from '../../../hooks/queries/useMasterData.ts'
 import {useRecipe, useRecipes} from '../../../hooks/queries/useRecipes.ts'
-import {t} from '../../../i18n'
 import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import {
   type Action,
@@ -39,7 +39,7 @@ export function RecipeIngredientsDrawer({
 
   if (!detailQuery.data) {
     return (
-      <Drawer title={t('editor.drawer.ingredientsTitle')} onClose={onClose}>
+      <Drawer title={t('recipes:drawers.ingredientsTitle')} onClose={onClose}>
         {detailQuery.isError ? (
           <p className="secondary">{String(detailQuery.error)}</p>
         ) : (
@@ -84,46 +84,47 @@ function IngredientsEditor({
     if (dirty) setConfirmCancel(true)
     else onClose()
   }
+  const normalizeDecimal = (val: string) => val.trim().replace(',', '.')
 
   const commit = async () => {
     setSaving(true)
     setError(null)
     try {
-      // Zutaten: hinzufügen → entfernen → aktualisieren (diff gegen Server).
-      for (const row of draft.ingredients) {
-        if (row.existingId === undefined) {
-          await recipesApi.addIngredient(recipeId, {
-            ingredient_id: row.ingredientId,
-            amount: row.amount,
-            unit_id: row.unitId,
-          })
-        }
-      }
       const keptIngredients = new Set(
-        draft.ingredients.map((row) => row.existingId).filter((id): id is number => id !== undefined),
+        draft.ingredients
+          .map((row) => row.existingId)
+          .filter((id): id is number => id !== undefined),
       )
       for (const row of detail.ingredients) {
         if (!keptIngredients.has(row.ingredient_id)) {
           await recipesApi.removeIngredient(recipeId, row.ingredient_id)
         }
       }
+
       for (const row of draft.ingredients) {
         if (row.existingId !== undefined) {
           await recipesApi.updateIngredient(recipeId, row.existingId, {
             ingredient_id: row.ingredientId,
-            amount: row.amount,
+            amount: normalizeDecimal(row.amount),
             unit_id: row.unitId,
           })
         }
       }
-      // Sub-Komponenten analog.
-      for (const row of draft.subRecipes) {
+
+      for (const row of draft.ingredients) {
         if (row.existingId === undefined) {
-          await recipesApi.addSubRecipe(recipeId, { child_recipe_id: row.recipeId, weight: row.weight })
+          await recipesApi.addIngredient(recipeId, {
+            ingredient_id: row.ingredientId,
+            amount: normalizeDecimal(row.amount),
+            unit_id: row.unitId,
+          })
         }
       }
+
       const keptSubs = new Set(
-        draft.subRecipes.map((row) => row.existingId).filter((id): id is number => id !== undefined),
+        draft.subRecipes
+          .map((row) => row.existingId)
+          .filter((id): id is number => id !== undefined),
       )
       for (const row of detail.sub_recipes) {
         if (!keptSubs.has(row.recipe_id)) {
@@ -132,13 +133,27 @@ function IngredientsEditor({
       }
       for (const row of draft.subRecipes) {
         if (row.existingId !== undefined) {
-          await recipesApi.updateSubRecipe(recipeId, row.existingId, { weight: row.weight })
+          await recipesApi.updateSubRecipe(recipeId, row.existingId, {
+            weight: normalizeDecimal(row.weight),
+          })
         }
       }
-      void queryClient.invalidateQueries()
+      for (const row of draft.subRecipes) {
+        if (row.existingId === undefined) {
+          await recipesApi.addSubRecipe(recipeId, {
+            child_recipe_id: row.recipeId,
+            weight: normalizeDecimal(row.weight),
+          })
+        }
+      }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['recipes'] }),
+        queryClient.invalidateQueries({ queryKey: ['events'] }),
+      ])
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('state.error'))
+      setError(err instanceof Error ? err.message :t('common:state.error'))
     } finally {
       setSaving(false)
     }
@@ -151,24 +166,24 @@ function IngredientsEditor({
         className="btn btn--ghost"
         onClick={requestClose}
       >
-        {t('action.cancel')}
+        {t('common:actions.cancel')}
       </button>
       <span className={styles.footerSpacer} />
-      {dirty && !saving && <span className="muted">{t('editor.dirty')}</span>}
+      {dirty && !saving && <span className="muted">{t('recipes:editor.dirty')}</span>}
       <button
         type="button"
         className="btn btn--primary"
         disabled={saving || !dirty}
         onClick={() => void commit()}
       >
-        {saving ? <Spinner size="sm" /> : t('action.save')}
+        {saving ? <Spinner size="sm" /> :t('common:actions.save')}
       </button>
     </div>
   )
 
   return (
     <Drawer
-      title={t('editor.drawer.ingredientsTitle')}
+      title={t('recipes:drawers.ingredientsTitle')}
       onClose={requestClose}
       footer={footer}
     >
@@ -183,9 +198,9 @@ function IngredientsEditor({
       <table className="table">
         <thead>
           <tr>
-            <th>{t('editor.parts.colIngredient')}</th>
-            <th>{t('editor.parts.colAmount')}</th>
-            <th className="num">{t('editor.parts.colConversion')}</th>
+            <th>{t('recipes:editor.parts.colIngredient')}</th>
+            <th>{t('recipes:editor.parts.colAmount')}</th>
+            <th className="num">{t('recipes:editor.parts.colConversion')}</th>
             <th aria-hidden="true" />
           </tr>
         </thead>
@@ -193,7 +208,7 @@ function IngredientsEditor({
           {draft.ingredients.length === 0 && (
             <tr>
               <td colSpan={4} className="muted">
-                {t('editor.drawer.ingredientsEmpty')}
+                {t('recipes:drawers.ingredientsEmpty')}
               </td>
             </tr>
           )}
@@ -211,9 +226,9 @@ function IngredientsEditor({
       <table className="table">
         <thead>
           <tr>
-            <th>{t('editor.drawer.colComponent')}</th>
-            <th>{t('editor.drawer.colWeight')}</th>
-            <th className="num">{t('editor.parts.colConversion')}</th>
+            <th>{t('recipes:drawers.colComponent')}</th>
+            <th>{t('recipes:drawers.colWeight')}</th>
+            <th className="num">{t('recipes:editor.parts.colConversion')}</th>
             <th aria-hidden="true" />
           </tr>
         </thead>
@@ -221,7 +236,7 @@ function IngredientsEditor({
           {draft.subRecipes.length === 0 && (
             <tr>
               <td colSpan={4} className="muted">
-                {t('editor.drawer.subsEmpty')}
+                {t('recipes:drawers.subsEmpty')}
               </td>
             </tr>
           )}
@@ -239,17 +254,31 @@ function IngredientsEditor({
 
       <div className={styles.addRow}>
         <button type="button" className="btn btn--ghost" onClick={() => setPicker('ingredient')}>
-          {t('editor.drawer.addIngredient')}
+          {t('recipes:drawers.addIngredient')}
         </button>
         <button type="button" className="btn btn--ghost" onClick={() => setPicker('sub')}>
-          {t('editor.drawer.addSub')}
+          {t('recipes:drawers.addSub')}
         </button>
       </div>
 
       {picker === 'ingredient' && (
         <IngredientPicker
           onAdd={(selection) => {
-            dispatch({ type: 'add-ingredient', row: { ...selection, kg: null, density: null } })
+            const existingIndex = draft.ingredients.findIndex(
+              (r) => r.ingredientId === selection.ingredientId,
+            )
+            if (existingIndex >= 0) {
+              dispatch({
+                type: 'update-ingredient',
+                index: existingIndex,
+                patch: { amount: selection.amount, unitId: selection.unitId },
+              })
+            } else {
+              dispatch({
+                type: 'add-ingredient',
+                row: { ...selection, kg: null, density: null },
+              })
+            }
           }}
           onClose={() => setPicker(null)}
         />
@@ -271,9 +300,9 @@ function IngredientsEditor({
 
       {confirmCancel && (
         <ConfirmDialog
-          title={t('editor.discardTitle')}
-          message={t('editor.discardConfirm')}
-          confirmLabel={t('editor.discard')}
+          title={t('recipes:editor.discardTitle')}
+          message={t('recipes:editor.discardConfirm')}
+          confirmLabel={t('recipes:editor.discard')}
           onConfirm={() => {
             setConfirmCancel(false)
             onClose()
@@ -356,7 +385,7 @@ function IngredientDraftRow({
         <button
           type="button"
           className="btn btn--ghost"
-          title={t('action.delete')}
+          title={t('common:actions.delete')}
           onClick={() => dispatch({ type: 'remove-ingredient', index })}
         >
           ✕
@@ -395,7 +424,7 @@ function SubDraftRow({
     <tr>
       <td>
         {catalog.data?.find((entry) => entry.id === row.recipeId)?.name ?? row.recipeId}
-        {row.recipeId === selfId && <span className="muted"> ({t('editor.drawer.selfRef')})</span>}
+        {row.recipeId === selfId && <span className="muted"> ({t('recipes:drawers.selfRef')})</span>}
       </td>
       <td>
         <input
@@ -414,7 +443,7 @@ function SubDraftRow({
         <button
           type="button"
           className="btn btn--ghost"
-          title={t('action.delete')}
+          title={t('common:actions.delete')}
           onClick={() => dispatch({ type: 'remove-sub', index })}
         >
           ✕

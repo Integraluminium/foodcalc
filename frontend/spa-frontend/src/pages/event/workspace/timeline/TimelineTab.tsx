@@ -1,6 +1,7 @@
 import {useQueryClient} from '@tanstack/react-query'
 import type {PointerEvent as ReactPointerEvent} from 'react'
 import {useMemo, useRef, useState} from 'react'
+import {useTranslation} from "react-i18next";
 import {CardSection} from "../../../../components/patterns/card_section/CardSection.tsx";
 import {SkeletonCards} from '../../../../components/patterns/skeleton/Skeleton.tsx'
 import {Badge} from "../../../../components/ui/badge/Badge.tsx";
@@ -12,7 +13,6 @@ import {
   useEventPreps,
   useEventTours,
 } from '../../../../hooks/queries/useEvents.ts'
-import {t} from '../../../../i18n'
 import {formatDayLabel, formatTime} from '../../../../lib/format.ts'
 import styles from './TimelineTab.module.css'
 
@@ -134,6 +134,7 @@ const BAND_ORDER: TimelineItem['kind'][] = ['tour', 'prep', 'meal']
  * gruppiert sie auf logische Tage.
  */
 export function TimelineTab() {
+  const {t} = useTranslation([])
   const eventId = useEventId()
   const {data: detail} = useEvent(eventId)
   const meals = detail?.meals ?? []
@@ -249,7 +250,7 @@ export function TimelineTab() {
   ) => {
     const startIso = toLocalIso(dayKey, startMin)
     const onError = () => {
-      notify('error', t('timeline.moveFailed'))
+      notify('error',t('events:timeline.moveFailed'))
       void queryClient.invalidateQueries({queryKey: ['events']})
     }
     if (kind === 'meal') {
@@ -423,7 +424,7 @@ export function TimelineTab() {
     return (
       <div className={styles.wrap}>
         <p className="muted">
-          {t('timeline.loadError', {
+          {t('events:timeline.loadError', {
             error: String(preps.isError ? preps.error : tours.error),
           })}
         </p>
@@ -437,9 +438,9 @@ export function TimelineTab() {
     prep: styles.barPrep,
   }
   const kindLabel: Record<TimelineItem['kind'], string> = {
-    meal: t('timeline.kind.meal'),
-    tour: t('timeline.kind.tour'),
-    prep: t('timeline.kind.prep'),
+    meal:t('events:timeline.kind.meal'),
+    tour:t('events:timeline.kind.tour'),
+    prep:t('events:timeline.kind.prep'),
   }
 
   // TODO: optimise drag & drop with multiple lanes and overlapping items, as well as milestones
@@ -452,7 +453,7 @@ export function TimelineTab() {
       onPointerDown={onPointerDown}
     >
       <div className={styles.legend}>
-        <span className={`muted ${styles.hint}`}>{t('timeline.hint')}</span>
+        <span className={`muted ${styles.hint}`}>{t('events:timeline.hint')}</span>
         {BAND_ORDER.slice()
           .reverse()
           .map((kind) => (
@@ -480,7 +481,7 @@ export function TimelineTab() {
       </div>
 
       {days.length === 0 ? (
-        <p className="muted">{t('timeline.empty')}</p>
+        <p className="muted">{t('events:timeline.empty')}</p>
       ) : (
         days.map((day) => (
           <div key={day.key} data-day={day.key}>
@@ -488,7 +489,7 @@ export function TimelineTab() {
               title={formatDayLabel(`${day.key}T00:00:00`)}
               actions={
                 day.key === todayKey ? (
-                  <Badge variant="info">{t('timeline.today')}</Badge>
+                  <Badge variant="info">{t('events:timeline.today')}</Badge>
                 ) : undefined
               }
             >

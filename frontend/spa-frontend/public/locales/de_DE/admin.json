@@ -1,0 +1,31 @@
+{
+  "forbidden": "Diese Seite ist Administratoren vorbehalten.",
+  "selfGrantButton": "Mitgliedschaft eintragen",
+  "selfGrantDone": "Mitgliedschaft eingetragen.",
+  "selfGrantGroup": "Gruppe",
+  "selfGrantHint": "Admins halten sich an die Gruppenrollen: Tritt einer Gruppe bei, um deren Ressourcen zu sehen oder zu bearbeiten.",
+  "selfGrantRole": "Rolle",
+  "selfGrantTitle": "Eigene Mitgliedschaften (Admin)",
+  "tabs": {
+    "groups": "Gruppen",
+    "users": "Benutzer"
+  },
+  "tabsAria": "Verwaltungsbereich wählen",
+  "title": "Verwaltung",
+  "users": {
+    "colAdmin": "Admin",
+    "colEmail": "E-Mail",
+    "colGroups": "Gruppen",
+    "colUser": "Benutzer",
+    "count_one": "{{count}} Benutzer",
+    "count_other": "{{count}} Benutzer",
+    "deleteMessage": "„{{username}}“ inklusive persönlicher Gruppe löschen? Das ist nur möglich, wenn die persönliche Gruppe keine Rezepte/Zutaten/Inventare/Events mehr besitzt.",
+    "deleteTitle": "Benutzer löschen",
+    "deleteUser": "Benutzer löschen",
+    "loadError": "Benutzer konnten nicht geladen werden: {{error}}",
+    "resetPassword": "Passwort zurücksetzen",
+    "resetPasswordPrompt": "Neues Passwort für {{username}} (mind. 8 Zeichen):",
+    "searchPlaceholder": "Benutzer suchen (Name / E-Mail)…",
+    "toggleAdmin": "Admin-Status umschalten"
+  }
+}

@@ -1,4 +1,5 @@
 import {useQueryClient} from '@tanstack/react-query'
+import {t} from "i18next";
 import type {KeyboardEvent} from 'react'
 import {useState} from 'react'
 import {SearchBar} from "../../../components/patterns/searchbar/SearchBar.tsx";
@@ -7,7 +8,6 @@ import {useCreateIngredient, useIngredients,} from '../../../hooks/queries/useIn
 import {useProperties, useUnits} from '../../../hooks/queries/useMasterData.ts'
 import {useCurrentUser} from '../../../hooks/useAuth.ts'
 import {useDebouncedValue} from '../../../hooks/useDebouncedValue.ts'
-import {t} from '../../../i18n'
 import {formatDecimal} from '../../../lib/format.ts'
 import styles from './pickers.module.css'
 
@@ -55,8 +55,8 @@ export function IngredientPicker({
   const effectiveUnit = unitId || units.data?.[0]?.id || 0
 
   const add = (keepOpen: boolean) => {
-    if (!selected) return
-    onAdd({ ingredientId: selected.id, amount, unitId: effectiveUnit }, keepOpen)
+    if (!selected || effectiveUnit === 0 || !amount.trim()) return
+    onAdd({ ingredientId: selected.id, amount: amount.trim(), unitId: effectiveUnit }, keepOpen)
     if (!keepOpen) onClose()
   }
 
@@ -70,23 +70,24 @@ export function IngredientPicker({
 
   const quickCreate = async () => {
     if (!newName.trim() || !newEnergy.trim()) return
-    const personal = user.data?.groups.find((group) => group.is_personal)
-    if (!personal) return
+    const targetGroup =
+      user.data?.groups.find((group) => group.is_personal) ?? user.data?.groups[0]
+    if (!targetGroup) return
     try {
       const created = await create.mutateAsync({
         name: newName.trim(),
-        energy: newEnergy.trim(),
+        energy: newEnergy.trim().replace(',', '.'),
         comment: newComment.trim() || null,
-        group_id: personal.id,
+        group_id: targetGroup.id,
       })
-      void queryClient.invalidateQueries()
+      await queryClient.invalidateQueries({ queryKey: ['ingredients'] })
       setSelected({ id: created.id, name: created.name })
       setCreateOpen(false)
       setNewName('')
       setNewEnergy('')
       setNewComment('')
     } catch {
-      // Fehleranzeige über create.isError unten.
+      // handled via create.isError
     }
   }
 
@@ -96,7 +97,7 @@ export function IngredientPicker({
       <SearchBar
         value={search}
         onChange={setSearch}
-        placeholder={t('editor.drawer.pickerSearch')}
+        placeholder={t('recipes:pickers.search')}
         autoFocus
       >
       </SearchBar>
@@ -108,7 +109,7 @@ export function IngredientPicker({
         ) : results.isError ? (
           <p className="secondary">{String(results.error)}</p>
         ) : results.data.length === 0 ? (
-          <p className={`muted ${styles.emptyRow}`}>{t('editor.drawer.pickerEmpty')}</p>
+          <p className={`muted ${styles.emptyRow}`}>{t('recipes:pickers.empty')}</p>
         ) : (
           results.data.map((ingredient) => (
             <button
@@ -153,20 +154,20 @@ export function IngredientPicker({
         <div className={styles.createForm}>
           <input
             className="input"
-            placeholder={t('editor.drawer.pickerCreateName')}
+            placeholder={t('recipes:pickers.createName')}
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
           />
           <input
             className={`input ${styles.energyInput}`}
             inputMode="decimal"
-            placeholder={t('editor.drawer.pickerCreateEnergy')}
+            placeholder={t('recipes:pickers.createEnergy')}
             value={newEnergy}
             onChange={(event) => setNewEnergy(event.target.value)}
           />
           <input
             className="input"
-            placeholder={t('editor.drawer.pickerCreateComment')}
+            placeholder={t('recipes:pickers.createComment')}
             value={newComment}
             onChange={(event) => setNewComment(event.target.value)}
           />
@@ -176,7 +177,7 @@ export function IngredientPicker({
               className="btn btn--ghost"
               onClick={() => setCreateOpen(false)}
             >
-              {t('action.cancel')}
+              {t('common:actions.cancel')}
             </button>
             <button
               type="button"
@@ -184,7 +185,7 @@ export function IngredientPicker({
               disabled={create.isPending || !newName.trim() || !newEnergy.trim()}
               onClick={() => void quickCreate()}
             >
-              {create.isPending ? <Spinner size="sm" /> : t('editor.drawer.pickerCreateSubmit')}
+              {create.isPending ? <Spinner size="sm" /> :t('recipes:pickers.createSubmit')}
             </button>
             {create.isError && <span className="secondary">{String(create.error)}</span>}
           </div>
@@ -192,7 +193,7 @@ export function IngredientPicker({
       ) : (
         <div className={styles.addBar}>
           <button type="button" className="btn btn--ghost" onClick={() => setCreateOpen(true)}>
-            {t('editor.drawer.pickerCreate')}
+            {t('recipes:pickers.create')}
           </button>
           <span className={styles.footerSpacer} />
           <button
@@ -201,7 +202,7 @@ export function IngredientPicker({
             disabled={!selected}
             onClick={() => add(true)}
           >
-            {t('editor.drawer.addKeepOpen')}
+            {t('recipes:drawers.addKeepOpen')}
           </button>
           <button
             type="button"
@@ -209,12 +210,12 @@ export function IngredientPicker({
             disabled={!selected}
             onClick={() => add(false)}
           >
-            {t('editor.drawer.add')}
+            {t('recipes:drawers.add')}
           </button>
         </div>
       )}
 
-      <p className={styles.hint}>{t('editor.drawer.pickerHint')}</p>
+      <p className={styles.hint}>{t('recipes:pickers.hint')}</p>
     </div>
   )
 }

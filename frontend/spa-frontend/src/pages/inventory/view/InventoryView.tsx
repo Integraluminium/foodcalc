@@ -1,3 +1,4 @@
+import {t} from "i18next";
 import type {FormEvent} from 'react'
 import {useState} from 'react'
 import type {Inventory, InventoryItemWithName} from '../../../api/types.ts'
@@ -9,7 +10,6 @@ import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredients} from '../../../hooks/queries/useIngredients.ts'
 import {useInventory, useInventoryItems, useInventoryMutations,} from '../../../hooks/queries/useInventories.ts'
 import {usePermissions} from '../../../hooks/usePermissions.ts'
-import {t} from '../../../i18n'
 import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import styles from './InventoryView.module.css'
 
@@ -177,7 +177,7 @@ function InventoryContent({
           className="btn btn--ghost"
           onClick={() => setTransferOpen(true)}
         >
-          {t('transfer.button')}
+          {t('common:transfer.button')}
         </button>
       )}
       {editable && (

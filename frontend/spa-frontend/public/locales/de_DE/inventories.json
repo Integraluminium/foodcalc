@@ -1,0 +1,37 @@
+{
+  "add": {
+    "chooseIngredient": "Zutat wählen…",
+    "submit": "+ Einlagern"
+  },
+  "col": {
+    "amountKg": "Menge (kg)",
+    "ingredient": "Zutat"
+  },
+  "create": {
+    "submitting": "Anlegen…"
+  },
+  "deleteButton": "Inventar löschen",
+  "deleteMessage": "„{{name}}“ inklusive aller gelagerten Mengen wirklich löschen?",
+  "deleteTitle": "Inventar löschen",
+  "description": "Lagerort für Zutaten. Kopplung an Events deckt einen Teil des Event-Bedarfs ab.",
+  "drawerTitleFallback": "Inventar",
+  "empty": "Noch keine Zutaten eingelagert.",
+  "itemsLoadError": "Bestand konnte nicht geladen werden: {{error}}",
+  "loadError": "Inventar konnte nicht geladen werden: {{error}}",
+  "mode": {
+    "aria": "Bestandsmodus wählen",
+    "edit": "Bearbeiten",
+    "reconcile": "Abgleichen"
+  },
+  "name": "Name",
+  "noEditPermission": "Keine Bearbeitungsrechte für diese Gruppe.",
+  "noun": "Inventare",
+  "reconcile": {
+    "apply": "Übernehmen",
+    "deltaAria": "Differenz für {{name}}"
+  },
+  "removeItem": "Aus Bestand entfernen",
+  "searchPlaceholder": "Inventare durchsuchen…",
+  "titleEdit": "Inventar bearbeiten: {{name}}",
+  "titleNew": "Neues Inventar"
+}

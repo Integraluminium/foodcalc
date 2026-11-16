@@ -1,0 +1,13 @@
+{
+  "documents": "General documents",
+  "events": "Events",
+  "ingredients": "Ingredients",
+  "inventories": "Inventories",
+  "recipes": "Recipes",
+  "shell": {
+    "admin": "Administration",
+    "logout": "Log out",
+    "profileSettings": "Profile & settings",
+    "userMenu": "User menu"
+  }
+}

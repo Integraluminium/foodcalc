@@ -1,4 +1,5 @@
 import {useQueryClient} from '@tanstack/react-query'
+import {t} from "i18next";
 import type {FormEvent} from 'react'
 import {useState} from 'react'
 import {useNavigate} from 'react-router'
@@ -11,7 +12,6 @@ import {SegmentedControl} from '../../../components/ui/segmented_control/Segment
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../../hooks/queries/useMasterData.ts'
 import {usePermissions} from '../../../hooks/usePermissions.ts'
-import {t} from '../../../i18n'
 import styles from './RecipeDrawers.module.css'
 
 /**
@@ -73,7 +73,7 @@ export function RecipeMetaDrawer({
         void navigate(`/recipes/${created.id}`)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('state.error'))
+      setError(err instanceof Error ? err.message :t('common:state.error'))
     } finally {
       setSaving(false)
     }
@@ -89,7 +89,7 @@ export function RecipeMetaDrawer({
       onClose()
       void navigate('/recipes')
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('state.error'))
+      setError(err instanceof Error ? err.message :t('common:state.error'))
       setConfirmDelete(false)
     } finally {
       setSaving(false)
@@ -97,49 +97,49 @@ export function RecipeMetaDrawer({
   }
 
   const kindOptions = [
-    { value: 'meal' as const, label: t('editor.drawer.kindMeal') },
-    { value: 'component' as const, label: t('editor.drawer.kindComponent') },
+    { value: 'meal' as const, label:t('recipes:drawers.kindMeal') },
+    { value: 'component' as const, label:t('recipes:drawers.kindComponent') },
   ]
 
   return (
-    <Drawer title={t('editor.drawer.metaTitle')} onClose={onClose}>
+    <Drawer title={t('recipes:drawers.metaTitle')} onClose={onClose}>
       <form className={styles.form} onSubmit={(event) => void handleSubmit(event)}>
         <label className="field">
-          {t('editor.drawer.name')}
+          {t('recipes:drawers.name')}
           <input className="input" value={name} onChange={(event) => setName(event.target.value)} required autoFocus />
         </label>
         <div className="field">
-          <span>{t('editor.drawer.kind')}</span>
-          <SegmentedControl options={[...kindOptions]} value={kind} onChange={setKind} ariaLabel={t('editor.drawer.kind')} />
+          <span>{t('recipes:drawers.kind')}</span>
+          <SegmentedControl options={[...kindOptions]} value={kind} onChange={setKind} ariaLabel={t('recipes:drawers.kind')} />
         </div>
         <label className="field">
-          {t('editor.drawer.comment')}
+          {t('recipes:drawers.comment')}
           <textarea className="input" rows={3} value={comment} onChange={(event) => setComment(event.target.value)} />
         </label>
         {recipe ? (
           <>
             <label className="field">
               <input type="checkbox" checked={weighedIn} onChange={(event) => setWeighedIn(event.target.checked)} />{' '}
-              {t('editor.drawer.weighedIn')}
+              {t('recipes:drawers.weighedIn')}
             </label>
             <div className="field">
-              <span>{t('editor.drawer.owner')}</span>
+              <span>{t('recipes:drawers.owner')}</span>
               <div className={styles.ownerRow}>
                 <span>
                   {groups.data?.find((group) => group.id === recipe.group_id)?.name ?? recipe.group_id}
                 </span>
                 {canManageGroup(recipe.group_id) && (
                   <button type="button" className="btn btn--ghost" onClick={() => setTransferOpen(true)}>
-                    {t('transfer.open')}
+                    {t('common:transfer.open')}
                   </button>
                 )}
               </div>
-              <span className="muted">{t('editor.drawer.ownerHint')}</span>
+              <span className="muted">{t('recipes:drawers.ownerHint')}</span>
             </div>
           </>
         ) : (
           <label className="field">
-            {t('editor.drawer.owner')}
+            {t('recipes:drawers.owner')}
             {groups.isPending ? (
               <Spinner size="sm" />
             ) : (
@@ -147,7 +147,7 @@ export function RecipeMetaDrawer({
                 {groups.data?.map((group) => (
                   <option key={group.id} value={group.id}>
                     {group.name}
-                    {group.is_personal ? ` (${t('editor.drawer.personal')})` : ''}
+                    {group.is_personal ? ` (${t('recipes:drawers.personal')})` : ''}
                   </option>
                 ))}
               </select>
@@ -158,22 +158,22 @@ export function RecipeMetaDrawer({
         <div className={styles.footer}>
           {recipe && (
             <button type="button" className="btn btn--ghost" onClick={() => setConfirmDelete(true)}>
-              {t('action.delete')}
+              {t('common:actions.delete')}
             </button>
           )}
           <span className={styles.footerSpacer} />
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            {t('action.cancel')}
+            {t('common:actions.cancel')}
           </button>
           <button type="submit" className="btn btn--primary" disabled={saving || !name.trim() || effectiveGroupId === 0}>
-            {saving ? <Spinner size="sm" /> : recipe ? t('action.save') : t('editor.drawer.create')}
+            {saving ? <Spinner size="sm" /> : recipe ?t('common:actions.save') :t('recipes:drawers.create')}
           </button>
         </div>
       </form>
       {recipe && confirmDelete && (
         <ConfirmDialog
-          title={t('editor.drawer.deleteTitle')}
-          message={t('editor.drawer.deleteConfirm', { name: recipe.name })}
+          title={t('recipes:drawers.deleteTitle')}
+          message={t('recipes:drawers.deleteConfirm', { name: recipe.name })}
           pending={saving}
           onConfirm={() => void handleDelete()}
           onCancel={() => setConfirmDelete(false)}

@@ -1,19 +1,20 @@
+import i18n from "i18next";
 import type {FormEvent} from 'react'
 import {useState} from 'react'
+import {useTranslation} from "react-i18next";
 import {ApiError} from '../../api'
 import {SegmentedControl} from '../../components/ui/segmented_control/SegmentedControl.tsx'
 import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useUserAdminMutations} from '../../hooks/queries/useUsers.ts'
 import {useCurrentUser} from '../../hooks/useAuth.ts'
-import {t} from '../../i18n'
 import {GroupsSection} from './GroupsSection.tsx'
 import styles from './SettingsPage.module.css'
 
 type Tab = 'account' | 'groups'
 
 const TAB_OPTIONS = [
-  { value: 'account', label: 'Konto' },
-  { value: 'groups', label: 'Gruppen' },
+  { value: 'account', label: i18n.t('settings:tabs.account') },
+  { value: 'groups', label: i18n.t('settings:tabs.groups') },
 ] as const
 
 /**
@@ -23,15 +24,16 @@ const TAB_OPTIONS = [
  */
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>('account')
+  const { t } = useTranslation(['settings', "common"])
 
   return (
     <div className={styles.page}>
-      <h1 className="section-title">Einstellungen</h1>
+      <h1 className="section-title">{t('settings:title')}</h1>
       <SegmentedControl
         options={[...TAB_OPTIONS]}
         value={tab}
         onChange={setTab}
-        ariaLabel="Einstellungsbereich wählen"
+        ariaLabel={t('settings:tabs.label')}
       />
       {tab === 'account' ? <AccountPanel /> : <GroupsSection />}
     </div>
@@ -39,6 +41,7 @@ export default function SettingsPage() {
 }
 
 function AccountPanel() {
+  const { t } = useTranslation(['settings', "common"])
   const { data: user } = useCurrentUser()
   const [savedPassword, setSavedPassword] = useState(false)
 
@@ -68,14 +71,14 @@ function AccountPanel() {
       </div>
 
       <div className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">{t('rights.myGroups')}</h2>
-        <p className="muted">{t('rights.myGroupsHint')}</p>
+        <h2 className="section-subtitle">{t('settings:rights.myGroups')}</h2>
+        <p className="muted">{t('settings:rights.myGroupsHint')}</p>
         <ul className={styles.meta}>
           {user.groups.map((group) => (
             <li key={group.id} className={styles.field}>
               <strong>{group.name}</strong>
               {group.is_personal && (
-                <span className="muted"> · {t('rights.rolePersonal')}</span>
+                <span className="muted"> · {t('settings:rights.rolePersonal')}</span>
               )}
               <span
                 className={`badge ${
@@ -91,14 +94,16 @@ function AccountPanel() {
             </li>
           ))}
         </ul>
-        <p className="muted">{t('rights.roleLegend')}</p>
+        <p className="muted">{t('settings:rights.roleLegend')}</p>
       </div>
 
+      <LanguageSwitcher />
+
       <div className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">Passwort ändern</h2>
+        <h2 className="section-subtitle">{t('settings:password.title')}</h2>
         <PasswordForm userId={user.id} onSaved={() => setSavedPassword(true)} />
         {savedPassword && (
-          <p className={styles.success}>Passwort erfolgreich geändert.</p>
+          <p className={styles.success}>{t('settings:password.saved')}</p>
         )}
       </div>
 
@@ -114,6 +119,7 @@ function PasswordForm({
   userId: number
   onSaved: () => void
 }) {
+  const { t } = useTranslation(['settings', "common"])
   const { changePassword } = useUserAdminMutations()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -138,18 +144,18 @@ function PasswordForm({
     changePassword.isError && changePassword.error instanceof ApiError
       ? changePassword.error.message
       : changePassword.isError
-        ? 'Änderung fehlgeschlagen.'
+        ? t('settings:password.failed')
         : null
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <label className="field">
-        Aktuelles Passwort
+        {t('settings:password.current')}
         <input className="input" name="current" type="password" required />
       </label>
       <div className="form-row">
         <label className="field">
-          Neues Passwort
+          {t('settings:password.new')}
           <input
             className="input"
             name="next"
@@ -159,7 +165,7 @@ function PasswordForm({
           />
         </label>
         <label className="field">
-          Wiederholen
+          {t('settings:password.repeat')}
           <input
             className="input"
             name="repeat"
@@ -175,8 +181,26 @@ function PasswordForm({
         className="btn btn--primary"
         disabled={changePassword.isPending}
       >
-        {changePassword.isPending ? <Spinner size="sm" /> : 'Passwort ändern'}
+        {changePassword.isPending ? <Spinner size="sm" /> : t('settings:password.submit')}
       </button>
     </form>
+  )
+}
+
+export function LanguageSwitcher() {
+  const { i18n } = useTranslation([])
+  const isGerman = i18n.resolvedLanguage?.startsWith('de')
+
+  const toggleLanguage = () => {
+    const next = isGerman ? 'en_US' : 'de_DE'
+    void i18n.changeLanguage(next)
+    document.documentElement.lang = next.slice(0, 2)
+    localStorage.setItem('lang', next)
+  }
+
+  return (
+    <button type="button" onClick={toggleLanguage}>
+      {isGerman ? 'English' : 'Deutsch'}
+    </button>
   )
 }

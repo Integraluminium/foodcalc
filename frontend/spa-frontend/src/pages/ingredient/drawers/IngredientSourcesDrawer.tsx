@@ -1,15 +1,12 @@
-import { useState } from 'react'
-import type { IngredientDetail, IngredientSource } from '../../../api/types.ts'
-import { Drawer } from '../../../components/patterns/drawer/Drawer.tsx'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
-import { t } from '../../../i18n'
-import { notify } from '../../../components/ui/toast/toast.ts'
-import {
-  useIngredient,
-  useIngredientMutations,
-} from '../../../hooks/queries/useIngredients.ts'
-import { useStores, useUnits } from '../../../hooks/queries/useMasterData.ts'
-import { formatDecimal, toNumber } from '../../../lib/format.ts'
+import {t} from "i18next";
+import {useState} from 'react'
+import type {IngredientDetail, IngredientSource} from '../../../api/types.ts'
+import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {notify} from '../../../components/ui/toast/toast.ts'
+import {useIngredient, useIngredientMutations,} from '../../../hooks/queries/useIngredients.ts'
+import {useStores, useUnits} from '../../../hooks/queries/useMasterData.ts'
+import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import styles from './IngredientDrawers.module.css'
 
 /**
@@ -37,7 +34,7 @@ export function IngredientSourcesDrawer({
   )
 
   return (
-    <Drawer title={t('ingredient.sourcesDrawerTitle')} onClose={onClose}>
+    <Drawer title={t('ingredients:detail.sourcesDrawerTitle')} onClose={onClose}>
       {body}
     </Drawer>
   )
@@ -57,13 +54,13 @@ function SourcesEditor({
   const [addOpen, setAddOpen] = useState(false)
 
   if (stores.length === 0) {
-    return <p className="secondary">{t('ingredient.noStores')}</p>
+    return <p className="secondary">{t('ingredients:detail.noStores')}</p>
   }
 
   return (
     <>
       {detail.sources.length === 0 && (
-        <p className="muted">{t('ingredient.sourcesEmpty')}</p>
+        <p className="muted">{t('ingredients:detail.sourcesEmpty')}</p>
       )}
       <div className={styles.sourceList}>
         {detail.sources.map((source) =>
@@ -80,7 +77,7 @@ function SourcesEditor({
                   {
                     onSuccess: () => {
                       setEditingId(null)
-                      notify('success', t('ingredient.sourceSaved'))
+                      notify('success',t('ingredients:detail.sourceSaved'))
                     },
                   },
                 )
@@ -102,7 +99,7 @@ function SourcesEditor({
 
       {addOpen ? (
         <>
-          <h3 className="section-subtitle">{t('ingredient.addSourceTitle')}</h3>
+          <h3 className="section-subtitle">{t('ingredients:detail.addSourceTitle')}</h3>
           <SourceForm
             stores={stores}
             units={units}
@@ -111,7 +108,7 @@ function SourcesEditor({
               mutations.addSource.mutate(input, {
                 onSuccess: () => {
                   setAddOpen(false)
-                  notify('success', t('ingredient.sourceAdded'))
+                  notify('success',t('ingredients:detail.sourceAdded'))
                 },
               })
             }
@@ -124,7 +121,7 @@ function SourcesEditor({
           className="btn btn--ghost"
           onClick={() => setAddOpen(true)}
         >
-          {t('ingredient.addSourceButton')}
+          {t('ingredients:detail.addSourceButton')}
         </button>
       )}
     </>
@@ -173,16 +170,16 @@ function SourceRow({
       <div className={styles.sourceActions}>
         {source.url && (
           <a href={source.url} target="_blank" rel="noreferrer">
-            {t('ingredient.openUrl')}
+            {t('ingredients:detail.openUrl')}
           </a>
         )}
         <button type="button" className="btn btn--ghost" onClick={onEdit}>
-          {t('action.edit')}
+          {t('common:actions.edit')}
         </button>
         <button
           type="button"
           className="btn btn--ghost"
-          title={t('action.delete')}
+          title={t('common:actions.delete')}
           onClick={onRemove}
         >
           ✕
@@ -236,7 +233,7 @@ function SourceForm({
     >
       <div className={styles.sourceGrid}>
         <label className="field">
-          {t('ingredient.colStore')}
+          {t('ingredients:detail.colStore')}
           <select
             className="input"
             value={storeId}
@@ -250,7 +247,7 @@ function SourceForm({
           </select>
         </label>
         <label className="field">
-          {t('ingredient.colPackage')}
+          {t('ingredients:detail.colPackage')}
           <input
             className="input"
             inputMode="decimal"
@@ -259,7 +256,7 @@ function SourceForm({
           />
         </label>
         <label className="field">
-          {t('ingredient.colUnit')}
+          {t('ingredients:detail.colUnit')}
           <select
             className="input"
             value={unitId}
@@ -273,7 +270,7 @@ function SourceForm({
           </select>
         </label>
         <label className="field">
-          {t('ingredient.colPrice')}
+          {t('ingredients:detail.colPrice')}
           <input
             className="input"
             inputMode="decimal"
@@ -284,7 +281,7 @@ function SourceForm({
       </div>
       <div className={styles.sourceGrid2}>
         <label className="field">
-          {t('ingredient.colUrl')}
+          {t('ingredients:detail.colUrl')}
           <input
             className="input"
             value={url}
@@ -292,7 +289,7 @@ function SourceForm({
           />
         </label>
         <label className="field">
-          {t('editor.drawer.comment')}
+          {t('recipes:drawers.comment')}
           <input
             className="input"
             value={comment}
@@ -303,7 +300,7 @@ function SourceForm({
       <div className={styles.sourceActions}>
         {onCancel && (
           <button type="button" className="btn btn--ghost" onClick={onCancel}>
-            {t('action.cancel')}
+            {t('common:actions.cancel')}
           </button>
         )}
         <button
@@ -311,7 +308,7 @@ function SourceForm({
           className="btn btn--primary"
           disabled={!valid || pending}
         >
-          {pending ? <Spinner size="sm" /> : initial ? t('action.save') : t('editor.drawer.add')}
+          {pending ? <Spinner size="sm" /> : initial ?t('common:actions.save') :t('recipes:drawers.add')}
         </button>
       </div>
     </form>

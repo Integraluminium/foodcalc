@@ -1,3 +1,4 @@
+import {t} from "i18next";
 import {useState} from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 import type {IngredientDetail, Property} from '../../../api/types.ts'
@@ -8,7 +9,6 @@ import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredient, useIngredientMutations, useIngredientUsages,} from '../../../hooks/queries/useIngredients.ts'
 import {useGroups, useProperties, useStores, useUnits} from '../../../hooks/queries/useMasterData.ts'
 import {usePermissions} from '../../../hooks/usePermissions.ts'
-import {t} from '../../../i18n'
 import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import {IngredientDataDrawer} from '../drawers/IngredientDataDrawer.tsx'
 import {IngredientSourcesDrawer} from '../drawers/IngredientSourcesDrawer.tsx'
@@ -38,7 +38,7 @@ export function IngredientView({
   if (detail.isError || !detail.data) {
     return (
       <p className="secondary">
-        {t('ingredient.loadError', { error: String(detail.error) })}
+        {t('ingredients:detail.loadError', { error: String(detail.error) })}
       </p>
     )
   }
@@ -83,7 +83,7 @@ function IngredientViewBody({
     <div className={isPage ? styles.page : styles.overlayBody}>
       {isPage && (
         <Link to="/ingredients" className="secondary">
-          ← {t('nav.ingredients')}
+          ← {t('nav:ingredients')}
         </Link>
       )}
 
@@ -105,7 +105,7 @@ function IngredientViewBody({
               className="btn btn--ghost"
               onClick={() => setTransferOpen(true)}
             >
-              {t('transfer.open')}
+              {t('common:transfer.open')}
             </button>
           )}
           {editable && (
@@ -114,7 +114,7 @@ function IngredientViewBody({
               className="btn btn--ghost"
               onClick={() => setDrawer('data')}
             >
-              {t('ingredient.triggerData')}
+              {t('ingredients:detail.triggerData')}
             </button>
           )}
           {editable && (
@@ -123,7 +123,7 @@ function IngredientViewBody({
               className="btn btn--danger"
               onClick={() => setConfirmDelete(true)}
             >
-              {t('action.delete')}
+              {t('common:actions.delete')}
             </button>
           )}
         </div>
@@ -131,7 +131,7 @@ function IngredientViewBody({
 
       {!isPage && (
         <Link to={`/ingredients/${ingredient.id}`} className="secondary">
-          {t('ingredient.fullView')}
+          {t('ingredients:detail.fullView')}
         </Link>
       )}
 
@@ -139,18 +139,18 @@ function IngredientViewBody({
       <WeightsSection detail={detail} editable={editable} />
 
       <section className="card">
-        <h2 className="section-subtitle">{t('ingredient.sourcesTitle')}</h2>
+        <h2 className="section-subtitle">{t('ingredients:detail.sourcesTitle')}</h2>
         {detail.sources.length === 0 ? (
-          <p className="muted">{t('ingredient.sourcesEmpty')}</p>
+          <p className="muted">{t('ingredients:detail.sourcesEmpty')}</p>
         ) : (
           <table className="table">
             <thead>
               <tr>
-                <th>{t('ingredient.colStore')}</th>
-                <th className="num">{t('ingredient.colPackage')}</th>
-                <th className="num">{t('ingredient.colPrice')}</th>
+                <th>{t('ingredients:detail.colStore')}</th>
+                <th className="num">{t('ingredients:detail.colPackage')}</th>
+                <th className="num">{t('ingredients:detail.colPrice')}</th>
                 <th className="num">€/kg</th>
-                <th>{t('ingredient.colUrl')}</th>
+                <th>{t('ingredients:detail.colUrl')}</th>
               </tr>
             </thead>
             <tbody>
@@ -172,7 +172,7 @@ function IngredientViewBody({
                     <td>
                       {source.url ? (
                         <a href={source.url} target="_blank" rel="noreferrer">
-                          {t('ingredient.openUrl')}
+                          {t('ingredients:detail.openUrl')}
                         </a>
                       ) : (
                         '–'
@@ -191,26 +191,26 @@ function IngredientViewBody({
             className="btn btn--ghost"
             onClick={() => setDrawer('sources')}
           >
-            {t('ingredient.triggerSources')}
+            {t('ingredients:detail.triggerSources')}
           </button>
         )}
       </section>
 
       <section className="card">
-        <h2 className="section-subtitle">{t('ingredient.usagesTitle')}</h2>
+        <h2 className="section-subtitle">{t('ingredients:detail.usagesTitle')}</h2>
         {usages.isPending ? (
           <Spinner size="sm" />
         ) : usages.isError ? (
           <p className="secondary">{String(usages.error)}</p>
         ) : (usages.data?.length ?? 0) === 0 ? (
-          <p className="muted">{t('ingredient.usagesEmpty')}</p>
+          <p className="muted">{t('ingredients:detail.usagesEmpty')}</p>
         ) : (
           <ul className={styles.usageList}>
             {usages.data?.map((recipe) => (
               <li key={recipe.id}>
                 <Link to={`/recipes/${recipe.id}`}>{recipe.name}</Link>
                 <span className="badge badge--neutral">
-                  {t(`recipe.kind.${recipe.kind}`)}
+                  {t(`recipes:detail.kind.${recipe.kind}`)}
                 </span>
               </li>
             ))}
@@ -234,14 +234,14 @@ function IngredientViewBody({
       )}
       {confirmDelete && (
         <ConfirmDialog
-          title={t('ingredient.deleteTitle')}
+          title={t('ingredients:detail.deleteTitle')}
           message={
             usageCount > 0
-              ? t('ingredient.deleteUsagesWarning', {
+              ?t('ingredients:detail.deleteUsagesWarning', {
                   name: ingredient.name,
                   count: usageCount,
                 })
-              : t('ingredient.deleteConfirm', { name: ingredient.name })
+              :t('ingredients:detail.deleteConfirm', { name: ingredient.name })
           }
           pending={mutations.remove.isPending}
           onConfirm={() =>
@@ -279,10 +279,10 @@ function PropertiesSection({
 
   return (
     <section className="card">
-      <h2 className="section-subtitle">{t('ingredient.propertiesTitle')}</h2>
+      <h2 className="section-subtitle">{t('ingredients:detail.propertiesTitle')}</h2>
       <div className={styles.badges}>
         {detail.properties.length === 0 && (
-          <span className="muted">{t('ingredient.propertiesEmpty')}</span>
+          <span className="muted">{t('ingredients:detail.propertiesEmpty')}</span>
         )}
         {detail.properties.map((property) => (
           <span key={property.id} className="badge badge--neutral">
@@ -291,7 +291,7 @@ function PropertiesSection({
               <button
                 type="button"
                 className={styles.badgeRemove}
-                title={t('action.delete')}
+                title={t('common:actions.delete')}
                 onClick={() => mutations.removeProperty.mutate(property.id)}
               >
                 ✕
@@ -307,13 +307,13 @@ function PropertiesSection({
             className="btn btn--ghost"
             onClick={() => setPickerOpen((value) => !value)}
           >
-            {t('ingredient.addProperty')}
+            {t('ingredients:detail.addProperty')}
           </button>
           {pickerOpen && (
             <div className={styles.pickerPanel}>
               <input
                 className="input"
-                placeholder={t('editor.drawer.pickerSearch')}
+                placeholder={t('recipes:pickers.search')}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 autoFocus
@@ -336,7 +336,7 @@ function PropertiesSection({
                 {available.filter((property) =>
                   property.name.toLowerCase().includes(search.toLowerCase()),
                 ).length === 0 && (
-                  <p className="muted">{t('editor.drawer.pickerEmpty')}</p>
+                  <p className="muted">{t('recipes:pickers.empty')}</p>
                 )}
               </div>
               <button
@@ -344,7 +344,7 @@ function PropertiesSection({
                 className="btn btn--ghost"
                 onClick={() => setPickerOpen(false)}
               >
-                {t('ingredient.done')}
+                {t('ingredients:detail.done')}
               </button>
             </div>
           )}
@@ -384,16 +384,16 @@ function WeightsSection({
 
   return (
     <section className="card">
-      <h2 className="section-subtitle">{t('ingredient.weightsTitle')}</h2>
-      <p className="muted">{t('ingredient.weightsHint')}</p>
+      <h2 className="section-subtitle">{t('ingredients:detail.weightsTitle')}</h2>
+      <p className="muted">{t('ingredients:detail.weightsHint')}</p>
       {detail.weights.length === 0 && !editable ? (
-        <p className="muted">{t('ingredient.weightsEmpty')}</p>
+        <p className="muted">{t('ingredients:detail.weightsEmpty')}</p>
       ) : (
         <table className="table">
           <thead>
             <tr>
-              <th>{t('ingredient.colUnit')}</th>
-              <th className="num">{t('ingredient.colWeightKg')}</th>
+              <th>{t('ingredients:detail.colUnit')}</th>
+              <th className="num">{t('ingredients:detail.colWeightKg')}</th>
               {editable && <th aria-hidden="true" />}
             </tr>
           </thead>
@@ -401,7 +401,7 @@ function WeightsSection({
             {detail.weights.length === 0 && (
               <tr>
                 <td colSpan={3} className="muted">
-                  {t('ingredient.weightsEmpty')}
+                  {t('ingredients:detail.weightsEmpty')}
                 </td>
               </tr>
             )}
@@ -429,7 +429,7 @@ function WeightsSection({
                     value={newUnitId}
                     onChange={(event) => setNewUnitId(Number(event.target.value))}
                   >
-                    <option value={0}>{t('ingredient.pickUnit')}</option>
+                    <option value={0}>{t('ingredients:detail.pickUnit')}</option>
                     {availableUnits.map((unit) => (
                       <option key={unit.id} value={unit.id}>
                         {unit.name}
@@ -452,7 +452,7 @@ function WeightsSection({
                     disabled={newUnitId === 0 || !newWeight.trim()}
                     onClick={addWeight}
                   >
-                    {t('editor.drawer.add')}
+                    {t('recipes:drawers.add')}
                   </button>
                 </td>
               </tr>
@@ -507,7 +507,7 @@ function WeightRow({
           <button
             type="button"
             className="btn btn--ghost"
-            title={t('action.delete')}
+            title={t('common:actions.delete')}
             onClick={onRemove}
           >
             ✕
@@ -529,7 +529,7 @@ export function IngredientDrawer({
   const detail = useIngredient(id)
   return (
     <Drawer
-      title={detail.data?.ingredient.name ?? t('nav.ingredients')}
+      title={detail.data?.ingredient.name ??t('nav:ingredients')}
       onClose={onClose}
     >
       <IngredientView

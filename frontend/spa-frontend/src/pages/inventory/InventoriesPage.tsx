@@ -1,3 +1,4 @@
+import {t} from "i18next";
 import {useState} from 'react'
 import type {Inventory} from '../../api'
 import {ListPage} from '../../components/layout/list_page/ListPage.tsx'
@@ -5,7 +6,6 @@ import type {DataTableColumn} from '../../components/patterns/table/DataTable.ts
 import {useGroupName} from '../../hooks/queries/useGroupName.ts'
 import {useInventories} from '../../hooks/queries/useInventories.ts'
 import {useFilteredList} from '../../hooks/useFilteredList.ts'
-import {t} from '../../i18n'
 import {CreateInventoryDrawer} from "./drawer/CreateInventoryDrawer.tsx";
 import {InventoryDrawer} from './view/InventoryView.tsx'
 
@@ -30,12 +30,12 @@ export default function InventoriesPage() {
 
     return (
       <ListPage
-        title={t('nav.inventories')}
-        createLabel={t('inventory.titleNew')}
+        title={t('nav:inventories')}
+        createLabel={t('inventories:titleNew')}
         onCreate={() => setCreateOpen(true)}
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder={t('inventory.searchPlaceholder')}
+        searchPlaceholder={t('inventories:searchPlaceholder')}
         ownerFilter={ownerFilter}
         onOwnerFilterChange={setOwnerFilter}
         columns={columns}

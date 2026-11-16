@@ -1,3 +1,4 @@
+import {t} from "i18next";
 import type {KeyboardEvent} from 'react'
 import {useState} from 'react'
 import {SearchBar} from "../../../components/patterns/searchbar/SearchBar.tsx";
@@ -5,7 +6,6 @@ import {SegmentedControl} from "../../../components/ui/segmented_control/Segment
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useRecipes} from '../../../hooks/queries/useRecipes.ts'
 import {useDebouncedValue} from '../../../hooks/useDebouncedValue.ts'
-import {t} from '../../../i18n'
 import styles from './pickers.module.css'
 
 export interface SubRecipeSelection {
@@ -52,9 +52,9 @@ export function RecipePicker({
   }
 
   const kindOptions = [
-    { value: 'all' as const, label: t('editor.drawer.filterAll') },
-    { value: 'meal' as const, label: t('recipe.kind.meal') },
-    { value: 'component' as const, label: t('recipe.kind.component') },
+    { value: 'all' as const, label: t('recipes:pickers.filterAll') },
+    { value: 'meal' as const, label: t('recipes:detail.kind.meal') },
+    { value: 'component' as const, label: t('recipes:detail.kind.component') },
   ]
 
   return (
@@ -62,14 +62,14 @@ export function RecipePicker({
       <SearchBar
         value={search}
         onChange={setSearch}
-        placeholder={t('editor.drawer.pickerSearch')}
+        placeholder={t('recipes:pickers.search')}
         autoFocus
       >
         <SegmentedControl
           options={kindOptions}
           value={kind}
           onChange={setKind}
-          ariaLabel={t('recipe.filterKind')}
+          ariaLabel={t('recipes:list.filterKind')}
         />
       </SearchBar>
 
@@ -93,7 +93,7 @@ export function RecipePicker({
             ))
         )}
         {results.data?.every((recipe) => recipe.id === selfRecipeId) && (
-          <p className={`muted ${styles.emptyRow}`}>{t('editor.drawer.pickerEmpty')}</p>
+          <p className={`muted ${styles.emptyRow}`}>{t('recipes:pickers.empty')}</p>
         )}
       </div>
 
@@ -118,7 +118,7 @@ export function RecipePicker({
           disabled={!selected}
           onClick={() => add(true)}
         >
-          {t('editor.drawer.addKeepOpen')}
+          {t('recipes:drawers.addKeepOpen')}
         </button>
         <button
           type="button"
@@ -126,11 +126,11 @@ export function RecipePicker({
           disabled={!selected}
           onClick={() => add(false)}
         >
-          {t('editor.drawer.add')}
+          {t('recipes:drawers.add')}
         </button>
       </div>
 
-      <p className={styles.hint}>{t('editor.drawer.pickerHint')}</p>
+      <p className={styles.hint}>{t('recipes:pickers.hint')}</p>
     </div>
   )
 }

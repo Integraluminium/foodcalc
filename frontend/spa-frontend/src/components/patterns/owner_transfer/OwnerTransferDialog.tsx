@@ -1,8 +1,8 @@
+import {t} from "i18next";
 import {useState} from 'react'
-import {Dialog} from '../dialog/Dialog.tsx'
-import {useOwnerTransfer, type OwnerKind} from '../../../hooks/queries/useOwnerTransfer.ts'
+import {type OwnerKind, useOwnerTransfer} from '../../../hooks/queries/useOwnerTransfer.ts'
 import {useCurrentUser} from '../../../hooks/useAuth.ts'
-import {t} from '../../../i18n'
+import {Dialog} from '../dialog/Dialog.tsx'
 
 /**
  * Besitz-Übertragung (UI_Spec Flow B3 / LeABAC): Owner oder Verwalter überträgt
@@ -33,7 +33,7 @@ export function OwnerTransferDialog({
 
     return (
         <Dialog
-            title={t('transfer.title')}
+            title={t('common:transfer.title')}
             onClose={onClose}
             footer={
                 <>
@@ -42,7 +42,7 @@ export function OwnerTransferDialog({
                         className="btn btn--ghost"
                         onClick={onClose}
                     >
-                        {t('action.cancel')}
+                        {t('common:actions.cancel')}
                     </button>
                     <button
                         type="button"
@@ -50,14 +50,14 @@ export function OwnerTransferDialog({
                         disabled={typeof targetId !== 'number' || transfer.isPending}
                         onClick={handleTransfer}
                     >
-                        {transfer.isPending ? '…' : t('transfer.confirm')}
+                        {transfer.isPending ? '…' :t('common:transfer.confirm')}
                     </button>
                 </>
             }
         >
-            <p className="muted">{t('transfer.warning')}</p>
+            <p className="muted">{t('common:transfer.warning')}</p>
             <label className="field">
-                {t('transfer.target')}
+                {t('common:transfer.target')}
                 <select
                     className="input"
                     value={targetId}
@@ -67,13 +67,13 @@ export function OwnerTransferDialog({
                         )
                     }
                 >
-                    <option value="">{t('transfer.chooseGroup')}</option>
+                    <option value="">{t('common:transfer.chooseGroup')}</option>
                     {groups.map((group) => (
                         <option key={group.id} value={group.id}>
                             {group.name}
                             {group.is_personal ? ' (persönlich)' : ''}
                             {group.id === currentGroupId
-                                ? ` — ${t('transfer.currentOwner')}`
+                                ? ` — ${t('common:transfer.currentOwner')}`
                                 : ''}
                         </option>
                     ))}

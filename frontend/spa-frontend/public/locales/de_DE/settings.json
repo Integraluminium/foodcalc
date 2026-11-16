@@ -1,0 +1,47 @@
+{
+  "password": {
+    "current": "Aktuelles Passwort",
+    "failed": "Änderung fehlgeschlagen.",
+    "new": "Neues Passwort",
+    "repeat": "Passwort wiederholen",
+    "saved": "Passwort erfolgreich geändert.",
+    "submit": "Passwort ändern",
+    "title": "Passwort ändern"
+  },
+  "profile": {
+    "email": "E-Mail:",
+    "roleAdmin": "Administrator",
+    "roleMember": "Mitglied",
+    "title": "Profil",
+    "username": "Benutzername:"
+  },
+  "rights": {
+    "addMemberButton": "+ Hinzufügen",
+    "addMemberPlaceholder": "Benutzername oder E-Mail…",
+    "createButton": "+ Gruppe anlegen",
+    "createPlaceholder": "Neuer Gruppenname…",
+    "deleteGroup": "Gruppe löschen",
+    "deleteGroupConfirm": "Gruppe „{{name}}“ löschen? Nur möglich, wenn sie keine Ressourcen mehr besitzt.",
+    "legendEditor": "Bearbeiter — darf die Ressourcen der Gruppe bearbeiten",
+    "legendManager": "Verwalter — verwaltet zusätzlich Mitglieder und Rollen",
+    "legendTitle": "Rollen",
+    "legendViewer": "Leser — kann die Ressourcen der Gruppe sehen",
+    "loadError": "Gruppen konnten nicht geladen werden: {{error}}",
+    "membersLoadError": "Mitglieder konnten nicht geladen werden: {{error}}",
+    "myGroups": "Meine Gruppen & Rechte",
+    "myGroupsHint": "Du handelst in jeder Gruppe mit deiner jeweiligen Rolle.",
+    "noMembers": "Noch keine Mitglieder.",
+    "personalNote": "Persönliche Gruppen gehören immer genau einem Benutzer und werden mit dem Konto verwaltet.",
+    "removeMember": "Aus Gruppe entfernen",
+    "roleLabel": "Rolle",
+    "roleLegend": "Leser: sehen · Bearbeiter: bearbeiten · Verwalter: verwaltet Mitglieder und Rollen",
+    "rolePersonal": "deine Owner-Gruppe"
+  },
+  "tabs": {
+    "account": "Konto",
+    "groups": "Gruppen",
+    "label": "Bereich"
+  },
+  "tabsAria": "Einstellungsbereich wählen",
+  "title": "Einstellungen"
+}

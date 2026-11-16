@@ -1,9 +1,9 @@
+import {t} from "i18next";
 import type {FormEvent} from "react";
 import {Drawer} from "../../../components/patterns/drawer/Drawer.tsx";
 import {useCreateInventory} from "../../../hooks/queries/useInventories.ts";
 import {useGroups} from "../../../hooks/queries/useMasterData.ts";
 import {useCurrentUser} from "../../../hooks/useAuth.ts";
-import {t} from "../../../i18n";
 
 export function CreateInventoryDrawer({onClose}: { onClose: () => void }) {
   const {data: user} = useCurrentUser()
@@ -27,12 +27,12 @@ export function CreateInventoryDrawer({onClose}: { onClose: () => void }) {
 
   return (
     <Drawer
-      title={t('inventory.titleNew')}
+      title={t('inventories:titleNew')}
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            {t('action.cancel')}
+            {t('common:actions.cancel')}
           </button>
           <button
             type="submit"
@@ -40,7 +40,7 @@ export function CreateInventoryDrawer({onClose}: { onClose: () => void }) {
             className="btn btn--primary"
             disabled={create.isPending}
           >
-            {create.isPending ? 'Anlegen…' : t('action.create')}
+            {create.isPending ? 'Anlegen…' :t('common:actions.create')}
           </button>
         </>
       }

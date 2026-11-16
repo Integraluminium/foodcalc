@@ -1,6 +1,7 @@
 import {useQuery} from '@tanstack/react-query'
 import {Check, Download, Lock, Pencil, Plus, Trash2, Unlock, X} from 'lucide-react'
 import {useMemo, useState} from 'react'
+import {useTranslation} from "react-i18next";
 import {ingredientsApi, type IngredientWithoutTour, type TourWithItems,} from '../../../../api'
 import {CardSection} from '../../../../components/patterns/card_section/CardSection.tsx'
 import {Skeleton, SkeletonCards} from '../../../../components/patterns/skeleton/Skeleton.tsx'
@@ -21,7 +22,6 @@ import {
 import {useInventories} from '../../../../hooks/queries/useInventories.ts'
 import {useStores} from '../../../../hooks/queries/useMasterData.ts'
 import {usePermissions} from '../../../../hooks/usePermissions.ts'
-import {t} from '../../../../i18n'
 import {formatDayLabel, formatDecimal, toNumber} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
 import {AddTourDialog} from './AddTourDialog.tsx'
@@ -33,6 +33,7 @@ function todayIsoDate(): string {
 }
 
 export function ShoppingTab() {
+  const { t } = useTranslation([])
   const eventId = useEventId()
   const shopping = useShoppingList(eventId)
   const mutations = useEventMutations(eventId)
@@ -53,11 +54,11 @@ export function ShoppingTab() {
       <div className="tab-toolbar">
         <span className="muted">
           {shopping.data
-            ? t('shopping.summary', {
+            ?t('events:shopping.summary', {
               tours: shopping.data.tours.length,
               uncovered: shopping.data.without_tour.length,
             })
-            : t('shopping.loading')}
+            :t('events:shopping.loading')}
         </span>
         {editable && (
           <button
@@ -65,7 +66,7 @@ export function ShoppingTab() {
             className="btn btn--primary"
             onClick={() => openTourDialog(null)}
           >
-            <Plus size={16}/> {t('shopping.addTour')}
+            <Plus size={16}/> {t('events:shopping.addTour')}
           </button>
         )}
       </div>
@@ -77,9 +78,9 @@ export function ShoppingTab() {
         {shopping.isPending ? (
           <SkeletonCards/>
         ) : shopping.isError ? (
-          <ErrorState message={t('shopping.toursHeading') + ': ' + shopping.error}/>
+          <ErrorState message={t('events:shopping.toursHeading') + ': ' + shopping.error}/>
         ) : shopping.data.tours.length === 0 && shopping.data.without_tour.length === 0 ? (
-          <EmptyState message={t('shopping.empty')}/>
+          <EmptyState message={t('events:shopping.empty')}/>
         ) : (
           <CardSection highlight={true}>
             {shopping.data.tours.map((tour) => (
@@ -97,9 +98,9 @@ export function ShoppingTab() {
         {shopping.isPending ? (
           <SkeletonCards/>
         ) : shopping.isError ? (
-          <ErrorState message={t('shopping.toursHeading') + ': ' + shopping.error}/>
+          <ErrorState message={t('events:shopping.toursHeading') + ': ' + shopping.error}/>
         ) : shopping.data.tours.length === 0 && shopping.data.without_tour.length === 0 ? (
-          <EmptyState message={t('shopping.empty')}/>
+          <EmptyState message={t('events:shopping.empty')}/>
         ) : (
           <WithoutTourGroup
             items={shopping.data.without_tour}
@@ -138,29 +139,30 @@ function TourGroup({
   editable: boolean,
   onEdit?: () => void
 }) {
+  const {t} = useTranslation([])
   const mutations = useEventMutations(tour.event_id)
   const completed = tour.completed === true
 
   const columns: DataTableColumn<TourItem>[] = [
     {
       key: 'ingredient',
-      label: t('shopping.col.ingredient'),
+      label:t('events:shopping.col.ingredient'),
       render: (item) => item.ingredient_name,
     },
     {
       key: 'amount',
-      label: t('shopping.col.amount'),
+      label:t('events:shopping.col.amount'),
       align: 'num',
       render: (item) => `${formatDecimal(item.weight)} kg`,
     },
     {
       key: 'category',
-      label: t('shopping.col.category'),
+      label:t('events:shopping.col.category'),
       render: (item) => <span className="secondary">{item.category ?? '–'}</span>,
     },
     {
       key: 'price',
-      label: t('shopping.col.price'),
+      label:t('events:shopping.col.price'),
       align: 'num',
       render: (item) => (item.price === null ? '–' : `${formatDecimal(item.price)} €`),
     },
@@ -174,7 +176,7 @@ function TourGroup({
             <button
               type="button"
               className={styles.iconButton}
-              title={t('shopping.unassignItem')}
+              title={t('events:shopping.unassignItem')}
               onClick={() =>
                 mutations.removeTourItem.mutate({
                   tourId: tour.id,
@@ -198,23 +200,23 @@ function TourGroup({
         <div className="row-actions">
           {completed ? (
             <Badge variant="success">
-              <Lock size={12}/> {t('shopping.completed')}
+              <Lock size={12}/> {t('events:shopping.completed')}
             </Badge>
           ) : (
-            <Badge variant="info">{t('status.planned')}</Badge>
+            <Badge variant="info">{t('common:status.planned')}</Badge>
           )}
           <span className="muted">
-            {tour.items.length} {t('calc.col.positions')} ·{' '}
+            {tour.items.length} {t('events:calculation.col.positions')} ·{' '}
             {tour.total_price !== null
               ? `${formatDecimal(tour.total_price)} €`
-              : t('calc.noPrices')}
+              :t('events:calculation.noPrices')}
           </span>
           <>
             <Badge variant="warning">TODO</Badge>
             <ExportButton
               path={`/events/${tour.event_id}/exports/tour/${tour.id}`}
               filename="einkaufsliste.txt"
-              title={t('shopping.downloadList')}
+              title={t('events:shopping.downloadList')}
               className={styles.iconButton}
             >
               <Download size={15}/>
@@ -223,7 +225,7 @@ function TourGroup({
               <button
                 type="button"
                 className={styles.iconButton}
-                title={completed ? t('shopping.reopen') : t('shopping.markCompleted')}
+                title={completed ?t('events:shopping.reopen') :t('events:shopping.markCompleted')}
                 onClick={() =>
                   mutations.setTourCompleted.mutate({
                     tourId: tour.id,
@@ -239,7 +241,7 @@ function TourGroup({
                 <button
                   type="button"
                   className={styles.iconButton}
-                  title={t('shopping.removeTour')}
+                  title={t('events:shopping.removeTour')}
                   onClick={onRemove}
                 >
                   <Trash2 size={15}/>
@@ -247,7 +249,7 @@ function TourGroup({
                 <button
                   type="button"
                   className={styles.iconButton}
-                  title={t('shopping.editTour')}
+                  title={t('events:shopping.editTour')}
                   onClick={() => onEdit && onEdit()}
                 >
                   <Pencil size={15}/>
@@ -259,7 +261,7 @@ function TourGroup({
       }
     >
       {tour.items.length === 0 ? (
-        <p className="muted">{t('shopping.noItems')}</p>
+        <p className="muted">{t('events:shopping.noItems')}</p>
       ) : (
         <DataTable
           columns={columns}
@@ -284,23 +286,24 @@ function WithoutTourGroup({
   editable: boolean
   onCreateTourForStore: (storeId: number) => void
 }) {
+  const {t} = useTranslation([])
   const stores = useStores()
 
   const columns: DataTableColumn<IngredientWithoutTour>[] = [
     {
       key: 'ingredient',
-      label: t('shopping.col.ingredient'),
+      label:t('events:shopping.col.ingredient'),
       render: (item) => item.ingredient_name,
     },
     {
       key: 'amount',
-      label: t('shopping.col.amount'),
+      label:t('events:shopping.col.amount'),
       align: 'num',
       render: (item) => `${formatDecimal(item.weight)} kg`,
     },
     {
       key: 'store',
-      label: t('shopping.col.store'),
+      label:t('events:shopping.col.store'),
       render: (item) => <span className="secondary">{item.store_name}</span>,
     },
     ...(editable
@@ -319,7 +322,7 @@ function WithoutTourGroup({
                 if (store) onCreateTourForStore(store.id)
               }}
             >
-              <Plus size={14}/> {t('shopping.addTour')}
+              <Plus size={14}/> {t('events:shopping.addTour')}
             </button>
           ),
         },
@@ -329,10 +332,10 @@ function WithoutTourGroup({
 
   return (
     <CardSection
-      title={t('shopping.withoutTour')}
-      subtitle={t('shopping.withoutTourHint')}
+      title={t('events:shopping.withoutTour')}
+      subtitle={t('events:shopping.withoutTourHint')}
       highlight={true}
-      actions={<Badge variant="warning">{t('shopping.statusMissing')}</Badge>}
+      actions={<Badge variant="warning">{t('events:shopping.statusMissing')}</Badge>}
     >
       <DataTable
         columns={columns}
@@ -348,6 +351,7 @@ function WithoutTourGroup({
 }
 
 function InventorySection({eventId}: { eventId: number }) {
+  const { t } = useTranslation([])
   const linked = useEventInventories(eventId)
   const all = useInventories()
   const coverage = useInventoryCoverage(eventId)
@@ -361,18 +365,18 @@ function InventorySection({eventId}: { eventId: number }) {
   const columns: DataTableColumn<CoverageRow>[] = [
     {
       key: 'ingredient',
-      label: t('eventInventory.col.ingredient'),
+      label:t('events:inventory.col.ingredient'),
       render: (row) => row.ingredient_name,
     },
     {
       key: 'demand',
-      label: t('eventInventory.col.demand'),
+      label:t('events:inventory.col.demand'),
       align: 'num',
       render: (row) => `${formatDecimal(toNumber(row.demand_kg) ?? 0)} kg`,
     },
     {
       key: 'covered',
-      label: t('eventInventory.col.covered'),
+      label:t('events:inventory.col.covered'),
       align: 'num',
       render: (row) => {
         const demand = toNumber(row.demand_kg) ?? 0
@@ -386,7 +390,7 @@ function InventorySection({eventId}: { eventId: number }) {
     },
     {
       key: 'missing',
-      label: t('eventInventory.col.missing'),
+      label:t('events:inventory.col.missing'),
       align: 'num',
       render: (row) => {
         const demand = toNumber(row.demand_kg) ?? 0
@@ -402,7 +406,7 @@ function InventorySection({eventId}: { eventId: number }) {
   ]
 
   return (
-    <CardSection title={t('eventInventory.heading')} subtitle={t('eventInventory.hint')}>
+    <CardSection title={t('events:inventory.heading')} subtitle={t('events:inventory.hint')}>
       <div className="tab-toolbar" style={{marginBottom: 'var(--space-3)'}}>
         <div className="row-actions">
           {(linked.data ?? []).map((inv) => (
@@ -411,7 +415,7 @@ function InventorySection({eventId}: { eventId: number }) {
               <button
                 type="button"
                 className="icon-btn"
-                title={t('eventInventory.unlink')}
+                title={t('events:inventory.unlink')}
                 onClick={() => mutations.removeEventInventory.mutate(inv.id)}
               >
                 <X size={12}/>
@@ -419,7 +423,7 @@ function InventorySection({eventId}: { eventId: number }) {
             </Badge>
           ))}
           {linked.data?.length === 0 && (
-            <span className="muted">{t('eventInventory.noneLinked')}</span>
+            <span className="muted">{t('events:inventory.noneLinked')}</span>
           )}
         </div>
 
@@ -431,7 +435,7 @@ function InventorySection({eventId}: { eventId: number }) {
             if (inventoryId) mutations.addEventInventory.mutate(inventoryId)
           }}
         >
-          <option value="">{t('eventInventory.link')}</option>
+          <option value="">{t('events:inventory.link')}</option>
           {linkable.map((inv) => (
             <option key={inv.id} value={inv.id}>
               {inv.name}
@@ -446,9 +450,9 @@ function InventorySection({eventId}: { eventId: number }) {
           <Skeleton width="80%" height="0.8rem"/>
         </div>
       ) : coverage.isError ? (
-        <ErrorState message={`${t('eventInventory.heading')}: ${coverage.error}`}/>
+        <ErrorState message={`${t('events:inventory.heading')}: ${coverage.error}`}/>
       ) : (coverage.data ?? []).length === 0 ? (
-        <p className="muted">{t('eventInventory.nothingToCover')}</p>
+        <p className="muted">{t('events:inventory.nothingToCover')}</p>
       ) : (
         <DataTable
           columns={columns}
@@ -465,6 +469,7 @@ function InventorySection({eventId}: { eventId: number }) {
 }
 
 function OverridesSection({eventId}: { eventId: number }) {
+  const { t } = useTranslation([])
   const shopping = useShoppingList(eventId)
   const overrides = useEventOverrides(eventId)
   const mutations = useEventMutations(eventId)
@@ -494,21 +499,21 @@ function OverridesSection({eventId}: { eventId: number }) {
 
   const storeName = (storeId: number) =>
     stores.data?.find((s) => s.id === storeId)?.name ??
-    t('overrides.storeFallback', {id: storeId})
+   t('events:overrides.storeFallback', {id: storeId})
 
   type OverrideRow = NonNullable<typeof overrides.data>[number]
 
   const columns: DataTableColumn<OverrideRow>[] = [
     {
       key: 'ingredient',
-      label: t('overrides.col.ingredient'),
+      label:t('events:overrides.col.ingredient'),
       render: (override) => override.ingredient_name,
     },
     {
       key: 'source',
-      label: t('overrides.col.source'),
+      label:t('events:overrides.col.source'),
       render: (override) =>
-        override.store_name ?? t('overrides.storeFallback', {id: override.store_id}),
+        override.store_name ??t('events:overrides.storeFallback', {id: override.store_id}),
     },
     {
       key: 'actions',
@@ -518,7 +523,7 @@ function OverridesSection({eventId}: { eventId: number }) {
         <button
           type="button"
           className="icon-btn icon-btn--danger"
-          title={t('overrides.remove')}
+          title={t('events:overrides.remove')}
           onClick={() => mutations.removeOverride.mutate(override.source_id)}
         >
           <Trash2 size={15}/>
@@ -528,14 +533,14 @@ function OverridesSection({eventId}: { eventId: number }) {
   ]
 
   return (
-    <CardSection title={t('overrides.heading')} subtitle={t('overrides.hint')}>
+    <CardSection title={t('events:overrides.heading')} subtitle={t('events:overrides.hint')}>
       <div className="tab-toolbar" style={{marginBottom: 'var(--space-3)'}}>
         <select
           className="input"
           value={ingredientId || ''}
           onChange={(e) => setIngredientId(Number(e.target.value) || 0)}
         >
-          <option value="">{t('overrides.chooseIngredient')}</option>
+          <option value="">{t('events:overrides.chooseIngredient')}</option>
           {candidates.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -555,7 +560,7 @@ function OverridesSection({eventId}: { eventId: number }) {
                 if (sourceId) mutations.addOverride.mutate(sourceId)
               }}
             >
-              <option value="">{t('overrides.chooseSource')}</option>
+              <option value="">{t('events:overrides.chooseSource')}</option>
               {(sources.data?.sources ?? [])
                 .filter((s) => !overriddenSourceIds.has(s.id))
                 .map((s) => (
@@ -575,7 +580,7 @@ function OverridesSection({eventId}: { eventId: number }) {
           <Skeleton width="70%" height="0.8rem"/>
         </div>
       ) : (overrides.data ?? []).length === 0 ? (
-        <p className="muted">{t('overrides.none')}</p>
+        <p className="muted">{t('events:overrides.none')}</p>
       ) : (
         <DataTable
           columns={columns}

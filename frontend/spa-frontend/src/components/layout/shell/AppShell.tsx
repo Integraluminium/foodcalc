@@ -1,6 +1,6 @@
+import {t} from "i18next";
 import {useState} from 'react'
-import {NavLink, Outlet, useLocation} from 'react-router-dom'
-import {t} from '../../../i18n'
+import {NavLink, Outlet, useLocation, useNavigation} from 'react-router-dom'
 import {BoxIcon, BrandIcon, CalendarIcon, IngredientsIcon, RecipeIcon,} from '../../ui/icons/icons.tsx'
 import {Toasts} from '../../ui/toast/Toast.tsx'
 import styles from './AppShell.module.css'
@@ -18,15 +18,17 @@ function readStoredCollapse(): boolean | null {
 }
 
 const NAV_ITEMS = [
-    {to: '/ingredients', labelKey: 'nav.ingredients', Icon: IngredientsIcon},
-    {to: '/recipes', labelKey: 'nav.recipes', Icon: RecipeIcon},
-    {to: '/events', labelKey: 'nav.events', Icon: CalendarIcon},
-    {to: '/inventories', labelKey: 'nav.inventories', Icon: BoxIcon},
-    {to: '/static/documents', labelKey: 'nav.documents', Icon: BoxIcon},
+    {to: '/ingredients', labelKey: 'nav:ingredients', Icon: IngredientsIcon},
+    {to: '/recipes', labelKey: 'nav:recipes', Icon: RecipeIcon},
+    {to: '/events', labelKey: 'nav:events', Icon: CalendarIcon},
+    {to: '/inventories', labelKey: 'nav:inventories', Icon: BoxIcon},
+    {to: '/static/documents', labelKey: 'nav:documents', Icon: BoxIcon},
 ] as const
 
 export default function AppShell() {
     const location = useLocation()
+    const navigation = useNavigation()
+    const isNavigating = navigation.state === 'loading'
 
     // Einklappen manuell (Pfeil-Button, persistiert) oder automatisch im
     // Event-Workspace — die manuelle Wahl überschreibt den Workspace-Default.

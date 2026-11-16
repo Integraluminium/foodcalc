@@ -1,16 +1,16 @@
 import {ArrowRightLeft, Copy, Trash2} from 'lucide-react'
 import {type FormEvent, useState} from 'react'
+import {useTranslation} from "react-i18next";
 import {useNavigate} from 'react-router-dom'
 import type {Event} from '../../../../api'
 import {ConfirmDialog} from '../../../../components/patterns/dialog/ConfirmDialog.tsx'
 import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
 import {OwnerTransferDialog} from '../../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
 import {Spinner} from '../../../../components/ui/spinner/Spinner.tsx'
-import {useCreateEvent, useEventMutations} from '../../../../hooks/queries/useEvents.ts'
+import {useCreateEvent, useEventMutations} from "../../../../hooks/queries/useEvents.ts";
 import {useGroups} from '../../../../hooks/queries/useMasterData.ts'
 import {useCurrentUser} from '../../../../hooks/useAuth.ts'
 import {usePermissions} from '../../../../hooks/usePermissions.ts'
-import {t} from '../../../../i18n'
 
 interface EventMetadataDialogProps {
   /** `null` = create new event, `Event` = edit existing metadata. */
@@ -19,6 +19,7 @@ interface EventMetadataDialogProps {
 }
 
 export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps) {
+  const { t } = useTranslation(["events", "common"])
   const isEdit = event !== null
   const navigate = useNavigate()
   const groups = useGroups()
@@ -42,7 +43,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
 
   const groupName =
     groups.data?.find((g) => g.id === event?.group_id)?.name ??
-    t('overview.groupFallback', { id: event?.group_id ?? 0 })
+    t('events:overview.groupFallback', { id: event?.group_id ?? 0 })
 
   const pending = isEdit ? mutations.update.isPending : create.isPending
 
@@ -75,12 +76,12 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
 
   return (
     <Drawer
-      title={isEdit ? t('overview.editTitle') : t('event.titleNew')}
+      title={isEdit ? t('events:overview.editTitle') : t('events:list.titleNew')}
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            {t('action.cancel')}
+            {t('common:actions.cancel')}
           </button>
           {canSave && (
             <button
@@ -89,7 +90,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
               className="btn btn--primary"
               disabled={pending}
             >
-              {pending ? <Spinner size="sm" /> : isEdit ? t('action.save') : t('action.create')}
+              {pending ? <Spinner size="sm" /> : isEdit ? t('common:actions.save') : t('common:actions.create')}
             </button>
           )}
         </>
@@ -99,7 +100,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
         <table className="table table--compact">
           <tbody>
           <tr>
-            <td>{t('overview.name')}</td>
+            <td>{t('events:overview.name')}</td>
             <td>
               <input
                 className="input"
@@ -112,7 +113,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
             </td>
           </tr>
           <tr>
-            <td>{t('overview.ownerGroup')}</td>
+            <td>{t('events:overview.ownerGroup')}</td>
             <td>
               {isEdit ? (
                 <>
@@ -123,7 +124,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
                       className="btn btn--ghost"
                       onClick={() => setTransferOpen(true)}
                     >
-                      <ArrowRightLeft size={14} /> {t('transfer.button')}
+                      <ArrowRightLeft size={14} /> {t('common:transfer.button')}
                     </button>
                   )}
                 </>
@@ -145,7 +146,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
           </tr>
 
           <tr>
-            <td>{t('overview.budget')}</td>
+            <td>{t('events:overview.budget')}</td>
             <td>
               <input
                 className="input"
@@ -153,7 +154,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
                 type="number"
                 step="any"
                 min="0"
-                placeholder={t('mealDrawer.optional')}
+                placeholder={t('events:mealDrawer.optional')}
                 defaultValue={event?.budget ?? ''}
                 disabled={!canSave}
               />
@@ -161,7 +162,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
           </tr>
 
           <tr>
-            <td>{t('overview.comment')}</td>
+            <td>{t('events:overview.comment')}</td>
             <td>
                 <textarea
                   className="input"
@@ -174,13 +175,13 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
 
           {isEdit && (
             <tr>
-              <td>{t('overview.actions')}</td>
+              <td>{t('events:overview.actions')}</td>
               <td>
                 <div className="row-actions">
                   <button
                     type="button"
                     className="btn btn--ghost"
-                    title={t('overview.cloneHint')}
+                    title={t('events:overview.cloneHint')}
                     disabled={mutations.clone.isPending}
                     onClick={() =>
                       mutations.clone.mutate(undefined, {
@@ -191,7 +192,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
                       })
                     }
                   >
-                    <Copy size={14} /> {t('overview.clone')}
+                    <Copy size={14} /> {t('events:overview.clone')}
                   </button>
 
                   {manageable && (
@@ -200,7 +201,7 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
                       className="btn btn--danger"
                       onClick={() => setConfirmDelete(true)}
                     >
-                      <Trash2 size={14} /> {t('action.delete')}
+                      <Trash2 size={14} /> {t('common:actions.delete')}
                     </button>
                   )}
                 </div>
@@ -222,8 +223,8 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
 
       {confirmDelete && event && (
         <ConfirmDialog
-          title={t('overview.deleteTitle')}
-          message={t('overview.deleteMessage', { name: event.name })}
+          title={t('events:overview.deleteTitle')}
+          message={t('events:overview.deleteMessage', { name: event.name })}
           onConfirm={() =>
             mutations.remove.mutate(undefined, {
               onSuccess: () => {

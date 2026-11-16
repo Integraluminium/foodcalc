@@ -1,0 +1,37 @@
+{
+  "add": {
+    "chooseIngredient": "Choose ingredient…",
+    "submit": "+ Store item"
+  },
+  "col": {
+    "amountKg": "Quantity (kg)",
+    "ingredient": "Ingredient"
+  },
+  "create": {
+    "submitting": "Creating…"
+  },
+  "deleteButton": "Delete inventory",
+  "deleteMessage": "Really delete “{{name}}” including all stored quantities?",
+  "deleteTitle": "Delete inventory",
+  "description": "Storage location for ingredients. Linking to events covers part of the event demand.",
+  "drawerTitleFallback": "Inventory",
+  "empty": "No ingredients stored yet.",
+  "itemsLoadError": "Could not load stock: {{error}}",
+  "loadError": "Could not load inventory: {{error}}",
+  "mode": {
+    "aria": "Select inventory mode",
+    "edit": "Edit",
+    "reconcile": "Reconcile"
+  },
+  "name": "Name",
+  "noEditPermission": "No edit permissions for this group.",
+  "noun": "inventories",
+  "reconcile": {
+    "apply": "Apply",
+    "deltaAria": "Difference for {{name}}"
+  },
+  "removeItem": "Remove from stock",
+  "searchPlaceholder": "Search inventories…",
+  "titleEdit": "Edit inventory: {{name}}",
+  "titleNew": "New inventory"
+}

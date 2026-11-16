@@ -1,5 +1,5 @@
+import {t} from "i18next";
 import type {Group} from '../../../api'
-import {t} from '../../../i18n'
 
 interface Props {
     /** Groups the session user belongs to. */
@@ -17,9 +17,9 @@ export function GroupFilterSelect({groups, value, onChange}: Props) {
                 const raw = event.target.value
                 onChange(raw === 'all' ? 'all' : Number(raw))
             }}
-            aria-label={t('filter.byOwner')}
+            aria-label={t('common:filter.byOwner')}
         >
-            <option value="all">{t('filter.allGroups')}</option>
+            <option value="all">{t('common:filter.allGroups')}</option>
             {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                     {group.name}

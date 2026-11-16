@@ -1,5 +1,5 @@
+import {t} from "i18next";
 import type {ReactNode} from 'react'
-import {t} from '../../../i18n'
 import {SkeletonTable} from '../skeleton/Skeleton'
 import {EmptyState, ErrorState} from '../state_views/StateViews'
 import styles from './DataTable.module.css'
@@ -56,7 +56,7 @@ export function DataTable<T>({
                              }: DataTableProps<T>) {
   if (isPending) {
     return (
-      <div className={`card ${styles.panel}`} role="status" aria-label={t('state.loading')}>
+      <div className={`card ${styles.panel}`} role="status" aria-label={t('common:state.loading')}>
         <SkeletonTable rows={6} cols={columns.length + 1}/>
       </div>
     )
@@ -64,7 +64,7 @@ export function DataTable<T>({
   if (isError) {
     const message = errorNoun
       ? `${errorNoun} konnten nicht geladen werden: ${String(error)}`
-      : t('state.error')
+      :t('common:state.error')
     return (
       <div className={`${highlight ? "card" : ''} ${styles.panel}`}>
         <ErrorState message={message}/>
