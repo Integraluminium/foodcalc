@@ -1,12 +1,14 @@
 import {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import type {EventListItem} from '../../api'
-import SearchBar from "../../components/patterns/seachbar/SearchBar.tsx";
+import {GroupFilterSelect} from "../../components/patterns/group_filter/GroupFilterSelect.tsx";
+import {SearchBar} from "../../components/patterns/searchbar/SearchBar.tsx";
 import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
 import {useEvents} from '../../hooks/queries/useEvents.ts'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
 import {useCurrentUser} from '../../hooks/useAuth.ts'
 import {useOwnerFilter} from '../../hooks/useOwnerFilter.ts'
+import {useSearchFilter} from "../../hooks/useSearchFilter.ts";
 import {t} from '../../i18n'
 import {formatDateRange, formatDecimal, toNumber} from '../../lib/format.ts'
 import {EventFormDrawer} from './EventFormDrawer.tsx'
@@ -23,13 +25,11 @@ export default function EventsPage() {
   const {data: user} = useCurrentUser()
   const userGroups = user?.groups ?? []
   const {ownerFilter, setOwnerFilter, matches} = useOwnerFilter()
-  const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
-
-  const filtered = (events.data ?? []).filter(
-    (event) =>
-      matches(event) &&
-      event.name.toLowerCase().includes(search.trim().toLowerCase()),
+  const { search, setSearch, filtered } = useSearchFilter(
+    events.data,
+    (event) => event.name,
+    matches,
   )
 
   const groupName = (groupId: number) =>
@@ -105,8 +105,17 @@ export default function EventsPage() {
         </button>
       </div>
 
-      <SearchBar value={search} onChange={(event) => setSearch(event.target.value)} userGroups={userGroups}
-                     ownerFilter={ownerFilter} onChange1={setOwnerFilter} placeholder1={t('event.searchPlaceholder')}/>
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder={t('event.searchPlaceholder')}
+      >
+        <GroupFilterSelect
+          groups={userGroups}
+          value={ownerFilter}
+          onChange={setOwnerFilter}
+        />
+      </SearchBar>
 
       <DataTable
         columns={columns}

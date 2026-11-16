@@ -1,22 +1,31 @@
-import type {ReactNode} from "react";
+import type {ReactNode} from 'react'
+import styles from './Badge.module.css'
 
-export type BadgeVariant = 'success' | 'info' | 'warning' | 'neutral';
+export type BadgeVariant = 'success' | 'info' | 'warning' | 'neutral'
 
-export interface BadgeItem {
-  children: ReactNode;
-  variant?: BadgeVariant;
-  label?: string;
-  className?: string;
+export interface BadgeProps {
+  children: ReactNode
+  icon?: ReactNode
+  variant?: BadgeVariant
+  title?: string
+  className?: string
 }
 
-export function Badge({children, variant = 'neutral', label, className }: BadgeItem) {
-  const classes = ['badge', `badge--${variant}`, className]
+export function Badge({
+                        children,
+                        icon,
+                        variant = 'neutral',
+                        title,
+                        className,
+                      }: BadgeProps) {
+  const classes = [styles.badge, styles[variant], className]
     .filter(Boolean)
-    .join(' ');
+    .join(' ')
 
   return (
-    <span className={classes} title={label}>
-      {children}
+    <span className={classes} title={title}>
+      {icon}
+      <span>{children}</span>
     </span>
-  );
+  )
 }

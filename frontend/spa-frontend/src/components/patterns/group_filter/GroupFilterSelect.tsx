@@ -1,4 +1,4 @@
-import type {Group} from '../../../api/types.ts'
+import type {Group} from '../../../api'
 import {t} from '../../../i18n'
 
 interface Props {
@@ -8,11 +8,6 @@ interface Props {
     onChange: (filter: number | 'all') => void
 }
 
-/**
- * Geteilter Besitzer-Filter aller Hub-Listen (UI_Spec §3.2); der Zustand
- * lebt in `useOwnerFilter()` — „Alle Gruppen“ überschreibt die
- * Sidebar-Auswahl für die Session.
- */
 export function GroupFilterSelect({groups, value, onChange}: Props) {
     return (
         <select

@@ -1,9 +1,11 @@
-import { useState } from 'react'
-import type { KeyboardEvent } from 'react'
-import { t } from '../../../i18n'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
-import { useRecipes } from '../../../hooks/queries/useRecipes.ts'
-import { useDebouncedValue } from '../../../hooks/useDebouncedValue.ts'
+import type {KeyboardEvent} from 'react'
+import {useState} from 'react'
+import {SearchBar} from "../../../components/patterns/searchbar/SearchBar.tsx";
+import {SegmentedControl} from "../../../components/patterns/segmented_control/SegmentedControl.tsx";
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {useRecipes} from '../../../hooks/queries/useRecipes.ts'
+import {useDebouncedValue} from '../../../hooks/useDebouncedValue.ts'
+import {t} from '../../../i18n'
 import styles from './pickers.module.css'
 
 export interface SubRecipeSelection {
@@ -57,26 +59,19 @@ export function RecipePicker({
 
   return (
     <div className={styles.panel} onKeyDown={handleKey}>
-      <div className={styles.pickerHead}>
-        <input
-          className="input"
-          placeholder={t('editor.drawer.pickerSearch')}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          autoFocus
-        />
-        <select
-          className={`input ${styles.filterSelect}`}
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder={t('editor.drawer.pickerSearch')}
+        autoFocus
+      >
+        <SegmentedControl
+          options={kindOptions}
           value={kind}
-          onChange={(event) => setKind(event.target.value as typeof kind)}
-        >
-          {kindOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
+          onChange={setKind}
+          ariaLabel={t('recipe.filterKind')}
+        />
+      </SearchBar>
 
       <div className={styles.list}>
         {results.isPending ? (

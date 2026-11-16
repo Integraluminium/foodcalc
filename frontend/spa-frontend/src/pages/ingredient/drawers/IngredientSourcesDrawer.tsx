@@ -3,6 +3,7 @@ import type { IngredientDetail, IngredientSource } from '../../../api/types.ts'
 import { Drawer } from '../../../components/patterns/drawer/Drawer.tsx'
 import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
 import { t } from '../../../i18n'
+import { notify } from '../../../components/ui/toast/toast.ts'
 import {
   useIngredient,
   useIngredientMutations,
@@ -53,6 +54,11 @@ function SourcesEditor({
 }) {
   const mutations = useIngredientMutations(detail.ingredient.id)
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
+
+  if (stores.length === 0) {
+    return <p className="secondary">{t('ingredient.noStores')}</p>
+  }
 
   return (
     <>
@@ -71,7 +77,12 @@ function SourcesEditor({
               onSubmit={(input) =>
                 mutations.updateSource.mutate(
                   { sourceId: source.id, ...input },
-                  { onSuccess: () => setEditingId(null) },
+                  {
+                    onSuccess: () => {
+                      setEditingId(null)
+                      notify('success', t('ingredient.sourceSaved'))
+                    },
+                  },
                 )
               }
               pending={mutations.updateSource.isPending}
@@ -89,14 +100,33 @@ function SourcesEditor({
         )}
       </div>
 
-      <h3 className="section-subtitle">{t('ingredient.addSourceTitle')}</h3>
-      <SourceForm
-        stores={stores}
-        units={units}
-        onCancel={undefined}
-        onSubmit={(input) => mutations.addSource.mutate(input)}
-        pending={mutations.addSource.isPending}
-      />
+      {addOpen ? (
+        <>
+          <h3 className="section-subtitle">{t('ingredient.addSourceTitle')}</h3>
+          <SourceForm
+            stores={stores}
+            units={units}
+            onCancel={() => setAddOpen(false)}
+            onSubmit={(input) =>
+              mutations.addSource.mutate(input, {
+                onSuccess: () => {
+                  setAddOpen(false)
+                  notify('success', t('ingredient.sourceAdded'))
+                },
+              })
+            }
+            pending={mutations.addSource.isPending}
+          />
+        </>
+      ) : (
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => setAddOpen(true)}
+        >
+          {t('ingredient.addSourceButton')}
+        </button>
+      )}
     </>
   )
 }

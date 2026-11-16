@@ -1,8 +1,11 @@
+import {Layers, Utensils} from "lucide-react";
 import {type ReactNode, useMemo, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import type {RecipeKind, RecipeListItem} from '../../api/types.ts'
 import {Drawer} from '../../components/patterns/drawer/Drawer.tsx'
-import SearchBar from "../../components/patterns/seachbar/SearchBar.tsx";
+import {GroupFilterSelect} from "../../components/patterns/group_filter/GroupFilterSelect.tsx";
+import {SearchBar} from "../../components/patterns/searchbar/SearchBar.tsx";
+import {SegmentedControl} from "../../components/patterns/segmented_control/SegmentedControl.tsx";
 import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
 import {useRecipes} from '../../hooks/queries/useRecipes.ts'
 import {useCurrentUser} from '../../hooks/useAuth.ts'
@@ -15,9 +18,9 @@ import {RecipeView} from './view/RecipeView.tsx'
 
 type KindFilter = RecipeKind | 'all'
 
-const KIND_OPTIONS: { value: KindFilter; label: string }[] = [
-    {value: 'meal', label: 'Gerichte'},
-    {value: 'component', label: 'Komponenten'},
+const kindOptions: { value: KindFilter; label: string; icon?:ReactNode }[] = [
+    {value: 'meal', label: 'Gerichte', icon: <Utensils size={16} /> },
+    {value: 'component', label: 'Komponenten', icon: <Layers size={16} /> },
     {value: 'all', label: 'Alle'},
 ]
 
@@ -95,33 +98,23 @@ export default function RecipesPage() {
                     + Neues Rezept
                 </button>
             </div>
-
-            <SearchBar value={search} onChange={(event) => setSearch(event.target.value)} userGroups={userGroups} ownerFilter={ownerFilter} onChange1={setOwnerFilter} placeholder1="Rezepte durchsuchen…"/>
-            // TODO: SegmentedControl is needed in the SearchBar component, but it is currently commented out because of easy migration to other components.
-            {/*<div className={styles.controls}>*/}
-
-            {/*    <input*/}
-            {/*      className={`input ${styles.search}`}*/}
-            {/*      placeholder="Rezepte durchsuchen…"*/}
-            {/*      value={search}*/}
-            {/*      onChange={(event) => setSearch(event.target.value)}*/}
-            {/*    />*/}
-
-            {/*    <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>*/}
-            {/*        <SegmentedControl*/}
-            {/*            options={KIND_OPTIONS}*/}
-            {/*            value={kind}*/}
-            {/*            onChange={setKind}*/}
-            {/*            ariaLabel="Rezeptart filtern"*/}
-            {/*        />*/}
-            {/*        <GroupFilterSelect*/}
-            {/*            groups={userGroups}*/}
-            {/*            value={ownerFilter}*/}
-            {/*            onChange={setOwnerFilter}*/}
-            {/*        />*/}
-            {/*    </div>*/}
-
-            {/*</div>*/}
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder={t('recipe.searchPlaceholder')}
+            >
+                <SegmentedControl
+                  options={kindOptions}
+                  value={kind}
+                  onChange={setKind}
+                  ariaLabel={t('recipe.filterKind')}
+                />
+                <GroupFilterSelect
+                  groups={userGroups}
+                  value={ownerFilter}
+                  onChange={setOwnerFilter}
+                />
+            </SearchBar>
 
             <DataTable
                 columns={columns}

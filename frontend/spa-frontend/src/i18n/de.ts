@@ -57,6 +57,7 @@ export const DE = {
     backToList: 'Zurück zur Liste',
     loadError: 'Event konnte nicht geladen werden: {error}',
     mealsBadge: '{count} Mahlzeiten',
+    statusBadge: 'Status: {status}',
   },
 
   overview: {
@@ -297,7 +298,17 @@ export const DE = {
     haccpBadge: 'HACCP',
     clone: 'Klonen',
     deleteMessage: '„{name}“ und alle zugehörigen Rezeptdaten wirklich löschen?',
+    searchPlaceholder: 'Rezepte durchsuchen…',
+    filterKind: 'Typ',
   },
+
+  inventory: {
+    searchPlaceholder: 'Inventare durchsuchen…',
+    titleNew: '+ Neues Inventar',
+    titleEdit: 'Inventar bearbeiten: {name}',
+    name: 'Name',
+  },
+
   rights: {
     myGroups: 'Meine Gruppen & Rechte',
     myGroupsHint: 'Du handelst in jeder Gruppe mit deiner jeweiligen Rolle.',
@@ -392,6 +403,8 @@ export const DE = {
     deleteConfirm: 'Zutat „{name}“ wirklich löschen?',
     deleteUsagesWarning:
       'Zutat „{name}“ wird in {count} Rezept(en) verwendet — deren Zutatenzeilen brechen beim Löschen. Wirklich löschen?',
+    searchPlaceholder: 'Zutat suchen…',
+    filterKind: 'Typ',
   },
 
   editor: {

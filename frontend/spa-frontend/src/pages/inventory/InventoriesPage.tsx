@@ -2,7 +2,8 @@ import type {FormEvent} from 'react'
 import {useMemo, useState} from 'react'
 import type {Inventory} from '../../api/types.ts'
 import {Drawer} from '../../components/patterns/drawer/Drawer.tsx'
-import SearchBar from "../../components/patterns/seachbar/SearchBar.tsx";
+import {GroupFilterSelect} from "../../components/patterns/group_filter/GroupFilterSelect.tsx";
+import {SearchBar} from "../../components/patterns/searchbar/SearchBar.tsx";
 import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
 import {useCreateInventory, useInventories} from '../../hooks/queries/useInventories.ts'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
@@ -68,12 +69,20 @@ export default function InventoriesPage() {
                     type="button"
                     className="btn btn--primary"
                     onClick={() => setCreateOpen(true)}
-                >
-                    + Neues Inventar
-                </button>
+                >{t('inventory.titleNew')}</button>
             </div>
 
-            <SearchBar value={search} onChange={(event) => setSearch(event.target.value)} userGroups={userGroups} ownerFilter={ownerFilter} onChange1={setOwnerFilter} placeholder1="Inventare durchsuchen…"/>
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder={t('inventory.searchPlaceholder')}
+            >
+                <GroupFilterSelect
+                  groups={userGroups}
+                  value={ownerFilter}
+                  onChange={setOwnerFilter}
+                />
+            </SearchBar>
 
             <DataTable
                 columns={columns}

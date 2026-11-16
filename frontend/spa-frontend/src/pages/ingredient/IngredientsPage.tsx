@@ -1,13 +1,14 @@
-import type {FormEvent} from 'react'
 import {useState} from 'react'
+import {GroupFilterSelect} from "../../components/patterns/group_filter/GroupFilterSelect.tsx";
+import {SearchBar} from "../../components/patterns/searchbar/SearchBar.tsx";
 import {EmptyState, ErrorState, LoadingState} from '../../components/patterns/state_views/StateViews.tsx'
-import {Dialog} from "../../components/patterns/dialog/Dialog.tsx";
-import {useCreateIngredient, useIngredients,} from '../../hooks/queries/useIngredients.ts'
-import {useGroups} from '../../hooks/queries/useMasterData.ts'
-import {useCurrentUser} from '../../hooks/useAuth.ts'
+import {useIngredients,} from '../../hooks/queries/useIngredients.ts'
+import {useCurrentUser} from "../../hooks/useAuth.ts";
 import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
+import {useOwnerFilter} from "../../hooks/useOwnerFilter.ts";
 import {t} from '../../i18n'
 import {formatDecimal} from '../../lib/format.ts'
+import {IngredientDataDrawer} from './drawers/IngredientDataDrawer.tsx'
 import styles from './IngredientsPage.module.css'
 import {IngredientDrawer} from './view/IngredientView.tsx'
 
@@ -19,13 +20,12 @@ export default function IngredientsPage() {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
   const ingredients = useIngredients({ search: debouncedSearch || undefined })
-  const { data: user } = useCurrentUser()
-  const personalGroupId =
-    user?.groups.find((group) => group.is_personal)?.id ??
-    user?.groups[0]?.id ??
-    0
   const [createOpen, setCreateOpen] = useState(false)
   const [openId, setOpenId] = useState<number | null>(null)
+  const {data: user} = useCurrentUser()
+  const userGroups = user?.groups ?? []
+  const {ownerFilter, setOwnerFilter, matches} = useOwnerFilter()
+
 
   return (
     <div className={styles.page}>
@@ -40,12 +40,17 @@ export default function IngredientsPage() {
         </button>
       </div>
 
-      <input
-        className={`input ${styles.search}`}
-        placeholder="Zutaten durchsuchen…"
+      <SearchBar
         value={search}
-        onChange={(event) => setSearch(event.target.value)}
-      />
+        onChange={setSearch}
+        placeholder={t('ingredient.searchPlaceholder')}
+      >
+         <GroupFilterSelect
+          groups={userGroups}
+          value={ownerFilter}
+          onChange={setOwnerFilter}
+        />
+      </SearchBar>
 
       <div className={`card ${styles.panel}`}>
         {ingredients.isPending ? (
@@ -63,6 +68,7 @@ export default function IngredientsPage() {
                 <th>Name</th>
                 <th className="num">Energie (kJ/g)</th>
                 <th>ca. (€/kg)</th>
+                <th>Quellen</th>
                 <th>Kommentar</th>
 
               </tr>
@@ -77,6 +83,7 @@ export default function IngredientsPage() {
                   <td>{ingredient.name}</td>
                   <td className="num">{formatDecimal(ingredient.energy, 2)}</td>
                   <td className="num">???</td>
+                  <td className="num">{ingredient.has_sources ? "✓" : "–"}</td>
                   <td className="secondary">{ingredient.comment || '–'}</td>
                 </tr>
               ))}
@@ -90,98 +97,9 @@ export default function IngredientsPage() {
       )}
 
       {createOpen && (
-        <CreateIngredientDialog
-          defaultGroupId={personalGroupId}
-          onClose={() => setCreateOpen(false)}
-        />
+        <IngredientDataDrawer ingredient={null} onClose={() => setCreateOpen(false)} />
       )}
     </div>
   )
 }
 
-function CreateIngredientDialog({
-  defaultGroupId,
-  onClose,
-}: {
-  defaultGroupId: number
-  onClose: () => void
-}) {
-  const groups = useGroups()
-  const create = useCreateIngredient()
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    create.mutate(
-      {
-        name: String(data.get('name') ?? '').trim(),
-        energy: String(data.get('energy') ?? '').trim(),
-        comment: String(data.get('comment') ?? '').trim() || null,
-        group_id: Number(data.get('group_id') ?? defaultGroupId) || defaultGroupId,
-      },
-      { onSuccess: () => onClose() },
-    )
-  }
-
-  return (
-    <Dialog
-      title="Neue Zutat"
-      onClose={onClose}
-      footer={
-        <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Abbrechen
-          </button>
-          <button
-            type="submit"
-            form="create-ingredient-form"
-            className="btn btn--primary"
-            disabled={create.isPending}
-          >
-            {create.isPending ? 'Anlegen…' : 'Anlegen'}
-          </button>
-        </>
-      }
-    >
-      <form id="create-ingredient-form" onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label className="field">
-            Name
-            <input className="input" name="name" required autoFocus />
-          </label>
-          <label className="field">
-            Energie (kJ/g)
-            <input
-              className="input"
-              name="energy"
-              type="number"
-              step="any"
-              min="0"
-              required
-              placeholder="z. B. 14.5"
-            />
-          </label>
-          <label className="field">
-            Owner-Gruppe
-            <select
-              className="input"
-              name="group_id"
-              defaultValue={defaultGroupId}
-            >
-              {(groups.data ?? []).map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                  {group.is_personal ? ' (persönlich)' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            Kommentar
-            <input className="input" name="comment" placeholder="optional" />
-          </label>
-        </div>
-      </form>
-    </Dialog>
-  )
-}

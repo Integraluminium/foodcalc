@@ -1,16 +1,14 @@
-import { useState } from 'react'
-import type { KeyboardEvent } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { t } from '../../../i18n'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
-import {
-  useCreateIngredient,
-  useIngredients,
-} from '../../../hooks/queries/useIngredients.ts'
-import { useCurrentUser } from '../../../hooks/useAuth.ts'
-import { useProperties, useUnits } from '../../../hooks/queries/useMasterData.ts'
-import { useDebouncedValue } from '../../../hooks/useDebouncedValue.ts'
-import { formatDecimal } from '../../../lib/format.ts'
+import {useQueryClient} from '@tanstack/react-query'
+import type {KeyboardEvent} from 'react'
+import {useState} from 'react'
+import {SearchBar} from "../../../components/patterns/searchbar/SearchBar.tsx";
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {useCreateIngredient, useIngredients,} from '../../../hooks/queries/useIngredients.ts'
+import {useProperties, useUnits} from '../../../hooks/queries/useMasterData.ts'
+import {useCurrentUser} from '../../../hooks/useAuth.ts'
+import {useDebouncedValue} from '../../../hooks/useDebouncedValue.ts'
+import {t} from '../../../i18n'
+import {formatDecimal} from '../../../lib/format.ts'
 import styles from './pickers.module.css'
 
 export interface IngredientSelection {
@@ -94,27 +92,15 @@ export function IngredientPicker({
 
   return (
     <div className={styles.panel} onKeyDown={handleKey}>
-      <div className={styles.pickerHead}>
-        <input
-          className="input"
-          placeholder={t('editor.drawer.pickerSearch')}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          autoFocus
-        />
-        <select
-          className={`input ${styles.filterSelect}`}
-          value={propertyId}
-          onChange={(event) => setPropertyId(Number(event.target.value))}
-        >
-          <option value={0}>{t('editor.drawer.filterAll')}</option>
-          {properties.data?.map((property) => (
-            <option key={property.id} value={property.id}>
-              {property.name}
-            </option>
-          ))}
-        </select>
-      </div>
+
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder={t('editor.drawer.pickerSearch')}
+        autoFocus
+      >
+      </SearchBar>
+
 
       <div className={styles.list}>
         {results.isPending ? (

@@ -1,27 +1,26 @@
-import { useEffect, useReducer, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ingredientsApi } from '../../../api/endpoints/ingredients.ts'
-import { recipesApi } from '../../../api/endpoints/recipes.ts'
-import type { RecipeDetail } from '../../../api/types.ts'
-import { ConfirmDialog } from '../../../components/patterns/dialog/ConfirmDialog.tsx'
-import { Drawer } from '../../../components/patterns/drawer/Drawer.tsx'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
-import { t } from '../../../i18n'
-import { useIngredients } from '../../../hooks/queries/useIngredients.ts'
-import { useRecipe, useRecipes } from '../../../hooks/queries/useRecipes.ts'
-import { useUnits } from '../../../hooks/queries/useMasterData.ts'
-import { formatDecimal, toNumber } from '../../../lib/format.ts'
+import {useQuery, useQueryClient} from '@tanstack/react-query'
+import {useEffect, useReducer, useState} from 'react'
+import type {RecipeDetail} from '../../../api'
+import {ingredientsApi, recipesApi} from '../../../api'
+import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {useIngredients} from '../../../hooks/queries/useIngredients.ts'
+import {useUnits} from '../../../hooks/queries/useMasterData.ts'
+import {useRecipe, useRecipes} from '../../../hooks/queries/useRecipes.ts'
+import {t} from '../../../i18n'
+import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import {
+  type Action,
   dirtyDraft,
   draftFromDetail,
-  draftStats,
-  reducer,
-  type Action,
   type DraftIngredient,
+  draftStats,
   type DraftSubRecipe,
+  reducer,
 } from '../edit/editorModel.ts'
-import { IngredientPicker } from '../pickers/IngredientPicker.tsx'
-import { RecipePicker } from '../pickers/RecipePicker.tsx'
+import {IngredientPicker} from '../pickers/IngredientPicker.tsx'
+import {RecipePicker} from '../pickers/RecipePicker.tsx'
 import styles from './RecipeDrawers.module.css'
 
 /**

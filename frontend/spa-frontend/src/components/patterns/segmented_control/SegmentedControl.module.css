@@ -16,6 +16,7 @@
   font-size: var(--text-md);
   font-weight: 500;
   cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
   transition:
     background var(--transition-fast),
     color var(--transition-fast);

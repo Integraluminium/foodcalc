@@ -1,34 +1,36 @@
-import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
-import type { EventDetail } from '../../../api/types.ts'
-import { BudgetBar } from '../../../components/patterns/budget_bar/BudgetBar.tsx'
-import { Spinner } from '../../../components/ui/spinner/Spinner.tsx'
-import { useEvent, useEventMutations } from '../../../hooks/queries/useEvents.ts'
-import { formatDateRange, toNumber } from '../../../lib/format.ts'
-import { eventAggregates } from '../../../lib/eventAggregation.ts'
-import { t } from '../../../i18n'
-import type { StringKey } from '../../../i18n'
-import type { WorkspaceContext } from './workspaceContext.ts'
+import {CalendarDays, LayoutDashboard, Printer, ShoppingCart, Utensils,} from 'lucide-react'
+import type {ReactNode} from "react";
+import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router-dom'
+import {BudgetBar} from '../../../components/patterns/budget_bar/BudgetBar.tsx'
+import {SegmentedControl} from '../../../components/patterns/segmented_control/SegmentedControl.tsx'
+import {Badge} from '../../../components/ui/badge/Badge.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {useEvent, useEventMutations} from '../../../hooks/queries/useEvents.ts'
+import {t} from '../../../i18n'
+import {eventAggregates} from '../../../lib/eventAggregation.ts'
+import {formatDateRange, toNumber} from '../../../lib/format.ts'
 import styles from './workspace.module.css'
+import type {WorkspaceContext} from './workspaceContext.ts'
 
-const TABS = [
-  { path: '', labelKey: 'event.tab.overview', end: true },
-  { path: 'plan', labelKey: 'event.tab.plan', end: false },
-  { path: 'shopping', labelKey: 'event.tab.shopping', end: false },
-  { path: 'kalkulation', labelKey: 'event.tab.calc', end: false },
-  { path: 'timeline', labelKey: 'event.tab.timeline', end: false },
-] as const satisfies readonly { path: string; labelKey: StringKey; end: boolean }[]
+type TabPath = '' | 'plan' | 'shopping' | 'kalkulation' | 'timeline'
 
 /**
  * Event-Workspace (UI_Spec §3.4, Mockup „Detailed view Event"): isolierte
- * Vollseiten-Umgebung pro Event — Topbar mit Kennzahlen, die globale
- * Navigation tritt zurück (Sidebar kollabiert zum Icon-Rail), Phasen als
- * Sub-Routen (`/events/:id/plan` usw., deep-linkable).
+ * Vollseiten-Umgebung pro Event — Topbar mit Kennzahlen, Phasen als
+ * deep-linkable Sub-Routen (`/events/:id/plan` usw.).
  */
 export default function EventWorkspace() {
-  const params = useParams()
-  const eventId = Number(params.eventId)
+  const { eventId: rawId } = useParams()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
 
-  if (!Number.isFinite(eventId) || eventId <= 0) {
+  const eventId = Number(rawId)
+  const isValidId = Number.isFinite(eventId) && eventId > 0
+
+  const detailQuery = useEvent(isValidId ? eventId : 0)
+  const mutations = useEventMutations(isValidId ? eventId : 0)
+
+  if (!isValidId) {
     return (
       <p className="secondary">
         {t('workspace.invalidId')}{' '}
@@ -36,53 +38,53 @@ export default function EventWorkspace() {
       </p>
     )
   }
-  return <WorkspaceLoader eventId={eventId} />
-}
 
-function WorkspaceLoader({ eventId }: { eventId: number }) {
-  const detail = useEvent(eventId)
-
-  if (detail.isPending) {
+  if (detailQuery.isPending) {
     return (
       <div className="full-page-center">
         <Spinner size="lg" />
       </div>
     )
   }
-  if (detail.isError || !detail.data) {
+
+  if (detailQuery.isError || !detailQuery.data) {
     return (
       <p className="secondary">
-        {t('workspace.loadError', { error: String(detail.error) })}
+        {t('workspace.loadError', { error: String(detailQuery.error) })}
       </p>
     )
   }
-  return <WorkspaceShell detail={detail.data} />
-}
 
-function WorkspaceShell({ detail }: { detail: EventDetail }) {
-  const mutations = useEventMutations(detail.event.id)
-  const eventId = detail.event.id
-
+  const detail = detailQuery.data
   const aggregates = eventAggregates(detail.meals, detail.total_cost)
   const budget = toNumber(detail.event.budget)
-
   const context: WorkspaceContext = { eventId, detail, mutations }
 
+  const basePath = `/events/${eventId}`
+  const activeTab = (pathname.slice(basePath.length).replace(/^\//, '').split('/')[0] || '') as TabPath
+
+  const tabs: { value: TabPath; label: string; icon: ReactNode }[] = [
+    { value: '', label: t('event.tab.overview'), icon: <LayoutDashboard size={16} /> },
+    { value: 'plan', label: t('event.tab.plan'), icon: <Utensils size={16} /> },
+    { value: 'shopping', label: t('event.tab.shopping'), icon: <ShoppingCart size={16} /> },
+    { value: 'kalkulation', label: t('event.tab.calc'), icon: <Printer size={16} /> },
+    { value: 'timeline', label: t('event.tab.timeline'), icon: <CalendarDays size={16} /> },
+  ]
   return (
     <div className={styles.workspace}>
       <div className={`card ${styles.topbar}`}>
         <div className={styles.topbarMain}>
           <h1 className="section-title">{detail.event.name}</h1>
           <div className={styles.badges}>
-            <span className="badge badge--neutral">
+            <Badge variant="neutral">
               {formatDateRange(
                 detail.meals[0]?.start_time ?? null,
                 detail.meals[detail.meals.length - 1]?.start_time ?? null,
               )}
-            </span>
-            <span className="badge badge--info">
+            </Badge>
+            <Badge variant="info">
               {t('workspace.mealsBadge', { count: detail.meals.length })}
-            </span>
+            </Badge>
             {detail.event.comment && (
               <span className="muted">{detail.event.comment}</span>
             )}
@@ -93,20 +95,12 @@ function WorkspaceShell({ detail }: { detail: EventDetail }) {
         </div>
       </div>
 
-      <nav className={styles.tabs} aria-label={t('event.areas')}>
-        {TABS.map((tab) => (
-          <NavLink
-            key={tab.path}
-            to={`/events/${eventId}${tab.path ? `/${tab.path}` : ''}`}
-            end={tab.end}
-            className={({ isActive }) =>
-              isActive ? `${styles.tab} ${styles.tabActive}` : styles.tab
-            }
-          >
-            {t(tab.labelKey)}
-          </NavLink>
-        ))}
-      </nav>
+      <SegmentedControl
+        options={tabs}
+        value={activeTab}
+        onChange={(tab) => void navigate(tab ? `${basePath}/${tab}` : basePath)}
+        ariaLabel={t('event.areas')}
+      />
 
       <Outlet context={context} />
     </div>
