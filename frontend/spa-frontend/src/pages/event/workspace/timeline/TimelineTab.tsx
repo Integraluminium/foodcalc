@@ -1,12 +1,12 @@
 import {useQueryClient} from '@tanstack/react-query'
 import type {PointerEvent as ReactPointerEvent} from 'react'
 import {useMemo, useRef, useState} from 'react'
-import type {PlannerMeal} from '../../../../api'
 import {SkeletonCards} from '../../../../components/patterns/skeleton/Skeleton.tsx'
 import {notify} from '../../../../components/ui/toast/toast.ts'
 import {useEventMutations, useEventPreps, useEventTours,} from '../../../../hooks/queries/useEvents.ts'
 import {t} from '../../../../i18n'
 import {formatDayLabel, formatTime} from '../../../../lib/format.ts'
+import {useWorkspace} from "../workspaceContext.ts";
 import styles from './TimelineTab.module.css'
 
 /**
@@ -126,7 +126,10 @@ const BAND_ORDER: TimelineItem['kind'][] = ['tour', 'prep', 'meal']
  * Zeitplan-Tab: liest Mahlzeiten (Kontext), Touren und Vorkochen und
  * gruppiert sie auf logische Tage.
  */
-export function TimelineTab({ meals }: { meals: PlannerMeal[] }) {
+export function TimelineTab() {
+  const { detail } = useWorkspace()
+  const meals = detail.meals
+
   const eventId = meals[0]?.event_id ?? 0
   const preps = useEventPreps(eventId)
   const tours = useEventTours(eventId)

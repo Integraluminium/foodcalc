@@ -7,9 +7,12 @@ import {notify} from './components/ui/toast/toast.ts'
 import AdminPage from './pages/admin/AdminPage.tsx'
 import DocumentsPage from "./pages/documents/DocumentsPage.tsx";
 import EventsPage from './pages/event/EventsPage.tsx'
+import {KalkulationTab} from "./pages/event/workspace/calculation/KalkulationTab.tsx";
 import EventWorkspace from './pages/event/workspace/EventWorkspace.tsx'
+import {MealPlanTab} from "./pages/event/workspace/meals/MealPlanTab.tsx";
 import {OverviewTab} from './pages/event/workspace/overview/OverviewTab.tsx'
-import {KalkulationRoute, PlanRoute, ShoppingRoute, TimelineRoute,} from './pages/event/workspace/tabRoutes.tsx'
+import {ShoppingTab} from "./pages/event/workspace/shopping/ShoppingTab.tsx";
+import {TimelineTab} from "./pages/event/workspace/timeline/TimelineTab.tsx";
 import IngredientDetailPage from './pages/ingredient/details/IngredientDetailPage.tsx'
 import IngredientsPage from './pages/ingredient/IngredientsPage.tsx'
 import InventoriesPage from './pages/inventory/InventoriesPage.tsx'
@@ -89,10 +92,10 @@ export default function App() {
             <Route path="/events" element={<EventsPage />}/>
             <Route path="/events/:eventId" element={<EventWorkspace />}>
               <Route index element={<OverviewTab />} />
-              <Route path="plan" element={<PlanRoute />} />
-              <Route path="shopping" element={<ShoppingRoute />} />
-              <Route path="kalkulation" element={<KalkulationRoute />} />
-              <Route path="timeline" element={<TimelineRoute />} />
+              <Route path="plan" element={<MealPlanTab />} />
+              <Route path="shopping" element={<ShoppingTab />} />
+              <Route path="kalkulation" element={<KalkulationTab />} />
+              <Route path="timeline" element={<TimelineTab />} />
             </Route>
             <Route path="/settings" element={<SettingsPage />}/>
             <Route path="/account" element={<Navigate to="/settings" replace />}/>

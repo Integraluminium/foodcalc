@@ -12,6 +12,7 @@ import {usePermissions} from "../../../../hooks/usePermissions.ts";
 import {t} from '../../../../i18n'
 import {dateInputToRfc3339, formatDayLabel, formatDecimal,} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
+import {useWorkspace} from "../workspaceContext.ts";
 import {InventorySection} from './InventorySection.tsx'
 import {OverridesSection} from './OverridesSection.tsx'
 
@@ -21,7 +22,8 @@ function todayIsoDate(): string {
 }
 
 /** Einkäufe tab: tours with their shopping lists plus uncovered ingredients. */
-export function ShoppingTab({eventId}: { eventId: number }) {
+export function ShoppingTab() {
+  const { eventId } = useWorkspace()
   const shopping = useShoppingList(eventId)
   const mutations = useEventMutations(eventId)
   const stores = useStores()

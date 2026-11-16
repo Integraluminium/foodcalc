@@ -1,28 +1,24 @@
-import {CalendarDays, LayoutDashboard, Printer, ShoppingCart, Utensils,} from 'lucide-react'
-import type {ReactNode} from "react";
+import {CalendarDays, Clock, LayoutDashboard, Pencil, Printer, ShoppingCart, Utensils,} from 'lucide-react'
+import {type ReactNode, useState} from 'react'
 import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router-dom'
+import {WorkspaceLayout} from "../../../components/layout/workspace/WorkSpaceLayout.tsx";
 import {BudgetBar} from '../../../components/patterns/budget_bar/BudgetBar.tsx'
 import {Badge} from '../../../components/ui/badge/Badge.tsx'
-import {SegmentedControl} from '../../../components/ui/segmented_control/SegmentedControl.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useEvent, useEventMutations} from '../../../hooks/queries/useEvents.ts'
 import {t} from '../../../i18n'
 import {eventAggregates} from '../../../lib/eventAggregation.ts'
 import {formatDateRange, toNumber} from '../../../lib/format.ts'
-import styles from './workspace.module.css'
+import {EventFormDrawer} from '../EventFormDrawer.tsx'
 import type {WorkspaceContext} from './workspaceContext.ts'
 
 type TabPath = '' | 'plan' | 'shopping' | 'kalkulation' | 'timeline'
 
-/**
- * Event-Workspace (UI_Spec §3.4, Mockup „Detailed view Event"): isolierte
- * Vollseiten-Umgebung pro Event — Topbar mit Kennzahlen, Phasen als
- * deep-linkable Sub-Routen (`/events/:id/plan` usw.).
- */
 export default function EventWorkspace() {
   const { eventId: rawId } = useParams()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const [editOpen, setEditOpen] = useState(false)
 
   const eventId = Number(rawId)
   const isValidId = Number.isFinite(eventId) && eventId > 0
@@ -70,39 +66,50 @@ export default function EventWorkspace() {
     { value: 'kalkulation', label: t('event.tab.calc'), icon: <Printer size={16} /> },
     { value: 'timeline', label: t('event.tab.timeline'), icon: <CalendarDays size={16} /> },
   ]
+
   return (
-    <div className={styles.workspace}>
-      <div className={`card ${styles.topbar}`}>
-        <div className={styles.topbarMain}>
-          <h1 className="section-title">{detail.event.name}</h1>
-          <div className={styles.badges}>
-            <Badge variant="neutral">
-              {formatDateRange(
-                detail.meals[0]?.start_time ?? null,
-                detail.meals[detail.meals.length - 1]?.start_time ?? null,
-              )}
-            </Badge>
-            <Badge variant="info">
-              {t('workspace.mealsBadge', { count: detail.meals.length })}
-            </Badge>
-            {detail.event.comment && (
-              <span className="muted">{detail.event.comment}</span>
+    <WorkspaceLayout
+      title={detail.event.name}
+      meta={
+        <>
+          <Badge variant="success">{t('workspace.statusBadge')}</Badge>
+          <Badge variant="neutral" icon={<Clock size={12} />}>
+            {formatDateRange(
+              detail.meals[0]?.start_time ?? null,
+              detail.meals[detail.meals.length - 1]?.start_time ?? null,
             )}
-          </div>
-        </div>
-        <div className={styles.budgetRow}>
-          <BudgetBar cost={aggregates.cost} budget={budget} />
-        </div>
-      </div>
-
-      <SegmentedControl
-        options={tabs}
-        value={activeTab}
-        onChange={(tab) => void navigate(tab ? `${basePath}/${tab}` : basePath)}
-        ariaLabel={t('event.areas')}
-      />
-
+          </Badge>
+          <Badge variant="info" icon={<Utensils size={12} />}>
+            {t('workspace.mealsBadge', { count: detail.meals.length })}
+          </Badge>
+          {detail.event.comment && (
+            <span className="muted">{detail.event.comment}</span>
+          )}
+        </>
+      }
+      actions={
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => setEditOpen(true)}
+        >
+          <Pencil size={14} /> {t('action.edit')}
+        </button>
+      }
+      summaryRow={<BudgetBar cost={aggregates.cost} budget={budget} />}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(tab) => void navigate(tab ? `${basePath}/${tab}` : basePath)}
+      tabsAriaLabel={t('event.areas')}
+    >
       <Outlet context={context} />
-    </div>
+
+      {editOpen && (
+        <EventFormDrawer
+          event={detail.event}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
+    </WorkspaceLayout>
   )
 }
