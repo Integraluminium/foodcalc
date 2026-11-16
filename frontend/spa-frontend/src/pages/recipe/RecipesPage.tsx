@@ -16,7 +16,7 @@ import {RecipeView} from './view/RecipeView.tsx'
 
 type KindFilter = RecipeKind | 'all'
 
-const KIND_OPTIONS: { value: KindFilter; label: string; icon?: ReactNode }[] = [
+export const RecipeKindOptions: { value: KindFilter; label: string; icon?: ReactNode }[] = [
     { value: 'meal', label: 'Gerichte', icon: <Utensils size={16} /> },
     { value: 'component', label: 'Komponenten', icon: <Layers size={16} /> },
     { value: 'all', label: 'Alle' },
@@ -81,7 +81,7 @@ export default function RecipesPage() {
         searchPlaceholder={t('recipe.searchPlaceholder')}
         extraFilters={
             <SegmentedControl
-              options={KIND_OPTIONS}
+              options={RecipeKindOptions}
               value={kind}
               onChange={setKind}
               ariaLabel={t('recipe.filterKind')}

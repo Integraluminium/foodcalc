@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react'
 import {t} from '../../../i18n'
-import {EmptyState, ErrorState} from '../state_views/StateViews'
 import {SkeletonTable} from '../skeleton/Skeleton'
+import {EmptyState, ErrorState} from '../state_views/StateViews'
 import styles from './DataTable.module.css'
 
 export interface DataTableColumn<T> {
@@ -25,6 +25,7 @@ interface DataTableProps<T> {
   emptyMessage: string
   /** Should display a chevron in the last column */
   withChevron?: boolean
+  highlight?: boolean
 }
 
 /**
@@ -51,6 +52,7 @@ export function DataTable<T>({
                                errorNoun,
                                emptyMessage,
                                withChevron = false,
+                               highlight = true,
                              }: DataTableProps<T>) {
   if (isPending) {
     return (
@@ -64,20 +66,20 @@ export function DataTable<T>({
       ? `${errorNoun} konnten nicht geladen werden: ${String(error)}`
       : t('state.error')
     return (
-      <div className={`card ${styles.panel}`}>
+      <div className={`${highlight ? "card" : ''} ${styles.panel}`}>
         <ErrorState message={message}/>
       </div>
     )
   }
   if (!rows || rows.length === 0) {
     return (
-      <div className={`card ${styles.panel}`}>
+      <div className={`${highlight ? "card" : ''} ${styles.panel}`}>
         <EmptyState message={emptyMessage}/>
       </div>
     )
   }
   return (
-    <div className={`card ${styles.panel}`}>
+    <div className={`${highlight ? "card" : ''} ${styles.panel}`}>
       <table className="table">
         <thead>
         <tr>

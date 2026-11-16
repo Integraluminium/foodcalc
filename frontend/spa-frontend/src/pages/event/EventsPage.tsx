@@ -8,7 +8,7 @@ import {useGroupName} from '../../hooks/queries/useGroupName.ts'
 import {useFilteredList} from '../../hooks/useFilteredList.ts'
 import {t} from '../../i18n'
 import {formatDateRange, formatDecimal, toNumber} from '../../lib/format.ts'
-import {EventFormDrawer} from './EventFormDrawer.tsx'
+import {EventMetadataDrawer} from './EventMetadataDrawer.tsx'
 import styles from './EventsPage.module.css'
 
 export default function EventsPage() {
@@ -95,7 +95,7 @@ export default function EventsPage() {
       emptyMessage="Keine Events gefunden. Lege das erste über „Neues Event“ an."
     >
       {createOpen && (
-        <EventFormDrawer event={null} onClose={() => setCreateOpen(false)} />
+        <EventMetadataDrawer event={null} onClose={() => setCreateOpen(false)} />
       )}
     </ListPage>
   )

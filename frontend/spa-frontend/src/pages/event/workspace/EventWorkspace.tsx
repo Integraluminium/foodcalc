@@ -9,8 +9,7 @@ import {useEvent, useEventMutations} from '../../../hooks/queries/useEvents.ts'
 import {t} from '../../../i18n'
 import {eventAggregates} from '../../../lib/eventAggregation.ts'
 import {formatDateRange, toNumber} from '../../../lib/format.ts'
-import {EventFormDrawer} from '../EventFormDrawer.tsx'
-import type {WorkspaceContext} from './workspaceContext.ts'
+import {EventMetadataDrawer} from '../EventMetadataDrawer.tsx'
 
 type TabPath = '' | 'plan' | 'shopping' | 'kalkulation' | 'timeline'
 
@@ -54,7 +53,6 @@ export default function EventWorkspace() {
   const detail = detailQuery.data
   const aggregates = eventAggregates(detail.meals, detail.total_cost)
   const budget = toNumber(detail.event.budget)
-  const context: WorkspaceContext = { eventId, detail, mutations }
 
   const basePath = `/events/${eventId}`
   const activeTab = (pathname.slice(basePath.length).replace(/^\//, '').split('/')[0] || '') as TabPath
@@ -102,10 +100,10 @@ export default function EventWorkspace() {
       onTabChange={(tab) => void navigate(tab ? `${basePath}/${tab}` : basePath)}
       tabsAriaLabel={t('event.areas')}
     >
-      <Outlet context={context} />
+      <Outlet />
 
       {editOpen && (
-        <EventFormDrawer
+        <EventMetadataDrawer
           event={detail.event}
           onClose={() => setEditOpen(false)}
         />

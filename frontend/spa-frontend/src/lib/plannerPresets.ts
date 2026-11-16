@@ -12,10 +12,8 @@ export interface EnergyPreset {
 
 export const ENERGY_PRESETS: EnergyPreset[] = [
   { label: 'Hauptgericht', kj: 2400, hint: 'Standard-Hauptmahlzeit' },
-  { label: 'Reichlich', kj: 3000, hint: 'Hungrige Gruppen / kalte Tage' },
-  { label: 'Frühstück', kj: 2000, hint: 'Erste Mahlzeit des Tages' },
-  { label: 'Dessert', kj: 1200, hint: 'Nachspeise' },
   { label: 'Beilage', kj: 800, hint: 'Neben anderen Gerichten' },
+  { label: 'Custom', kj: -1, hint: 'Trage selbst ein' },
 ]
 
 /** Finds a preset matching the given kJ value, if any (pure). */

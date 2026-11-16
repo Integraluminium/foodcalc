@@ -1,29 +1,31 @@
-import type {ReactNode} from "react";
-import styles from './CardSection.module.css';
+import type {ReactNode} from 'react'
+import styles from './CardSection.module.css'
 
 export interface CardSectionProps {
-  title: ReactNode;
-  children: ReactNode;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
+  title: ReactNode
+  subtitle?: ReactNode
+  actions?: ReactNode
+  children: ReactNode
+  highlight?: boolean
 }
 
-export default function CardSection({ title, children, action }: CardSectionProps) {
+export function CardSection({
+                              title,
+                              subtitle,
+                              actions,
+                              children,
+                              highlight = true,
+                            }: CardSectionProps) {
   return (
-    <section className={`card ${styles.section}`}>
-      <h2 className="section-subtitle">{title}</h2>
+    <section className={`${styles.section} ${highlight ? "card" : ''}`}>
+      <div className={styles.header}>
+        <div className={styles.titleGroup}>
+          <h2 className="section-subtitle">{title}</h2>
+          {subtitle && <p className="muted">{subtitle}</p>}
+        </div>
+        {actions && <div className={styles.actions}>{actions}</div>}
+      </div>
       {children}
-      {action && (
-        <button
-          type="button"
-          className="btn btn--ghost"
-          onClick={action.onClick}
-        >
-          {action.label}
-        </button>
-      )}
     </section>
-  );
+  )
 }

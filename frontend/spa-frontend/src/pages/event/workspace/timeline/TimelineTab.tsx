@@ -1,12 +1,19 @@
 import {useQueryClient} from '@tanstack/react-query'
 import type {PointerEvent as ReactPointerEvent} from 'react'
 import {useMemo, useRef, useState} from 'react'
+import {CardSection} from "../../../../components/patterns/card_section/CardSection.tsx";
 import {SkeletonCards} from '../../../../components/patterns/skeleton/Skeleton.tsx'
+import {Badge} from "../../../../components/ui/badge/Badge.tsx";
 import {notify} from '../../../../components/ui/toast/toast.ts'
-import {useEventMutations, useEventPreps, useEventTours,} from '../../../../hooks/queries/useEvents.ts'
+import {
+  useEvent,
+  useEventId,
+  useEventMutations,
+  useEventPreps,
+  useEventTours,
+} from '../../../../hooks/queries/useEvents.ts'
 import {t} from '../../../../i18n'
 import {formatDayLabel, formatTime} from '../../../../lib/format.ts'
-import {useWorkspace} from "../workspaceContext.ts";
 import styles from './TimelineTab.module.css'
 
 /**
@@ -127,10 +134,9 @@ const BAND_ORDER: TimelineItem['kind'][] = ['tour', 'prep', 'meal']
  * gruppiert sie auf logische Tage.
  */
 export function TimelineTab() {
-  const { detail } = useWorkspace()
-  const meals = detail.meals
-
-  const eventId = meals[0]?.event_id ?? 0
+  const eventId = useEventId()
+  const {data: detail} = useEvent(eventId)
+  const meals = detail?.meals ?? []
   const preps = useEventPreps(eventId)
   const tours = useEventTours(eventId)
   const mutations = useEventMutations(eventId)
@@ -162,7 +168,7 @@ export function TimelineTab() {
         end,
         dayKey: localDayKey(start),
         startHour: hourPos(start),
-        endHour: endHour({ start, end }),
+        endHour: endHour({start, end}),
         durationMin: Math.max(
           Math.round((end.getTime() - start.getTime()) / 60000),
           SLOT_MINUTES,
@@ -181,7 +187,7 @@ export function TimelineTab() {
         end,
         dayKey: localDayKey(start),
         startHour: hourPos(start),
-        endHour: endHour({ start, end }),
+        endHour: endHour({start, end}),
         durationMin: NOMINAL_HOURS * 60,
       })
     }
@@ -197,7 +203,7 @@ export function TimelineTab() {
         end,
         dayKey: localDayKey(start),
         startHour: hourPos(start),
-        endHour: endHour({ start, end }),
+        endHour: endHour({start, end}),
         durationMin: NOMINAL_HOURS * 60,
       })
     }
@@ -205,12 +211,12 @@ export function TimelineTab() {
   }, [meals, tours.data, preps.data])
 
   const bounds = useMemo(() => {
-    if (items.length === 0) return { firstHour: 8, cols: 12 }
+    if (items.length === 0) return {firstHour: 8, cols: 12}
     const earliest = Math.min(...items.map((item) => item.startHour))
     const latest = Math.max(...items.map((item) => item.endHour))
     const firstHour = Math.max(Math.floor(earliest) - 1, 0)
     const lastHour = Math.min(Math.ceil(latest) + 1, 24)
-    return { firstHour, cols: Math.max(lastHour - firstHour, 1) }
+    return {firstHour, cols: Math.max(lastHour - firstHour, 1)}
   }, [items])
 
 
@@ -244,7 +250,7 @@ export function TimelineTab() {
     const startIso = toLocalIso(dayKey, startMin)
     const onError = () => {
       notify('error', t('timeline.moveFailed'))
-      void queryClient.invalidateQueries({ queryKey: ['events'] })
+      void queryClient.invalidateQueries({queryKey: ['events']})
     }
     if (kind === 'meal') {
       mutations.updateMeal.mutate(
@@ -253,14 +259,14 @@ export function TimelineTab() {
           start_time: startIso,
           end_time: toLocalIso(dayKey, startMin + durationMin),
         },
-        { onError },
+        {onError},
       )
     } else {
       const tour = (tours.data ?? []).find((entry) => entry.id === id)
       if (!tour) return
       mutations.updateTour.mutate(
-        { tourId: id, tour_date: startIso, store_id: tour.store_id },
-        { onError },
+        {tourId: id, tour_date: startIso, store_id: tour.store_id},
+        {onError},
       )
     }
   }
@@ -381,7 +387,7 @@ export function TimelineTab() {
       const rect = (track ?? lane).getBoundingClientRect()
       const rawStart = Math.round(
         (barRectNow.left - rect.left) * gesture.mpp +
-          gesture.bounds.firstHour * 60,
+        gesture.bounds.firstHour * 60,
       )
       // Im Tagesfenster klemmen: Start so, dass Dauer + Snap innerhalb von
       // 24 h bleiben (0 == 04:00 des logischen Tages).
@@ -409,7 +415,7 @@ export function TimelineTab() {
   if (preps.isPending || tours.isPending) {
     return (
       <div className={styles.wrap}>
-        <SkeletonCards count={2} />
+        <SkeletonCards count={2}/>
       </div>
     )
   }
@@ -463,11 +469,11 @@ export function TimelineTab() {
               }
               style={
                 hiddenKinds.has(kind)
-                  ? { opacity: 0.4, textDecoration: 'line-through' }
+                  ? {opacity: 0.4, textDecoration: 'line-through'}
                   : undefined
               }
             >
-              <span className={`${styles.swatch} ${kindClass[kind]}`} />
+              <span className={`${styles.swatch} ${kindClass[kind]}`}/>
               {kindLabel[kind]}
             </button>
           ))}
@@ -477,77 +483,78 @@ export function TimelineTab() {
         <p className="muted">{t('timeline.empty')}</p>
       ) : (
         days.map((day) => (
-          <div key={day.key} data-day={day.key} className={`card ${styles.dayCard}`}>
-            <div className={styles.dayHeader}>
-              <h3 className="section-subtitle">
-                {formatDayLabel(`${day.key}T00:00:00`)}
-              </h3>
-              {day.key === todayKey && (
-                <span className={styles.todayBadge}>{t('timeline.today')}</span>
-              )}
-            </div>
-            <div
-              className={styles.track}
-              data-track={day.key}
-              style={{ minWidth: `${bounds.cols * MIN_COL_REM}rem` }}
+          <div key={day.key} data-day={day.key}>
+            <CardSection
+              title={formatDayLabel(`${day.key}T00:00:00`)}
+              actions={
+                day.key === todayKey ? (
+                  <Badge variant="info">{t('timeline.today')}</Badge>
+                ) : undefined
+              }
             >
-              <div className={styles.axis}>
-                {Array.from({ length: bounds.cols }, (_, index) => {
-                  const clock = (bounds.firstHour + index + DAY_START_HOUR) % 24
-                  return (
-                    <span key={index} className={styles.axisCell}>
+              <div
+                className={styles.track}
+                data-track={day.key}
+                style={{minWidth: `${bounds.cols * MIN_COL_REM}rem`}}
+              >
+                <div className={styles.axis}>
+                  {Array.from({length: bounds.cols}, (_, index) => {
+                    const clock = (bounds.firstHour + index + DAY_START_HOUR) % 24
+                    return (
+                      <span key={index} className={styles.axisCell}>
                       {String(clock).padStart(2, '0')}:00
                     </span>
-                  )
-                })}
-              </div>
-              {day.bands.map((band) =>
-                band.lanes.map((lane, laneIndex) => (
-                  <div key={`${band.kind}-${laneIndex}`} className={styles.lane}>
-                    <div className={styles.gridlines}>
-                      {Array.from({ length: bounds.cols }, (_, index) => (
-                        <div key={index} />
+                    )
+                  })}
+                </div>
+                {day.bands.map((band) =>
+                  band.lanes.map((lane, laneIndex) => (
+                    <div key={`${band.kind}-${laneIndex}`} className={styles.lane}>
+                      <div className={styles.gridlines}>
+                        {Array.from({length: bounds.cols}, (_, index) => (
+                          <div key={index}/>
+                        ))}
+                      </div>
+                      {lane.map((item) => (
+                        <div
+                          key={`${item.kind}-${item.id}`}
+                          className={`${styles.bar} ${kindClass[item.kind]} ${
+                            item.kind !== 'prep' ? styles.draggable : ''
+                          }`}
+                          style={{
+                            left: `${Math.max(pct(item.startHour), 0).toFixed(3)}%`,
+                            width: `${Math.max(
+                              pct(item.endHour) - pct(item.startHour),
+                              1.5,
+                            ).toFixed(3)}%`,
+                          }}
+                          title={`${item.label} (${formatTime(
+                            item.start.toISOString(),
+                          )}–${formatTime(item.end.toISOString())})`}
+                          data-drag={item.kind !== 'prep' ? item.kind : undefined}
+                          data-id={item.id}
+                          data-day={item.dayKey}
+                          data-duration={item.durationMin}
+                          data-resizable={item.kind === 'meal' ? '1' : undefined}
+                        >
+                          {item.kind === 'meal' && (
+                            <div className={styles.handle} data-handle="1"/>
+                          )}
+                          <span className={styles.barLabel}>{item.label}</span>
+                          {item.detail && (
+                            <span className={styles.barDetail}>{item.detail}</span>
+                          )}
+                          <span className={styles.barTime}>
+                          {formatTime(item.start.toISOString())}–
+                            {formatTime(item.end.toISOString())}
+                        </span>
+                        </div>
                       ))}
                     </div>
-                    {lane.map((item) => (
-                      <div
-                        key={`${item.kind}-${item.id}`}
-                        className={`${styles.bar} ${kindClass[item.kind]} ${
-                          item.kind !== 'prep' ? styles.draggable : ''
-                        }`}
-                        style={{
-                          left: `${Math.max(pct(item.startHour), 0).toFixed(3)}%`,
-                          width: `${Math.max(
-                            pct(item.endHour) - pct(item.startHour),
-                            1.5,
-                          ).toFixed(3)}%`,
-                        }}
-                        title={`${item.label} (${formatTime(
-                          item.start.toISOString(),
-                        )}–${formatTime(item.end.toISOString())})`}
-                        data-drag={item.kind !== 'prep' ? item.kind : undefined}
-                        data-id={item.id}
-                        data-day={item.dayKey}
-                        data-duration={item.durationMin}
-                        data-resizable={item.kind === 'meal' ? '1' : undefined}
-                      >
-                        {item.kind === 'meal' && (
-                          <div className={styles.handle} data-handle="1" />
-                        )}
-                        <span className={styles.barLabel}>{item.label}</span>
-                        {item.detail && (
-                          <span className={styles.barDetail}>{item.detail}</span>
-                        )}
-                        <span className={styles.barTime}>
-                          {formatTime(item.start.toISOString())}–
-                          {formatTime(item.end.toISOString())}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )),
-              )}
-            </div>
+                  )),
+                )}
+              </div>
+            </CardSection>
           </div>
         ))
       )}

@@ -50,6 +50,7 @@ export const DE = {
     },
     areas: 'Event-Bereiche',
     searchPlaceholder: 'Events durchsuchen…',
+    titleNew: '+ Neues Event',
   },
 
   workspace: {
@@ -89,10 +90,12 @@ export const DE = {
       '„{name}“ inklusive Mahlzeitenplanung und Einkaufstouren wirklich löschen?',
     budget: 'Budget (€)',
     name: 'Name',
+    editTitle: 'Event bearbeiten',
+    ownerGroup: 'Besitzer-Gruppe',
   },
 
   plan: {
-    addMeal: '+ Mahlzeit planen',
+    addMeal: 'Mahlzeit planen',
     summary: '{meals} Mahlzeiten · {cost} € eingekauft',
     empty: 'Noch keine Mahlzeiten geplant — oben rechts hinzufügen.',
     dayTotals: '{portions} Portionen · {weight} kg · {cost} €',
@@ -149,7 +152,7 @@ export const DE = {
   shopping: {
     summary: '{tours} Touren · {uncovered} Zutaten ohne Tour',
     loading: 'Einkaufsliste wird geladen…',
-    addTour: '+ Tour anlegen',
+    addTour: 'Tour anlegen',
     empty:
       'Keine Einkäufe nötig (oder die Rezepte haben keine quellenbezogenen Zutaten).',
     loadError: 'Einkaufsliste konnte nicht geladen werden: {error}',
@@ -304,9 +307,13 @@ export const DE = {
 
   inventory: {
     searchPlaceholder: 'Inventare durchsuchen…',
-    titleNew: '+ Neues Inventar',
+    titleNew: 'Neues Inventar',
     titleEdit: 'Inventar bearbeiten: {name}',
     name: 'Name',
+  },
+
+  group: {
+    personal: "Persönliche Gruppe",
   },
 
   rights: {

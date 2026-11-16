@@ -1,13 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  eventsApi,
-  type MealAddInput,
-  type MealUpdateInput,
-  type TourInput,
-} from '../../api/endpoints/events'
-import { queryKeys } from '../../api/queryKeys'
-import type { ShoppingList } from '../../api/types'
-import { notify } from '../../components/ui/toast/toast.ts'
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
+import {useParams} from "react-router-dom";
+import type {ShoppingList} from '../../api'
+import {queryKeys} from '../../api'
+import {eventsApi, type MealAddInput, type MealUpdateInput, type TourInput,} from '../../api/endpoints/events'
+import {notify} from '../../components/ui/toast/toast.ts'
 
 const EVENTS_ROOT = ['events'] as const
 
@@ -17,6 +13,11 @@ export function useEvents() {
     queryKey: queryKeys.events.list,
     queryFn: eventsApi.list,
   })
+}
+
+export function useEventId(): number {
+  const id = Number(useParams().eventId)
+  return Number.isFinite(id) && id > 0 ? id : 0
 }
 
 /** Event detail: frame data, planned meals (with aggregates) and total cost. */

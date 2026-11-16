@@ -1,45 +1,56 @@
+import {Pencil} from 'lucide-react'
 import {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {BudgetBar} from '../../../../components/patterns/budget_bar/BudgetBar.tsx'
-import {ConfirmDialog} from '../../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {CardSection} from '../../../../components/patterns/card_section/CardSection.tsx'
+import {Badge} from '../../../../components/ui/badge/Badge.tsx'
 import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
-import {useEventInventories} from '../../../../hooks/queries/useEvents.ts'
-import {useGroups} from '../../../../hooks/queries/useMasterData.ts'
+import {useEvent, useEventId, useEventInventories, useEventMutations,} from '../../../../hooks/queries/useEvents.ts'
+import {useGroupName} from "../../../../hooks/queries/useGroupName.ts";
+import {usePermissions} from '../../../../hooks/usePermissions.ts'
 import {t} from '../../../../i18n'
-import {formatDateRange, formatDecimal, toNumber} from '../../../../lib/format.ts'
 import {eventAggregates} from '../../../../lib/eventAggregation.ts'
+import {formatDateRange, formatDecimal, toNumber} from '../../../../lib/format.ts'
+import {EventMetadataDrawer} from "../../EventMetadataDrawer.tsx";
 import styles from '../EventDetailPage.module.css'
-import {useWorkspace} from '../workspaceContext.ts'
-import {EventFormDrawer} from '../../EventFormDrawer.tsx'
 
-/**
- * Übersicht-Tab (Mockup „Event overview Editing"): Rahmen des Events mit
- * Kennzahlen, gekoppelten Inventaren und den Aktionen — Klonen prominent,
- * weil „Event als Vorlage kopieren & anpassen" der Hauptworkflow für
- * wiederkehrende Caterings ist.
- */
 export function OverviewTab() {
-  const { detail, mutations } = useWorkspace()
+  const eventId = useEventId()
+  const { data: detail } = useEvent(eventId)
+  const mutations = useEventMutations(eventId)
+  const linkedInventories = useEventInventories(eventId)
+  const groupName = useGroupName()
+  const { canEditGroup, canManageGroup } = usePermissions()
   const navigate = useNavigate()
-  const groups = useGroups()
-  const linkedInventories = useEventInventories(detail.event.id)
+
   const [editOpen, setEditOpen] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const groupName =
-    groups.data?.find((group) => group.id === detail.event.group_id)?.name ??
-    t('overview.groupFallback', { id: detail.event.group_id })
+  if (!detail) return null
 
+  const editable = canEditGroup(detail.event.group_id)
+  const manageable = canManageGroup(detail.event.group_id)
   const aggregates = eventAggregates(detail.meals, detail.total_cost)
   const budget = toNumber(detail.event.budget)
 
   return (
-    <div className={styles.tabSection}>
-      <div className={`card ${styles.dayCard}`} onClick={() => setEditOpen(true)}>
-        <div className={styles.dayHeader}>
-          <h3 className="section-subtitle">{t('overview.frame')}</h3>
-          <span className="badge badge--neutral">{groupName}</span>
-        </div>
+    <div className="tab-section">
+      <CardSection
+        title={t('overview.frame')}
+        actions={
+          <div className="row-actions">
+            <Badge variant="neutral">{groupName(detail.event.group_id)}</Badge>
+            {editable && (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil size={14} /> {t('action.edit')}
+              </button>
+            )}
+          </div>
+        }
+      >
         <dl className={styles.facts}>
           <dt>{t('overview.period')}</dt>
           <dd>
@@ -64,40 +75,25 @@ export function OverviewTab() {
               <dd>{detail.event.comment}</dd>
             </>
           )}
+          <dt>{t('overview.linkedInventories')}</dt>
+          <dd className="row-actions">
+            {(linkedInventories.data ?? []).length === 0 ? (
+              <span className="muted">{t('overview.noInventories')}</span>
+            ) : (
+              (linkedInventories.data ?? []).map((inv) => (
+                <Badge key={inv.id} variant="info">
+                  {inv.name}
+                </Badge>
+              ))
+            )}
+          </dd>
         </dl>
+      </CardSection>
 
-        <div className={styles.dayHeader}>
-          <h3 className="section-subtitle">{t('overview.linkedInventories')}</h3>
-          {/*<span className="muted">{t('overview.linkedInventoriesHint')}</span>*/}
-          <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setEditOpen(true)}
-          >
-            {t('action.edit')}
-          </button>
-        </div>
-        <div className={styles.badges}>
-          {(linkedInventories.data ?? []).length === 0 ? (
-            <span className="muted">{t('overview.noInventories')}</span>
-          ) : (
-            (linkedInventories.data ?? []).map((inventory) => (
-              <span key={inventory.id} className="badge badge--info">
-                {inventory.name}
-              </span>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Sammel-Exporte (früher eigener Exporte-Tab) — Einzel-PDFs einer
-          Mahlzeit gehören in den Speiseplan-Drawer, Touren-Listen in den
-          Einkäufe-Tab. */}
-      <div className={`card ${styles.dayCard}`}>
-        <div className={styles.dayHeader}>
-          <h3 className="section-subtitle">{t('overview.exports')}</h3>
-          <span className="muted">{t('overview.exportsHint')}</span>
-        </div>
+      <CardSection
+        title={t('overview.exports')}
+        subtitle={t('overview.exportsHint')}
+      >
         <div className={styles.exportGrid}>
           <ExportButton
             className="btn btn--ghost"
@@ -108,40 +104,33 @@ export function OverviewTab() {
             {t('overview.exportOverview')}
           </ExportButton>
           <ExportButton
+            className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/recipes`}
             filename={`${detail.event.name}-rezepte.pdf`}
           >
             {t('overview.exportRecipes')}
           </ExportButton>
           <ExportButton
+            className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/allergens`}
             filename={`${detail.event.name}-allergene.pdf`}
           >
             {t('overview.exportAllergens')}
           </ExportButton>
           <ExportButton
+            className="btn btn--ghost"
             path={`/events/${detail.event.id}/exports/labels`}
             filename={`${detail.event.name}-labels.pdf`}
           >
             {t('overview.exportLabels')}
           </ExportButton>
         </div>
-      </div>
+      </CardSection>
 
       {editOpen && (
-        <EventFormDrawer event={detail.event} onClose={() => setEditOpen(false)}/>
-      )}
-      {confirmDelete && (
-        <ConfirmDialog
-          title={t('overview.deleteTitle')}
-          message={t('overview.deleteMessage', { name: detail.event.name })}
-          onConfirm={() =>
-            mutations.remove.mutate(undefined, {
-              onSuccess: () => void navigate('/events'),
-            })
-          }
-          onCancel={() => setConfirmDelete(false)}
-          pending={mutations.remove.isPending}
+        <EventMetadataDrawer
+          event={detail.event}
+          onClose={() => setEditOpen(false)}
         />
       )}
     </div>

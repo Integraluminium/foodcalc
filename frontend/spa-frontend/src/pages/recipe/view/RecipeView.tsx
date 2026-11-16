@@ -1,11 +1,11 @@
 import {type ReactNode, useState} from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 import type {RecipeDetail} from '../../../api'
-import CardSection from "../../../components/patterns/card_section/CardSection.tsx";
+import {CardSection} from "../../../components/patterns/card_section/CardSection.tsx";
 import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
 import {EntityHeader, type StatItem} from "../../../components/patterns/entity_header/EntityHeader.tsx";
 import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
-import {Badge, type BadgeItem} from "../../../components/ui/badge/Badge.tsx";
+import {Badge, type BadgeProps} from "../../../components/ui/badge/Badge.tsx";
 import {ExportButton} from "../../../components/ui/button/ExportButton.tsx";
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../../hooks/queries/useMasterData.ts'
@@ -63,7 +63,7 @@ export function RecipeView({ recipeId, variant, onDeleted }: RecipeViewProps) {
   )
 }
 
-function buildRecipeBadges(isMeal: boolean, recipe: RecipeDetail, groupName: string): BadgeItem[] {
+function buildRecipeBadges(isMeal: boolean, recipe: RecipeDetail, groupName: string): BadgeProps[] {
   return [
     {
       variant: isMeal ? 'success' : 'info',
@@ -71,7 +71,7 @@ function buildRecipeBadges(isMeal: boolean, recipe: RecipeDetail, groupName: str
     },
     {
       variant: recipe.weighed_in ? 'success' : 'warning',
-      label: recipe.weighed_in
+      title: recipe.weighed_in
         ? t('mealDrawer.weighedHint')
         : t('plan.notWeighedHint'),
       children: recipe.weighed_in
@@ -143,7 +143,7 @@ function RecipeViewContent({
     steps: <RecipeStepsDrawer recipeId={recipe.id} onClose={closeDrawer} />,
   };
 
-  const badgeItems: BadgeItem[] = buildRecipeBadges(isMeal, recipe, groupName);
+  const badgeItems: BadgeProps[] = buildRecipeBadges(isMeal, recipe, groupName);
 
   const statsData: StatItem[] = buildStatsData(recipe);
 
@@ -228,11 +228,11 @@ function RecipeViewContent({
 
       <CardSection
         title={t('recipe.tree')}
-        action={
-          editable
-            ? { label: t('editor.drawer.triggerIngredients'), onClick: () => setDrawer('ingredients') }
-            : undefined
-        }
+        // action={
+        //   editable
+        //     ? { label: t('editor.drawer.triggerIngredients'), onClick: () => setDrawer('ingredients') }
+        //     : undefined
+        // }
       >{tree.isPending ? (
         <Spinner size="sm" />
       ) : tree.isError ? (
@@ -248,11 +248,11 @@ function RecipeViewContent({
 
       <CardSection
         title={t('recipe.steps')}
-        action={
-          editable
-            ? { label: t('editor.drawer.triggerSteps'), onClick: () => setDrawer('steps') }
-            : undefined
-        }
+        // action={
+        //   editable
+        //     ? { label: t('editor.drawer.triggerSteps'), onClick: () => setDrawer('steps') }
+        //     : undefined
+        // }
       >
         {recipe.steps.length === 0 ? (
           <p className="muted">{t('recipe.noSteps')}</p>
