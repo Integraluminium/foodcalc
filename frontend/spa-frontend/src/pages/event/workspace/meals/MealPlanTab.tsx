@@ -2,7 +2,8 @@ import {Plus} from 'lucide-react'
 import {useMemo, useState} from 'react'
 import type {PlannerMeal} from '../../../../api'
 import {CardSection} from '../../../../components/patterns/card_section/CardSection.tsx'
-import {EmptyState} from '../../../../components/patterns/state_views/StateViews.tsx'
+import {SkeletonCards} from "../../../../components/patterns/skeleton/Skeleton.tsx";
+import {EmptyState, ErrorState} from '../../../../components/patterns/state_views/StateViews.tsx'
 import {DataTable, type DataTableColumn} from "../../../../components/patterns/table/DataTable.tsx";
 import {Badge} from '../../../../components/ui/badge/Badge.tsx'
 import {useEvent, useEventId, useEventMutations,} from '../../../../hooks/queries/useEvents.ts'
@@ -14,7 +15,8 @@ import {MealDialog} from "./MealDrawer.tsx";
 
 export function MealPlanTab() {
   const eventId = useEventId()
-  const {data: detail} = useEvent(eventId)
+  const eventData = useEvent(eventId);
+  const detail = eventData.data
   const mutations = useEventMutations(eventId)
 
   // `undefined` = closed, `null` = create new meal, `PlannerMeal` = edit meal
@@ -51,27 +53,34 @@ export function MealPlanTab() {
         </button>
       </div>
 
-      {days.length === 0 ? (
-        <EmptyState message={t('plan.empty')}/>
-      ) : (
-        <CardSection
-          // title={t('plan.heading')}
-          // className={styles.mealPlan}
-          highlight={false}
-        >
-          {days.map(([dayKey, meals]) => (
-            <DayGroup
-              key={dayKey}
-              label={formatDayLabel(meals[0].start_time)}
-              meals={meals}
-              onEdit={setEditing}
-              onDuplicate={(meal) => mutations.duplicateMeal.mutate(meal.meal_id)}
-              onRemove={(meal) => mutations.removeMeal.mutate(meal.meal_id)}
-            />
-          ))}
+      {
+        eventData.isPending ? (
+          <SkeletonCards count={2}/>
+        ) : eventData.isError ? (
+            <ErrorState message={t('shopping.toursHeading') + ': ' + eventData.error}/>
+          ) :
+          days.length === 0 ? (
+            <EmptyState message={t('plan.empty')}/>
+          ) : (
+            <CardSection
+              // title={t('plan.heading')}
+              // className={styles.mealPlan}
+              highlight={false}
+            >
+              {days.map(([dayKey, meals]) => (
+                <DayGroup
+                  key={dayKey}
+                  label={formatDayLabel(meals[0].start_time)}
+                  meals={meals}
+                  onEdit={setEditing}
+                  onDuplicate={(meal) => mutations.duplicateMeal.mutate(meal.meal_id)}
+                  onRemove={(meal) => mutations.removeMeal.mutate(meal.meal_id)}
+                />
+              ))}
 
-        </CardSection>
-      )}
+            </CardSection>
+          )
+      }
 
       {editing !== undefined && (
         <MealDialog

@@ -9,7 +9,7 @@ import {useEvent, useEventMutations} from '../../../hooks/queries/useEvents.ts'
 import {t} from '../../../i18n'
 import {eventAggregates} from '../../../lib/eventAggregation.ts'
 import {formatDateRange, toNumber} from '../../../lib/format.ts'
-import {EventMetadataDrawer} from '../EventMetadataDrawer.tsx'
+import {EventMetadataDrawer} from './overview/EventMetadataDrawer.tsx'
 
 type TabPath = '' | 'plan' | 'shopping' | 'kalkulation' | 'timeline'
 

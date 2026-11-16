@@ -11,24 +11,23 @@ import {usePermissions} from '../../../../hooks/usePermissions.ts'
 import {t} from '../../../../i18n'
 import {eventAggregates} from '../../../../lib/eventAggregation.ts'
 import {formatDateRange, formatDecimal, toNumber} from '../../../../lib/format.ts'
-import {EventMetadataDrawer} from "../../EventMetadataDrawer.tsx";
 import styles from '../EventDetailPage.module.css'
+import {EventMetadataDrawer} from "./EventMetadataDrawer.tsx";
 
 export function OverviewTab() {
   const eventId = useEventId()
   const { data: detail } = useEvent(eventId)
-  const mutations = useEventMutations(eventId)
+  useEventMutations(eventId);
   const linkedInventories = useEventInventories(eventId)
   const groupName = useGroupName()
   const { canEditGroup, canManageGroup } = usePermissions()
-  const navigate = useNavigate()
-
+  useNavigate();
   const [editOpen, setEditOpen] = useState(false)
 
   if (!detail) return null
 
   const editable = canEditGroup(detail.event.group_id)
-  const manageable = canManageGroup(detail.event.group_id)
+  canManageGroup(detail.event.group_id);
   const aggregates = eventAggregates(detail.meals, detail.total_cost)
   const budget = toNumber(detail.event.budget)
 

@@ -8,8 +8,8 @@ import {useGroupName} from '../../hooks/queries/useGroupName.ts'
 import {useFilteredList} from '../../hooks/useFilteredList.ts'
 import {t} from '../../i18n'
 import {formatDateRange, formatDecimal, toNumber} from '../../lib/format.ts'
-import {EventMetadataDrawer} from './EventMetadataDrawer.tsx'
 import styles from './EventsPage.module.css'
+import {EventMetadataDrawer} from './workspace/overview/EventMetadataDrawer.tsx'
 
 export default function EventsPage() {
   const navigate = useNavigate()
