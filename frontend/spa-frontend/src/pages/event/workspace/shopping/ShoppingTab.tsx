@@ -2,9 +2,9 @@ import type {FormEvent} from 'react'
 import {useState} from 'react'
 import type {IngredientWithoutTour, TourWithItems} from '../../../../api'
 import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
-import {SegmentedControl} from '../../../../components/patterns/segmented_control/SegmentedControl.tsx'
 import {SkeletonCards} from "../../../../components/patterns/skeleton/Skeleton.tsx";
 import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
+import {SegmentedControl} from '../../../../components/ui/segmented_control/SegmentedControl.tsx'
 import {Spinner} from "../../../../components/ui/spinner/Spinner.tsx";
 import {useEvent, useEventMutations, useShoppingList,} from '../../../../hooks/queries/useEvents.ts'
 import {useStores} from '../../../../hooks/queries/useMasterData.ts'

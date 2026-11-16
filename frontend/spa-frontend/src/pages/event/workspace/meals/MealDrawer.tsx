@@ -3,7 +3,6 @@ import {useMemo, useState} from 'react'
 import type {PlannerMeal} from '../../../../api/types.ts'
 import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
 import {Skeleton} from '../../../../components/patterns/skeleton/Skeleton.tsx'
-import {RecipeTreeView} from '../../../../components/patterns/tree_view/RecipeTreeView.tsx'
 import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
 import {Spinner} from '../../../../components/ui/spinner/Spinner.tsx'
 import {useEventMutations} from '../../../../hooks/queries/useEvents.ts'
@@ -19,6 +18,7 @@ import {
 } from '../../../../lib/format.ts'
 import {ENERGY_PRESETS, presetForKj} from '../../../../lib/plannerPresets.ts'
 import {energyDensityKjPerG, scaledWeightKg} from '../../../../lib/scaling.ts'
+import {RecipeTreeView} from '../../../recipe/tree_view/RecipeTreeView.tsx'
 import styles from '../EventDetailPage.module.css'
 
 /** Default planning date: tomorrow (pure module helper for lint purity). */

@@ -1,14 +1,11 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import type { GroupRole } from '../../../api/types.ts'
-import { Spinner } from '../../ui/spinner/Spinner.tsx'
-import { usePermissions } from '../../../hooks/usePermissions.ts'
-import { t } from '../../../i18n'
-import {
-  useGroupAdminMutations,
-  useGroupMembers,
-} from '../../../hooks/queries/useUsers.ts'
-import { useGroups } from '../../../hooks/queries/useMasterData.ts'
+import type {FormEvent} from 'react'
+import {useState} from 'react'
+import type {GroupRole} from '../../api/types.ts'
+import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
+import {useGroups} from '../../hooks/queries/useMasterData.ts'
+import {useGroupAdminMutations, useGroupMembers,} from '../../hooks/queries/useUsers.ts'
+import {usePermissions} from '../../hooks/usePermissions.ts'
+import {t} from '../../i18n'
 import styles from './GroupsSection.module.css'
 
 /**

@@ -5,7 +5,6 @@ import CardSection from "../../../components/patterns/card_section/CardSection.t
 import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
 import {EntityHeader, type StatItem} from "../../../components/patterns/entity_header/EntityHeader.tsx";
 import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
-import {RecipeTreeView} from '../../../components/patterns/tree_view/RecipeTreeView.tsx'
 import {Badge, type BadgeItem} from "../../../components/ui/badge/Badge.tsx";
 import {ExportButton} from "../../../components/ui/button/ExportButton.tsx";
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
@@ -18,6 +17,7 @@ import {formatDecimal, formatKjPerG, formatMinutes} from '../../../lib/format.ts
 import {RecipeIngredientsDrawer} from '../drawers/RecipeIngredientsDrawer.tsx'
 import {RecipeMetaDrawer} from '../drawers/RecipeMetaDrawer.tsx'
 import {RecipeStepsDrawer} from '../drawers/RecipeStepsDrawer.tsx'
+import {RecipeTreeView} from '../tree_view/RecipeTreeView.tsx'
 import styles from './RecipeView.module.css'
 
 export type RecipeViewVariant = 'overlay' | 'page'

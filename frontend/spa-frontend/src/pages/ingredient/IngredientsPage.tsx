@@ -1,105 +1,87 @@
+import {Check, X} from "lucide-react";
 import {useState} from 'react'
-import {GroupFilterSelect} from "../../components/patterns/group_filter/GroupFilterSelect.tsx";
-import {SearchBar} from "../../components/patterns/searchbar/SearchBar.tsx";
-import {EmptyState, ErrorState, LoadingState} from '../../components/patterns/state_views/StateViews.tsx'
-import {useIngredients,} from '../../hooks/queries/useIngredients.ts'
-import {useCurrentUser} from "../../hooks/useAuth.ts";
+import type {Ingredient} from '../../api'
+import {ListPage} from '../../components/layout/list_page/ListPage.tsx'
+import type {DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
+import {useIngredients} from '../../hooks/queries/useIngredients.ts'
 import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
-import {useOwnerFilter} from "../../hooks/useOwnerFilter.ts";
+import {useFilteredList} from '../../hooks/useFilteredList.ts'
 import {t} from '../../i18n'
 import {formatDecimal} from '../../lib/format.ts'
 import {IngredientDataDrawer} from './drawers/IngredientDataDrawer.tsx'
-import styles from './IngredientsPage.module.css'
 import {IngredientDrawer} from './view/IngredientView.tsx'
 
-/**
- * Zutaten-Hub (UI_Spec §3.2): Suche, Data-Grid und Inspektion als
- * Overlay-Drawer — Bearbeitung passiert in der geteilten `IngredientView`.
- */
 export default function IngredientsPage() {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
   const ingredients = useIngredients({ search: debouncedSearch || undefined })
+  const { ownerFilter, setOwnerFilter, filtered } = useFilteredList(ingredients.data)
+
   const [createOpen, setCreateOpen] = useState(false)
   const [openId, setOpenId] = useState<number | null>(null)
-  const {data: user} = useCurrentUser()
-  const userGroups = user?.groups ?? []
-  const {ownerFilter, setOwnerFilter, matches} = useOwnerFilter()
 
+  const columns: DataTableColumn<Ingredient>[] = [
+    { key: 'name', label: 'Name', render: (ing) => ing.name },
+    {
+      key: 'energy',
+      label: 'Energie (kJ/g)',
+      align: 'num',
+      render: (ing) => formatDecimal(ing.energy, 2),
+    },
+    {
+      key: 'cost',
+      label: 'Kosten (€/g)',
+      align: 'num',
+      render: (ing) => formatDecimal(NaN, 2),
+    },
+    {
+      key: 'sources',
+      label: 'Hat Quellen',
+      align: 'num',
+      render: (ing) =>
+        ing.has_sources ? (
+          <Check size={16} className="text-success" />
+        ) : (
+          <X size={16} className="text-danger" />
+        ),
+    },
+    {
+      key: 'comment',
+      label: 'Kommentar',
+      className: 'secondary',
+      render: (ing) => ing.comment || '–',
+    },
+  ]
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className="section-title">{t('nav.ingredients')}</h1>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => setCreateOpen(true)}
-        >
-          + Neue Zutat
-        </button>
-      </div>
-
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder={t('ingredient.searchPlaceholder')}
-      >
-         <GroupFilterSelect
-          groups={userGroups}
-          value={ownerFilter}
-          onChange={setOwnerFilter}
-        />
-      </SearchBar>
-
-      <div className={`card ${styles.panel}`}>
-        {ingredients.isPending ? (
-          <LoadingState />
-        ) : ingredients.isError ? (
-          <ErrorState
-            message={`Zutaten konnten nicht geladen werden: ${String(ingredients.error)}`}
-          />
-        ) : ingredients.data.length === 0 ? (
-          <EmptyState message="Keine Zutaten gefunden. Lege die erste über „Neue Zutat“ an." />
-        ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th className="num">Energie (kJ/g)</th>
-                <th>ca. (€/kg)</th>
-                <th>Quellen</th>
-                <th>Kommentar</th>
-
-              </tr>
-            </thead>
-            <tbody>
-              {ingredients.data.map((ingredient) => (
-                <tr
-                  key={ingredient.id}
-                  className={styles.row}
-                  onClick={() => setOpenId(ingredient.id)}
-                >
-                  <td>{ingredient.name}</td>
-                  <td className="num">{formatDecimal(ingredient.energy, 2)}</td>
-                  <td className="num">???</td>
-                  <td className="num">{ingredient.has_sources ? "✓" : "–"}</td>
-                  <td className="secondary">{ingredient.comment || '–'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
+    <ListPage
+      title={t('nav.ingredients')}
+      createLabel="+ Neue Zutat"
+      onCreate={() => setCreateOpen(true)}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder={t('ingredient.searchPlaceholder')}
+      ownerFilter={ownerFilter}
+      onOwnerFilterChange={setOwnerFilter}
+      columns={columns}
+      rows={filtered}
+      getRowKey={(ing) => ing.id}
+      onRowClick={(ing) => setOpenId(ing.id)}
+      isPending={ingredients.isPending}
+      isError={ingredients.isError}
+      error={ingredients.error}
+      errorNoun="Zutaten"
+      emptyMessage="Keine Zutaten gefunden. Lege die erste über „Neue Zutat“ an."
+    >
       {openId !== null && (
         <IngredientDrawer id={openId} onClose={() => setOpenId(null)} />
       )}
-
       {createOpen && (
-        <IngredientDataDrawer ingredient={null} onClose={() => setCreateOpen(false)} />
+        <IngredientDataDrawer
+          ingredient={null}
+          onClose={() => setCreateOpen(false)}
+        />
       )}
-    </div>
+    </ListPage>
   )
 }
-

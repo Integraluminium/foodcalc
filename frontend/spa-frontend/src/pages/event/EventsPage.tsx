@@ -1,40 +1,24 @@
 import {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import type {EventListItem} from '../../api'
-import {GroupFilterSelect} from "../../components/patterns/group_filter/GroupFilterSelect.tsx";
-import {SearchBar} from "../../components/patterns/searchbar/SearchBar.tsx";
-import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
+import {ListPage} from '../../components/layout/list_page/ListPage.tsx'
+import type {DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
 import {useEvents} from '../../hooks/queries/useEvents.ts'
-import {useGroups} from '../../hooks/queries/useMasterData.ts'
-import {useCurrentUser} from '../../hooks/useAuth.ts'
-import {useOwnerFilter} from '../../hooks/useOwnerFilter.ts'
-import {useSearchFilter} from "../../hooks/useSearchFilter.ts";
+import {useGroupName} from '../../hooks/queries/useGroupName.ts'
+import {useFilteredList} from '../../hooks/useFilteredList.ts'
 import {t} from '../../i18n'
 import {formatDateRange, formatDecimal, toNumber} from '../../lib/format.ts'
 import {EventFormDrawer} from './EventFormDrawer.tsx'
 import styles from './EventsPage.module.css'
 
-/**
- * Event-Hub (UI_Spec §3.2): Data-Grid mit Budget-Kennzahl, Klick öffnet den
- * Workspace (UI_Spec §3.4); Anlegen über den Formular-Drawer.
- */
 export default function EventsPage() {
   const navigate = useNavigate()
   const events = useEvents()
-  const {data: groups} = useGroups()
-  const {data: user} = useCurrentUser()
-  const userGroups = user?.groups ?? []
-  const {ownerFilter, setOwnerFilter, matches} = useOwnerFilter()
+  const groupName = useGroupName()
   const [createOpen, setCreateOpen] = useState(false)
-  const { search, setSearch, filtered } = useSearchFilter(
-    events.data,
-    (event) => event.name,
-    matches,
-  )
 
-  const groupName = (groupId: number) =>
-    groups?.find((group) => group.id === groupId)?.name ??
-    t('overview.groupFallback', {id: groupId})
+  const { search, setSearch, ownerFilter, setOwnerFilter, filtered } =
+    useFilteredList(events.data, (event) => event.name)
 
   const columns: DataTableColumn<EventListItem>[] = [
     {
@@ -44,9 +28,7 @@ export default function EventsPage() {
         <>
           {event.name}
           {event.comment && (
-            <span className={`muted ${styles.comment}`}>
-              {' '}· {event.comment}
-            </span>
+            <span className="muted"> · {event.comment}</span>
           )}
         </>
       ),
@@ -93,46 +75,28 @@ export default function EventsPage() {
   ]
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className="section-title">{t('nav.events')}</h1>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => setCreateOpen(true)}
-        >
-          + Neues Event
-        </button>
-      </div>
-
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder={t('event.searchPlaceholder')}
-      >
-        <GroupFilterSelect
-          groups={userGroups}
-          value={ownerFilter}
-          onChange={setOwnerFilter}
-        />
-      </SearchBar>
-
-      <DataTable
-        columns={columns}
-        rows={filtered}
-        getRowKey={(event) => event.id}
-        onRowClick={(event) => void navigate(`/events/${event.id}`)}
-        isPending={events.isPending}
-        isError={events.isError}
-        error={events.error}
-        errorNoun="Events"
-        emptyMessage="Keine Events gefunden. Lege das erste über „Neues Event“ an."
-        withChevron
-      />
-
+    <ListPage
+      title={t('nav.events')}
+      createLabel="+ Neues Event"
+      onCreate={() => setCreateOpen(true)}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder={t('event.searchPlaceholder')}
+      ownerFilter={ownerFilter}
+      onOwnerFilterChange={setOwnerFilter}
+      columns={columns}
+      rows={filtered}
+      getRowKey={(event) => event.id}
+      onRowClick={(event) => void navigate(`/events/${event.id}`)}
+      isPending={events.isPending}
+      isError={events.isError}
+      error={events.error}
+      errorNoun="Events"
+      emptyMessage="Keine Events gefunden. Lege das erste über „Neues Event“ an."
+    >
       {createOpen && (
-        <EventFormDrawer event={null} onClose={() => setCreateOpen(false)}/>
+        <EventFormDrawer event={null} onClose={() => setCreateOpen(false)} />
       )}
-    </div>
+    </ListPage>
   )
 }

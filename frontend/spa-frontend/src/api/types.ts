@@ -119,6 +119,7 @@ export interface Ingredient {
   energy: Decimal
   comment: string | null
   group_id: number
+  has_sources?: boolean
 }
 
 export interface IngredientWithSources extends Ingredient {

@@ -1,4 +1,4 @@
-import PlaceholderPage from "../../../PlaceholderPage.tsx";
+import PlaceholderPage from "../../../placeholder/PlaceholderPage.tsx";
 
 export function KalkulationTab() {
 

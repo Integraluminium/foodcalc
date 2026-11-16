@@ -1,70 +1,60 @@
-import {Layers, Utensils} from "lucide-react";
-import {type ReactNode, useMemo, useState} from 'react'
+import {Layers, Utensils} from 'lucide-react'
+import {type ReactNode, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
-import type {RecipeKind, RecipeListItem} from '../../api/types.ts'
+import type {RecipeKind, RecipeListItem} from '../../api'
+import {ListPage} from '../../components/layout/list_page/ListPage.tsx'
 import {Drawer} from '../../components/patterns/drawer/Drawer.tsx'
-import {GroupFilterSelect} from "../../components/patterns/group_filter/GroupFilterSelect.tsx";
-import {SearchBar} from "../../components/patterns/searchbar/SearchBar.tsx";
-import {SegmentedControl} from "../../components/patterns/segmented_control/SegmentedControl.tsx";
-import {DataTable, type DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
+import type {DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
+import {Badge} from '../../components/ui/badge/Badge.tsx'
+import {SegmentedControl} from '../../components/ui/segmented_control/SegmentedControl.tsx'
 import {useRecipes} from '../../hooks/queries/useRecipes.ts'
-import {useCurrentUser} from '../../hooks/useAuth.ts'
 import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
-import {useOwnerFilter} from '../../hooks/useOwnerFilter.ts'
+import {useFilteredList} from '../../hooks/useFilteredList.ts'
 import {t} from '../../i18n'
 import {formatKjPerG} from '../../lib/format.ts'
-import styles from './RecipesPage.module.css'
 import {RecipeView} from './view/RecipeView.tsx'
 
 type KindFilter = RecipeKind | 'all'
 
-const kindOptions: { value: KindFilter; label: string; icon?:ReactNode }[] = [
-    {value: 'meal', label: 'Gerichte', icon: <Utensils size={16} /> },
-    {value: 'component', label: 'Komponenten', icon: <Layers size={16} /> },
-    {value: 'all', label: 'Alle'},
+const KIND_OPTIONS: { value: KindFilter; label: string; icon?: ReactNode }[] = [
+    { value: 'meal', label: 'Gerichte', icon: <Utensils size={16} /> },
+    { value: 'component', label: 'Komponenten', icon: <Layers size={16} /> },
+    { value: 'all', label: 'Alle' },
 ]
 
-/**
- * Rezept-Hub (UI_Spec §3.2): Filter/Suche, Data-Grid und Detail als
- * Overlay-Drawer — ein Klick inspiziert, ohne die Liste zu verlassen.
- */
 export default function RecipesPage() {
     const navigate = useNavigate()
     const [kind, setKind] = useState<KindFilter>('meal')
-    const [search, setSearch] = useState('')
-    const debouncedSearch = useDebouncedValue(search)
-    const {data: user} = useCurrentUser()
-    const userGroups = user?.groups ?? []
-    const {ownerFilter, setOwnerFilter, matches} = useOwnerFilter()
     const [drawerRecipe, setDrawerRecipe] = useState<RecipeListItem | null>(null)
+
+    // Server handles text search; useFilteredList handles search state + client-side owner filter
+    const { search, setSearch, ownerFilter, setOwnerFilter, filtered } =
+      useFilteredList<RecipeListItem>(undefined)
+    const debouncedSearch = useDebouncedValue(search)
 
     const recipes = useRecipes({
         kind: kind === 'all' ? undefined : kind,
         search: debouncedSearch || undefined,
     })
 
-    const filtered = useMemo(
-        () => (recipes.data ?? []).filter(matches),
-        [recipes.data, matches],
-    )
+    // Apply owner filter to server results
+    const { filtered: rows } = useFilteredList(recipes.data)
 
     const columns: DataTableColumn<RecipeListItem>[] = [
-        {key: 'name', label: 'Name', render: (recipe) => recipe.name},
+        { key: 'name', label: 'Name', render: (recipe) => recipe.name },
         {
             key: 'kind',
             label: 'Typ',
             render: (recipe) => (
-                <span
-                    className={`badge ${recipe.kind === 'meal' ? 'badge--success' : 'badge--info'}`}
-                >
-                    {recipe.kind === 'meal' ? 'Gericht' : 'Komponente'}
-                </span>
+              <Badge variant={recipe.kind === 'meal' ? 'success' : 'info'}>
+                  {recipe.kind === 'meal' ? t('recipe.kind.meal') : t('recipe.kind.component')}
+              </Badge>
             ),
         },
         {
             key: 'comment',
             label: 'Kommentar',
-            className: `muted ${styles.comment}`,
+            className: 'muted',
             render: (recipe) => recipe.comment ?? '–',
         },
         {
@@ -81,91 +71,58 @@ export default function RecipesPage() {
         },
     ]
 
-    const emptyMessage =
-        recipes.data && recipes.data.length > 0
-            ? 'Keine Rezepte für diesen Filter.'
-            : 'Keine Rezepte gefunden. Lege das erste über „Neues Rezept“ an.'
-
     return (
-        <div className={styles.page}>
-            <div className={styles.header}>
-                <h1 className="section-title">{t('nav.recipes')}</h1>
-                <button
-                    type="button"
-                    className="btn btn--primary"
-                    onClick={() => void navigate('/recipes/new')}
-                >
-                    + Neues Rezept
-                </button>
-            </div>
-            <SearchBar
-              value={search}
-              onChange={setSearch}
-              placeholder={t('recipe.searchPlaceholder')}
-            >
-                <SegmentedControl
-                  options={kindOptions}
-                  value={kind}
-                  onChange={setKind}
-                  ariaLabel={t('recipe.filterKind')}
-                />
-                <GroupFilterSelect
-                  groups={userGroups}
-                  value={ownerFilter}
-                  onChange={setOwnerFilter}
-                />
-            </SearchBar>
-
-            <DataTable
-                columns={columns}
-                rows={filtered}
-                getRowKey={(recipe) => recipe.id}
-                onRowClick={setDrawerRecipe}
-                isPending={recipes.isPending}
-                isError={recipes.isError}
-                error={recipes.error}
-                errorNoun="Rezepte"
-                emptyMessage={emptyMessage}
-                withChevron
+      <ListPage
+        title={t('nav.recipes')}
+        createLabel="+ Neues Rezept"
+        onCreate={() => void navigate('/recipes/new')}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t('recipe.searchPlaceholder')}
+        extraFilters={
+            <SegmentedControl
+              options={KIND_OPTIONS}
+              value={kind}
+              onChange={setKind}
+              ariaLabel={t('recipe.filterKind')}
             />
-
-            {drawerRecipe && (
-                <Drawer
-                    title={<DrawerHeader title={drawerRecipe.name} recipeKind={drawerRecipe.kind} owner={drawerRecipe.group_name}/>}
-                    onClose={() => setDrawerRecipe(null)}
-                >
-                    <RecipeView
-                        recipeId={drawerRecipe.id}
-                        variant="overlay"
-                        onDeleted={() => setDrawerRecipe(null)}
-                    />
-                </Drawer>
-            )}
-        </div>
+        }
+        ownerFilter={ownerFilter}
+        onOwnerFilterChange={setOwnerFilter}
+        columns={columns}
+        rows={rows}
+        getRowKey={(recipe) => recipe.id}
+        onRowClick={setDrawerRecipe}
+        isPending={recipes.isPending}
+        isError={recipes.isError}
+        error={recipes.error}
+        errorNoun="Rezepte"
+        emptyMessage={
+            (recipes.data?.length ?? 0) > 0
+              ? 'Keine Rezepte für diesen Filter.'
+              : 'Keine Rezepte gefunden. Lege das erste über „Neues Rezept“ an.'
+        }
+      >
+          {drawerRecipe && (
+            <Drawer
+              title={drawerRecipe.name}
+              onClose={() => setDrawerRecipe(null)}
+            >
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                    <Badge variant={drawerRecipe.kind === 'meal' ? 'success' : 'info'}>
+                        {drawerRecipe.kind === 'meal'
+                          ? t('recipe.kind.meal')
+                          : t('recipe.kind.component')}
+                    </Badge>
+                    <span className="muted">Owner: {drawerRecipe.group_name}</span>
+                </div>
+                <RecipeView
+                  recipeId={drawerRecipe.id}
+                  variant="overlay"
+                  onDeleted={() => setDrawerRecipe(null)}
+                />
+            </Drawer>
+          )}
+      </ListPage>
     )
-}
-
-interface DrawerHeaderProps {
-    title: string
-    recipeKind?: RecipeKind
-    owner?: ReactNode
-    comment?: string
-    // onClose: () => void
-}
-
-function DrawerHeader({title, recipeKind, owner, comment}: DrawerHeaderProps) {
-    return (<>
-        <h1 className="section-title">{title}</h1>
-        <span
-          className={`badge ${
-            recipeKind === 'meal' ? 'badge--success' : 'badge--info'
-          }`}
-        >
-              {recipeKind === 'meal'
-                ? t('recipe.kind.meal')
-                : t('recipe.kind.component')}
-            </span>
-        {owner && <span className="muted">Owner: {owner}</span>}
-        {comment && <p className="muted">{comment}</p>}
-    </>)
 }

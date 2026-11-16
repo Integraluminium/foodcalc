@@ -1,4 +1,4 @@
-import PlaceholderPage from "../PlaceholderPage.tsx";
+import PlaceholderPage from "../placeholder/PlaceholderPage.tsx";
 
 /**
  * Page for static documents (e.g. hygiene forms) that are generic for several events

@@ -2,9 +2,9 @@ import {useState} from 'react'
 import {NavLink, Outlet, useLocation} from 'react-router-dom'
 import {t} from '../../../i18n'
 import {BoxIcon, BrandIcon, CalendarIcon, IngredientsIcon, RecipeIcon,} from '../../ui/icons/icons.tsx'
-import {UserMenu} from '../user_menu/UserMenu.tsx'
 import {Toasts} from '../../ui/toast/Toast.tsx'
 import styles from './AppShell.module.css'
+import {UserMenu} from './user_menu/UserMenu.tsx'
 
 const COLLAPSE_KEY = 'foodcalc.sidebarCollapsed'
 
@@ -45,10 +45,6 @@ export default function AppShell() {
             // Storage unavailable — Auswahl lebt nur in state.
         }
     }
-
-    // REMOVED-BY-DESIGN: Kein Gruppen-Switcher in der Seitenleiste — Gruppen
-    // tauchen bewusst nur bei Erstellung/Bearbeitung auf (Owner-Gruppe wählen,
-    // Besitz übertragen). Nicht wieder einbauen.
 
     return (
         <div className={`${styles.shell} ${collapsed ? styles.workspace : ''}`}>

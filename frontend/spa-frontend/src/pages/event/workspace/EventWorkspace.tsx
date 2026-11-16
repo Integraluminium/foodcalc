@@ -2,8 +2,8 @@ import {CalendarDays, LayoutDashboard, Printer, ShoppingCart, Utensils,} from 'l
 import type {ReactNode} from "react";
 import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router-dom'
 import {BudgetBar} from '../../../components/patterns/budget_bar/BudgetBar.tsx'
-import {SegmentedControl} from '../../../components/patterns/segmented_control/SegmentedControl.tsx'
 import {Badge} from '../../../components/ui/badge/Badge.tsx'
+import {SegmentedControl} from '../../../components/ui/segmented_control/SegmentedControl.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useEvent, useEventMutations} from '../../../hooks/queries/useEvents.ts'
 import {t} from '../../../i18n'

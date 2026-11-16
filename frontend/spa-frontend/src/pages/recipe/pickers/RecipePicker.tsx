@@ -1,7 +1,7 @@
 import type {KeyboardEvent} from 'react'
 import {useState} from 'react'
 import {SearchBar} from "../../../components/patterns/searchbar/SearchBar.tsx";
-import {SegmentedControl} from "../../../components/patterns/segmented_control/SegmentedControl.tsx";
+import {SegmentedControl} from "../../../components/ui/segmented_control/SegmentedControl.tsx";
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useRecipes} from '../../../hooks/queries/useRecipes.ts'
 import {useDebouncedValue} from '../../../hooks/useDebouncedValue.ts'
