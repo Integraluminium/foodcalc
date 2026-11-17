@@ -177,25 +177,59 @@ function RecipeViewContent({
 
   return (
     <div className={isPage ? styles.page : styles.overlayBody}>
-      {isPage && (
-        <Link to="/recipes" className="secondary">
-          <ArrowLeft size={14} /> {t('nav:recipes')}
-        </Link>
+
+      {isPage ? (
+        <>
+          <Link to="/recipes" className={`secondary ${styles.backLink}`}>
+            <ArrowLeft size={15} />
+            {t('nav:recipes')}
+          </Link>
+
+
+          <EntityHeader
+            title={isPage ? recipe.name : undefined}
+            actions={actions}
+            badges={buildRecipeBadges(recipe, groupName(recipe.group_id))}
+            stats={buildStatsData(recipe)}
+            comment={recipe.comment}
+          />
+        </>
+      ) : (
+        <div className={styles.overlayHeader}>
+          {buildRecipeBadges(recipe, groupName(recipe.group_id))
+            .map((badge, index) => (
+              <Badge key={badge.title ?? index} {...badge} />
+            ))}
+          {recipe.comment && <p className="muted">{recipe.comment}</p>}
+          <div className={styles.overlayActions}>
+            <Link to={`/recipes/${recipe.id}`} className="secondary">
+              {t('recipes:detail.openFullView')}
+            </Link>
+            {actions}
+          </div>
+        </div>
       )}
 
-      <EntityHeader
-        title={isPage ? recipe.name : undefined}
-        actions={actions}
-        badges={buildRecipeBadges(recipe, groupName(recipe.group_id))}
-        stats={buildStatsData(recipe)}
-        comment={recipe.comment}
-      />
 
-      {!isPage && (
-        <Link to={`/recipes/${recipe.id}`} className="secondary">
-          {t('recipes:detail.openFullView')}
-        </Link>
-      )}
+      {/*{isPage && (*/}
+      {/*  <Link to="/recipes" className="secondary">*/}
+      {/*    <ArrowLeft size={14} /> {t('nav:recipes')}*/}
+      {/*  </Link>*/}
+      {/*)}*/}
+
+      {/*<EntityHeader*/}
+      {/*  title={isPage ? recipe.name : undefined}*/}
+      {/*  actions={actions}*/}
+      {/*  badges={buildRecipeBadges(recipe, groupName(recipe.group_id))}*/}
+      {/*  stats={buildStatsData(recipe)}*/}
+      {/*  comment={recipe.comment}*/}
+      {/*/>*/}
+
+      {/*{!isPage && (*/}
+      {/*  <Link to={`/recipes/${recipe.id}`} className="secondary">*/}
+      {/*    {t('recipes:detail.openFullView')}*/}
+      {/*  </Link>*/}
+      {/*)}*/}
 
       <p className={`muted ${styles.hint}`}>{t('recipes:detail.scalingHint')}</p>
 
