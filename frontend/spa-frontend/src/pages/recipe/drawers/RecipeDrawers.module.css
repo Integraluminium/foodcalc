@@ -30,7 +30,7 @@
 }
 
 .calcLine strong {
-  color: var(--text);
+  color: var(--text-primary);
 }
 
 /* Mengenzelle: Zahl + Einheit ohne Umbruch nebeneinander. */

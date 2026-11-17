@@ -1,10 +1,3 @@
-.badges {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  align-items: center;
-}
-
 .facts {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -22,75 +15,13 @@
   min-width: 0;
 }
 
-
-.budgetRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-variant-numeric: tabular-nums;
-}
-
 .over {
   color: var(--danger);
   font-weight: 600;
 }
 
-
-.tabSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.tabToolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.dayCard {
-  padding: var(--space-4) var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.dayHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
 .dayTotals {
   font-variant-numeric: tabular-nums;
-}
-
-.time {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.warnBadge {
-  margin-left: 6px;
-}
-
-.mealComment {
-  font-size: var(--text-sm);
-}
-
-.density {
-  font-size: var(--text-sm);
-}
-
-.rowActions {
-  display: flex;
-  gap: 2px;
-  align-items: center;
-  justify-content: flex-end;
 }
 
 .iconButton {
@@ -139,10 +70,6 @@
   padding: var(--space-2) 0;
 }
 
-.mealRow {
-  cursor: pointer;
-}
-
 .checkList {
   display: flex;
   flex-direction: column;
@@ -163,12 +90,6 @@
   cursor: pointer;
 }
 
-.drawerForm {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
 .exportGrid {
   display: flex;
   flex-wrap: wrap;
@@ -179,9 +100,3 @@
   flex: 1 1 240px;
 }
 
-.presetRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  align-items: center;
-}

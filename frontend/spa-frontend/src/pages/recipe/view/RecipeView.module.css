@@ -12,28 +12,11 @@
   gap: var(--space-4);
 }
 
-.center {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-5);
-}
-
-
-.overlayBody .stat strong {
-  font-size: var(--text-lg);
-}
-
 .hint {
   margin-top: -6px;
   font-size: var(--text-sm);
 }
 
-.section {
-  padding: var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
 
 .chips {
   display: flex;
@@ -68,10 +51,4 @@
   gap: var(--space-1);
   flex: 1;
   min-width: 0;
-}
-
-@media (max-width: 720px) {
-  .stats {
-    grid-template-columns: 1fr;
-  }
 }
