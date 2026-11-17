@@ -1,4 +1,4 @@
-import {CalendarDays, Clock, LayoutDashboard, Pencil, Printer, ShoppingCart, Utensils,} from 'lucide-react'
+import {BellRing, CalendarDays, Clock, LayoutDashboard, Pencil, Printer, ShoppingCart, Utensils,} from 'lucide-react'
 import {type ReactNode, useState} from 'react'
 import {useTranslation} from "react-i18next";
 import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router-dom'
@@ -11,7 +11,7 @@ import {eventAggregates} from '../../../lib/eventAggregation.ts'
 import {formatDateRange, toNumber} from '../../../lib/format.ts'
 import {EventMetadataDrawer} from './overview/EventMetadataDrawer.tsx'
 
-type TabPath = '' | 'plan' | 'shopping' | 'kalkulation' | 'timeline'
+type TabPath = '' | 'plan' | 'shopping' | 'kalkulation' | 'timeline' | 'live'
 
 export default function EventWorkspace() {
   const { t } = useTranslation([])
@@ -62,6 +62,7 @@ export default function EventWorkspace() {
     { value: '', label:t('events:workspace.tabs.overview'), icon: <LayoutDashboard size={16} /> },
     { value: 'plan', label:t('events:workspace.tabs.plan'), icon: <Utensils size={16} /> },
     { value: 'shopping', label:t('events:workspace.tabs.shopping'), icon: <ShoppingCart size={16} /> },
+    { value: 'live', label:t('events:workspace.tabs.live'), icon: <BellRing size={16} /> },
     { value: 'kalkulation', label:t('events:workspace.tabs.calc'), icon: <Printer size={16} /> },
     { value: 'timeline', label:t('events:workspace.tabs.timeline'), icon: <CalendarDays size={16} /> },
   ]

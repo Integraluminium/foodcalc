@@ -68,6 +68,14 @@ const router = createBrowserRouter([
     lazy: lazyRoute(() => import('./pages/login/RegisterPage.tsx')),
   },
   {
+    path: '/status-board/:eventId/kitchen',
+    lazy: lazyRoute(() => import('./pages/display/KitchenDisplayPage.tsx')),
+  },
+  {
+    path: '/status-board/:eventId/serving',
+    lazy: lazyRoute(() => import('./pages/display/ServingDisplayPage.tsx')),
+  },
+  {
     element: (
       <RequireAuth>
         <AppShell />
@@ -147,6 +155,13 @@ const router = createBrowserRouter([
             lazy: lazyRoute(
               () => import('./pages/event/workspace/timeline/TimelineTab.tsx'),
               'TimelineTab',
+            ),
+          },
+          {
+            path: 'live',
+            lazy: lazyRoute(
+              () => import('./pages/event/workspace/live/LiveBoardTab.tsx'),
+              'LiveBoardTab',
             ),
           },
         ],

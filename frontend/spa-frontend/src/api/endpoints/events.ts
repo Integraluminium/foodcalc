@@ -10,6 +10,7 @@ import type {
   ShoppingList,
   ShoppingTour,
   SourceOverride,
+  StatusBoardSnapshot,
 } from '../types'
 
 export interface EventCreateInput {
@@ -122,4 +123,27 @@ export const eventsApi = {
     api.delete<void>(`/events/${eventId}/inventories/${inventoryId}`),
   inventoryCoverage: (eventId: number) =>
     api.get<EventInventoryCoverage[]>(`/events/${eventId}/inventory-coverage`),
+
+
+  createReorder: (
+    eventId: number,
+    input: { meal_id: number; amount_label: string; urgency: string; note?: string },
+  ) => api.post<{ id: number }>(`/events/${eventId}/reorders`, input),
+
+  advanceReorder: (eventId: number, reorderId: number, status: string) =>
+    api.put<void>(`/events/${eventId}/reorders/${reorderId}/status`, { status }),
+
+  setMealAvailability: (
+    eventId: number,
+    mealId: number,
+    availability: string,
+    eta_minutes?: number | null,
+  ) =>
+    api.put<void>(`/events/${eventId}/meals/${mealId}/availability`, {
+      availability,
+      eta_minutes: eta_minutes ?? null,
+    }),
+
+  statusBoard: (eventId: number) =>
+    api.get<StatusBoardSnapshot>(`/events/${eventId}/status-board`),
 }

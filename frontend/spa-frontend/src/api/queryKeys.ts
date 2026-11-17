@@ -32,6 +32,7 @@ export const queryKeys = {
     tours: (id: number) => ['events', 'tours', id] as const,
     inventories: (id: number) => ['events', 'inventories', id] as const,
     inventoryCoverage: (id: number) => ['events', 'inventory-coverage', id] as const,
+    statusBoard: (id: number) => ['events', 'status-board', id] as const,
   },
   inventories: {
     list: ['inventories', 'list'] as const,

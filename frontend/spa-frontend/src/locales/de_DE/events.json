@@ -228,6 +228,7 @@
     "statusBadge": "Status: {{status}}",
     "tabs": {
       "calc": "Kalkulation",
+      "live": "Statusboard",
       "overview": "Übersicht",
       "plan": "Speiseplan",
       "shopping": "Einkäufe & Logistik",

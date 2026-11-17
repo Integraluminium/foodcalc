@@ -372,3 +372,75 @@ export interface InventoryItemWithName {
   amount: Decimal
   name: string
 }
+
+// ---------------------------------------------------------------------------
+// Live Status Board (Kitchen & Ausgabe)
+// ---------------------------------------------------------------------------
+
+export type ReorderUrgency = 'normal' | 'urgent' | 'critical'
+export type ReorderStatus = 'requested' | 'preparing' | 'en_route' | 'delivered'
+export type ServingAvailability = 'available' | 'low' | 'replenishing' | 'sold_out'
+
+export interface KitchenReorderItem {
+  id: number
+  meal_id: number
+  dish_name: string
+  amount_label: string
+  station: string
+  urgency: ReorderUrgency
+  status: ReorderStatus
+  note: string | null
+  requested_at: IsoDateTime
+}
+
+export interface OutgoingBatchItem {
+  meal_id: number
+  dish_name: string
+  serving_time: IsoDateTime
+  portions: number
+  availability: ServingAvailability
+  ready_for_dispatch: boolean
+}
+
+export interface KitchenPrepTask {
+  id: string
+  title: string
+  dish_name: string
+  target_time: IsoDateTime
+  quantity_label: string | null
+  assignee: string | null
+  status: 'todo' | 'in_progress'
+}
+
+export interface DishPropertyTag {
+  id: number
+  name: string
+  code: string | null
+  is_allergen: boolean
+}
+
+export interface ServingDishItem {
+  meal_id: number
+  dish_name: string
+  dish_name_en: string | null
+  description: string | null
+  serving_start: IsoDateTime
+  serving_end: IsoDateTime | null
+  availability: ServingAvailability
+  eta_minutes: number | null
+  properties: DishPropertyTag[]
+}
+
+export interface StatusBoardSnapshot {
+  event_name: string
+  server_time: IsoDateTime
+  kitchen: {
+    reorders: KitchenReorderItem[]
+    outgoing: OutgoingBatchItem[]
+    prep_tasks: KitchenPrepTask[]
+  }
+  serving: {
+    current: ServingDishItem[]
+    upcoming: ServingDishItem[]
+  }
+}
