@@ -19,6 +19,7 @@
     "energy": "Energie (kJ/g)",
     "energyHint": "Energiedichte — Basis der energiebasierten Skalierung in Events.",
     "fullView": "Vollansicht öffnen →",
+    "hasSources": "Hat Bezugsquellen",
     "invalidId": "Ungültige Zutat-ID.",
     "loadError": "Zutat konnte nicht geladen werden: {{error}}",
     "name": "Name",
@@ -46,6 +47,7 @@
     "colHasSources": "Hat Quellen",
     "create": "+ Neue Zutat",
     "createTitle": "Neue Zutat",
+    "empty": "Keine Zutaten gefunden. Lege die erste über „Neue Zutat“ an.",
     "filterKind": "Typ",
     "noun": "Zutaten",
     "searchPlaceholder": "Zutat suchen…"

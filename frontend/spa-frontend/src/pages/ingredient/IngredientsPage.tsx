@@ -1,9 +1,10 @@
-import {t} from "i18next";
-import {Check, X} from "lucide-react";
+import {Check, X} from 'lucide-react'
 import {useState} from 'react'
+import {useTranslation} from 'react-i18next'
 import type {Ingredient} from '../../api'
 import {ListPage} from '../../components/layout/list_page/ListPage.tsx'
 import type {DataTableColumn} from '../../components/patterns/table/DataTable.tsx'
+import {Badge} from '../../components/ui/badge/Badge.tsx'
 import {useIngredients} from '../../hooks/queries/useIngredients.ts'
 import {useDebouncedValue} from '../../hooks/useDebouncedValue.ts'
 import {useFilteredList} from '../../hooks/useFilteredList.ts'
@@ -12,6 +13,7 @@ import {IngredientDataDrawer} from './drawers/IngredientDataDrawer.tsx'
 import {IngredientDrawer} from './view/IngredientView.tsx'
 
 export default function IngredientsPage() {
+  const { t } = useTranslation([])
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
   const ingredients = useIngredients({ search: debouncedSearch || undefined })
@@ -21,10 +23,10 @@ export default function IngredientsPage() {
   const [openId, setOpenId] = useState<number | null>(null)
 
   const columns: DataTableColumn<Ingredient>[] = [
-    { key: 'name', label: 'Name', render: (ing) => ing.name },
+    { key: 'name', label: t('ingredients:detail.name'), render: (ing) => ing.name },
     {
       key: 'energy',
-      label: 'Energie (kJ/g)',
+      label: t('ingredients:detail.energy'),
       align: 'num',
       render: (ing) => formatDecimal(ing.energy, 2),
     },
@@ -36,18 +38,22 @@ export default function IngredientsPage() {
     },
     {
       key: 'sources',
-      label: 'Hat Quellen',
+      label: t('ingredients:detail.hasSources'),
       align: 'num',
       render: (ing) =>
         ing.has_sources ? (
-          <Check size={16} className="text-success" />
+          <Badge variant="success">
+            <Check size={14} aria-label={t('common:yes')} />
+          </Badge>
         ) : (
-          <X size={16} className="text-danger" />
+          <Badge variant="neutral">
+            <X size={14} aria-label={t('common:no')} />
+          </Badge>
         ),
     },
     {
       key: 'comment',
-      label: 'Kommentar',
+      label: t('recipes:drawers.comment'),
       className: 'secondary',
       render: (ing) => ing.comment || '–',
     },
@@ -56,7 +62,7 @@ export default function IngredientsPage() {
   return (
     <ListPage
       title={t('nav:ingredients')}
-      createLabel="+ Neue Zutat"
+      createLabel={`+ ${t('ingredients:list.createTitle')}`}
       onCreate={() => setCreateOpen(true)}
       search={search}
       onSearchChange={setSearch}
@@ -70,8 +76,9 @@ export default function IngredientsPage() {
       isPending={ingredients.isPending}
       isError={ingredients.isError}
       error={ingredients.error}
-      errorNoun="Zutaten"
-      emptyMessage="Keine Zutaten gefunden. Lege die erste über „Neue Zutat“ an."
+      errorNoun={t('nav:ingredients')}
+      emptyMessage={t(
+        'ingredients:list.empty')}
     >
       {openId !== null && (
         <IngredientDrawer id={openId} onClose={() => setOpenId(null)} />

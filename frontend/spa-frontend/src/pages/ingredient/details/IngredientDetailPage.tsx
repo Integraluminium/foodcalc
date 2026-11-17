@@ -1,12 +1,12 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { IngredientDataDrawer } from '../drawers/IngredientDataDrawer.tsx'
-import { IngredientView } from '../view/IngredientView.tsx'
+import {useTranslation} from 'react-i18next'
+import {Link, useNavigate, useParams} from 'react-router-dom'
+import {CardSection} from '../../../components/patterns/card_section/CardSection.tsx'
+import {IngredientDataDrawer} from '../drawers/IngredientDataDrawer.tsx'
+import styles from '../view/IngredientView.module.css'
+import {IngredientView} from '../view/IngredientView.tsx'
 
-/**
- * Zutaten-Vollansicht (Deep-Link) — dieselbe geteilte `IngredientView` wie
- * der Hub-Drawer. `new` öffnet sofort den Stammdaten-Drawer (Create).
- */
 export default function IngredientDetailPage() {
+  const { t } = useTranslation([])
   const params = useParams()
   const ingredientId = Number(params.ingredientId)
 
@@ -15,9 +15,13 @@ export default function IngredientDetailPage() {
   }
   if (!Number.isFinite(ingredientId) || ingredientId <= 0) {
     return (
-      <p className="secondary">
-        Ungültige Zutat-ID. <Link to="/ingredients">Zurück zur Liste</Link>
-      </p>
+      <div className={styles.page}>
+        <CardSection title={t('common:state.error')}>
+          <p className="secondary">
+            Ungültige Zutat-ID. <Link to="/ingredients">Zurück zur Liste</Link>
+          </p>
+        </CardSection>
+      </div>
     )
   }
   return <IngredientView ingredientId={ingredientId} variant="page" />
@@ -26,6 +30,9 @@ export default function IngredientDetailPage() {
 function CreateAnchor() {
   const navigate = useNavigate()
   return (
-    <IngredientDataDrawer ingredient={null} onClose={() => void navigate('/ingredients')} />
+    <IngredientDataDrawer
+      ingredient={null}
+      onClose={() => void navigate('/ingredients')}
+    />
   )
 }

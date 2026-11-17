@@ -1,34 +1,33 @@
-import {t} from "i18next";
+import {ArrowLeft, Pencil, Plus, Trash2, X} from 'lucide-react'
 import {useState} from 'react'
+import {useTranslation} from 'react-i18next'
 import {Link, useNavigate} from 'react-router-dom'
-import type {IngredientDetail, Property} from '../../../api/types.ts'
+import type {IngredientDetail, Property} from '../../../api'
+import {CardSection} from '../../../components/patterns/card_section/CardSection.tsx'
 import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
 import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
+import {EntityHeader} from '../../../components/patterns/entity_header/EntityHeader.tsx'
 import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
+import {Badge} from '../../../components/ui/badge/Badge.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredient, useIngredientMutations, useIngredientUsages,} from '../../../hooks/queries/useIngredients.ts'
-import {useGroups, useProperties, useStores, useUnits} from '../../../hooks/queries/useMasterData.ts'
+import {useGroups, useProperties, useStores, useUnits,} from '../../../hooks/queries/useMasterData.ts'
 import {usePermissions} from '../../../hooks/usePermissions.ts'
 import {formatDecimal, toNumber} from '../../../lib/format.ts'
-import {IngredientDataDrawer} from '../drawers/IngredientDataDrawer.tsx'
-import {IngredientSourcesDrawer} from '../drawers/IngredientSourcesDrawer.tsx'
+import {IngredientDataDrawer, IngredientDataForm,} from '../drawers/IngredientDataDrawer.tsx'
+import {IngredientSourcesDrawer, SourcesEditor,} from '../drawers/IngredientSourcesDrawer.tsx'
 import styles from './IngredientView.module.css'
 
-/**
- * Zutaten-Ansicht (page = Deep-Link /ingredients/:id, overlayBody = Hub-Drawer):
- * Read-Übersicht mit Inline-Kleingedits (Eigenschaften, Einheitsgewichte) und
- * Triggern für die Bearbeiter-Drawers (Stammdaten, Bezugsquellen). Muster wie
- * RecipeView — keine versehentliche Bearbeitung, Edit-Aktionen sind explizit.
- */
 export function IngredientView({
-  ingredientId,
-  variant = 'page',
-  onDeleted,
-}: {
+                                 ingredientId,
+                                 variant = 'page',
+                                 onDeleted,
+                               }: {
   ingredientId: number
   variant?: 'page' | 'overlayBody'
   onDeleted?: () => void
 }) {
+  const { t } = useTranslation([])
   const detail = useIngredient(ingredientId)
   const isPage = variant === 'page'
 
@@ -52,99 +51,191 @@ export function IngredientView({
 }
 
 function IngredientViewBody({
-  detail,
-  isPage,
-  onDeleted,
-}: {
+                              detail,
+                              isPage,
+                              onDeleted,
+                            }: {
   detail: IngredientDetail
   isPage: boolean
   onDeleted?: () => void
 }) {
+  const { t } = useTranslation(['ingredients', "common", "nav"])
   const navigate = useNavigate()
   const ingredient = detail.ingredient
   const mutations = useIngredientMutations(ingredient.id)
   const usages = useIngredientUsages(ingredient.id)
   const groups = useGroups()
   const stores = useStores()
+  const units = useUnits()
   const { canEditGroup, canManageGroup } = usePermissions()
 
   const editable = canEditGroup(ingredient.group_id)
   const groupName =
     groups.data?.find((group) => group.id === ingredient.group_id)?.name ??
-    ingredient.group_id
+    String(ingredient.group_id)
 
-  const [drawer, setDrawer] = useState<'data' | 'sources' | null>(null)
+  const [subView, setSubView] = useState<'data' | 'sources' | null>(null)
   const [transferOpen, setTransferOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   const usageCount = usages.data?.length ?? 0
 
+  // Im Hub-Drawer (overlayBody) Unteransichten direkt im selben Drawer öffnen
+  if (!isPage && subView === 'data') {
+    return (
+      <div className={styles.overlayBody}>
+        <div className={styles.subNav}>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => setSubView(null)}
+          >
+            <ArrowLeft size={15} />
+            {t('ingredients:detail.dataTitle')}
+          </button>
+        </div>
+        <IngredientDataForm
+          ingredient={detail}
+          showInlineActions
+          onDone={() => setSubView(null)}
+        />
+      </div>
+    )
+  }
+
+  if (!isPage && subView === 'sources') {
+    return (
+      <div className={styles.overlayBody}>
+        <div className={styles.subNav}>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => setSubView(null)}
+          >
+            <ArrowLeft size={15} />
+            {t('ingredients:detail.sourcesDrawerTitle')}
+          </button>
+        </div>
+        <SourcesEditor
+          detail={detail}
+          stores={stores.data ?? []}
+          units={units.data ?? []}
+        />
+      </div>
+    )
+  }
+
+  const headerBadges = (
+    <div className={styles.badges}>
+      <Badge variant="info">{formatDecimal(ingredient.energy, 2)} kJ/g</Badge>
+      <Badge variant="neutral">{groupName}</Badge>
+    </div>
+  )
+
+  const headerActions = (
+    <div className="row-actions">
+      {canManageGroup(ingredient.group_id) && (
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => setTransferOpen(true)}
+        >
+          {t('common:transfer.open')}
+        </button>
+      )}
+      {editable && (
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => setSubView('data')}
+        >
+          <Pencil size={15} />
+          {t('ingredients:detail.triggerData')}
+        </button>
+      )}
+      {editable && (
+        <button
+          type="button"
+          className="btn btn--danger"
+          onClick={() => setConfirmDelete(true)}
+        >
+          <Trash2 size={15} />
+          {t('common:actions.delete')}
+        </button>
+      )}
+    </div>
+  )
+
   return (
     <div className={isPage ? styles.page : styles.overlayBody}>
-      {isPage && (
-        <Link to="/ingredients" className="secondary">
-          ← {t('nav:ingredients')}
-        </Link>
-      )}
+      {isPage ? (
+        <>
+          <Link to="/ingredients" className={`secondary ${styles.backLink}`}>
+            <ArrowLeft size={15} />
+            {t('nav:ingredients')}
+          </Link>
 
-      <div className={`card ${styles.header}`}>
-        <div className={styles.headerMain}>
-          <h1 className="section-title">{ingredient.name}</h1>
-          <div className={styles.badges}>
-            <span className="badge badge--info">
-              {formatDecimal(ingredient.energy, 2)} kJ/g
-            </span>
-            <span className="badge badge--neutral">{groupName}</span>
-          </div>
+          <EntityHeader
+            title={ingredient.name}
+            subtitle={ingredient.comment ?? undefined}
+            badges={headerBadges}
+            stats={[
+              {
+                key: 'energy',
+                label: t('ingredients:detail.energy'),
+                stats: `${formatDecimal(ingredient.energy, 2)} kJ/g`,
+              },
+              {
+                key: 'sources',
+                label: t('ingredients:detail.sourcesTitle'),
+                stats: "" + detail.sources.length,
+              },
+              {
+                key: 'usages',
+                label: t('ingredients:detail.usagesTitle'),
+                stats: usages.isPending ? '…' : "" + usageCount,
+              },
+            ]}
+            actions={headerActions}
+          />
+        </>
+      ) : (
+        <div className={styles.overlayHeader}>
+          {headerBadges}
           {ingredient.comment && <p className="muted">{ingredient.comment}</p>}
+          <div className={styles.overlayActions}>
+            <Link to={`/ingredients/${ingredient.id}`} className="secondary">
+              {t('ingredients:detail.fullView')}
+            </Link>
+            {headerActions}
+          </div>
         </div>
-        <div className={styles.headerActions}>
-          {canManageGroup(ingredient.group_id) && (
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setTransferOpen(true)}
-            >
-              {t('common:transfer.open')}
-            </button>
-          )}
-          {editable && (
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setDrawer('data')}
-            >
-              {t('ingredients:detail.triggerData')}
-            </button>
-          )}
-          {editable && (
-            <button
-              type="button"
-              className="btn btn--danger"
-              onClick={() => setConfirmDelete(true)}
-            >
-              {t('common:actions.delete')}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {!isPage && (
-        <Link to={`/ingredients/${ingredient.id}`} className="secondary">
-          {t('ingredients:detail.fullView')}
-        </Link>
       )}
 
       <PropertiesSection detail={detail} editable={editable} />
       <WeightsSection detail={detail} editable={editable} />
 
-      <section className="card">
-        <h2 className="section-subtitle">{t('ingredients:detail.sourcesTitle')}</h2>
-        {detail.sources.length === 0 ? (
-          <p className="muted">{t('ingredients:detail.sourcesEmpty')}</p>
-        ) : (
-          <table className="table">
-            <thead>
+      <CardSection
+        title={t('ingredients:detail.sourcesTitle')}
+        actions={
+          editable && (
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setSubView('sources')}
+            >
+              <Pencil size={15} />
+              {t('ingredients:detail.triggerSources')}
+            </button>
+          )
+        }
+      >
+        <div className={styles.sectionBody}>
+          {detail.sources.length === 0 ? (
+            <p className="muted">{t('ingredients:detail.sourcesEmpty')}</p>
+          ) : (
+            <table className="table">
+              <thead>
               <tr>
                 <th>{t('ingredients:detail.colStore')}</th>
                 <th className="num">{t('ingredients:detail.colPackage')}</th>
@@ -152,20 +243,28 @@ function IngredientViewBody({
                 <th className="num">€/kg</th>
                 <th>{t('ingredients:detail.colUrl')}</th>
               </tr>
-            </thead>
-            <tbody>
+              </thead>
+              <tbody>
               {detail.sources.map((source) => {
                 const size = toNumber(source.package_size)
                 const price = toNumber(source.price)
-                const perKg = size !== null && size > 0 && price !== null ? price / size : null
+                const perKg =
+                  size !== null && size > 0 && price !== null
+                    ? price / size
+                    : null
+                const unitName =
+                  units.data?.find((u) => u.id === source.unit_id)?.name ?? ''
+
                 return (
                   <tr key={source.id}>
                     <td>
-                      {stores.data?.find((store) => store.id === source.store_id)?.name ??
-                        source.store_id}
+                      {stores.data?.find((s) => s.id === source.store_id)
+                        ?.name ?? source.store_id}
                     </td>
-                    <td className="num">{formatDecimal(source.package_size)}</td>
-                    <td className="num">{formatDecimal(source.price)}</td>
+                    <td className="num">
+                      {formatDecimal(source.package_size)} {unitName}
+                    </td>
+                    <td className="num">{formatDecimal(source.price)} €</td>
                     <td className="num">
                       {perKg === null ? '–' : formatDecimal(perKg, 2)}
                     </td>
@@ -181,48 +280,46 @@ function IngredientViewBody({
                   </tr>
                 )
               })}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          )}
+        </div>
+      </CardSection>
 
-        )}
-        {editable && (
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={() => setDrawer('sources')}
-          >
-            {t('ingredients:detail.triggerSources')}
-          </button>
-        )}
-      </section>
+      <CardSection title={t('ingredients:detail.usagesTitle')}>
+        <div className={styles.sectionBody}>
+          {usages.isPending ? (
+            <Spinner size="sm" />
+          ) : usages.isError ? (
+            <p className="secondary">{String(usages.error)}</p>
+          ) : usageCount === 0 ? (
+            <p className="muted">{t('ingredients:detail.usagesEmpty')}</p>
+          ) : (
+            <ul className={styles.usageList}>
+              {usages.data?.map((recipe) => (
+                <li key={recipe.id}>
+                  <Link to={`/recipes/${recipe.id}`}>{recipe.name}</Link>
+                  <Badge variant="neutral">
+                    {t(`recipes:detail.kind.${recipe.kind}`)}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </CardSection>
 
-      <section className="card">
-        <h2 className="section-subtitle">{t('ingredients:detail.usagesTitle')}</h2>
-        {usages.isPending ? (
-          <Spinner size="sm" />
-        ) : usages.isError ? (
-          <p className="secondary">{String(usages.error)}</p>
-        ) : (usages.data?.length ?? 0) === 0 ? (
-          <p className="muted">{t('ingredients:detail.usagesEmpty')}</p>
-        ) : (
-          <ul className={styles.usageList}>
-            {usages.data?.map((recipe) => (
-              <li key={recipe.id}>
-                <Link to={`/recipes/${recipe.id}`}>{recipe.name}</Link>
-                <span className="badge badge--neutral">
-                  {t(`recipes:detail.kind.${recipe.kind}`)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {drawer === 'data' && (
-        <IngredientDataDrawer ingredient={detail} onClose={() => setDrawer(null)} />
+      {isPage && subView === 'data' && (
+        <IngredientDataDrawer
+          ingredient={detail}
+          onClose={() => setSubView(null)}
+        />
       )}
-      {drawer === 'sources' && (
-        <IngredientSourcesDrawer ingredientId={ingredient.id} onClose={() => setDrawer(null)} />
+      {isPage && subView === 'sources' && (
+        <IngredientSourcesDrawer
+          ingredientId={ingredient.id}
+          onClose={() => setSubView(null)}
+        />
       )}
       {transferOpen && (
         <OwnerTransferDialog
@@ -237,11 +334,11 @@ function IngredientViewBody({
           title={t('ingredients:detail.deleteTitle')}
           message={
             usageCount > 0
-              ?t('ingredients:detail.deleteUsagesWarning', {
-                  name: ingredient.name,
-                  count: usageCount,
-                })
-              :t('ingredients:detail.deleteConfirm', { name: ingredient.name })
+              ? t('ingredients:detail.deleteUsagesWarning', {
+                name: ingredient.name,
+                count: usageCount,
+              })
+              : t('ingredients:detail.deleteConfirm', { name: ingredient.name })
           }
           pending={mutations.remove.isPending}
           onConfirm={() =>
@@ -260,14 +357,14 @@ function IngredientViewBody({
   )
 }
 
-/** Eigenschaften: Badges mit Inline-Entfernen + Add-Select (Edit-Modus). */
 function PropertiesSection({
-  detail,
-  editable,
-}: {
+                             detail,
+                             editable,
+                           }: {
   detail: IngredientDetail
   editable: boolean
 }) {
+  const { t } = useTranslation([])
   const mutations = useIngredientMutations(detail.ingredient.id)
   const properties = useProperties()
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -276,69 +373,77 @@ function PropertiesSection({
   const available = (properties.data ?? []).filter(
     (property: Property) => !assigned.has(property.id),
   )
+  const filteredAvailable = available.filter((property) =>
+    property.name.toLowerCase().includes(search.toLowerCase()),
+  )
 
   return (
-    <section className="card">
-      <h2 className="section-subtitle">{t('ingredients:detail.propertiesTitle')}</h2>
-      <div className={styles.badges}>
-        {detail.properties.length === 0 && (
-          <span className="muted">{t('ingredients:detail.propertiesEmpty')}</span>
-        )}
-        {detail.properties.map((property) => (
-          <span key={property.id} className="badge badge--neutral">
-            {property.name}
-            {editable && (
-              <button
-                type="button"
-                className={styles.badgeRemove}
-                title={t('common:actions.delete')}
-                onClick={() => mutations.removeProperty.mutate(property.id)}
-              >
-                ✕
-              </button>
-            )}
-          </span>
-        ))}
-      </div>
-      {editable && available.length > 0 && (
-        <>
+    <CardSection
+      title={t('ingredients:detail.propertiesTitle')}
+      actions={
+        editable &&
+        available.length > 0 && (
           <button
             type="button"
             className="btn btn--ghost"
             onClick={() => setPickerOpen((value) => !value)}
           >
+            <Plus size={15} />
             {t('ingredients:detail.addProperty')}
           </button>
-          {pickerOpen && (
-            <div className={styles.pickerPanel}>
-              <input
-                className="input"
-                placeholder={t('recipes:pickers.search')}
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                autoFocus
-              />
-              <div className={styles.pickerList}>
-                {available
-                  .filter((property) =>
-                    property.name.toLowerCase().includes(search.toLowerCase()),
-                  )
-                  .map((property) => (
-                    <button
-                      type="button"
-                      key={property.id}
-                      className={styles.pickerRow}
-                      onClick={() => mutations.addProperty.mutate(property.id)}
-                    >
-                      <span>{property.name}</span>
-                    </button>
-                  ))}
-                {available.filter((property) =>
-                  property.name.toLowerCase().includes(search.toLowerCase()),
-                ).length === 0 && (
-                  <p className="muted">{t('recipes:pickers.empty')}</p>
-                )}
-              </div>
+        )
+      }
+    >
+      <div className={styles.sectionBody}>
+        <div className={styles.badges}>
+          {detail.properties.length === 0 && (
+            <span className="muted">{t('ingredients:detail.propertiesEmpty')}</span>
+          )}
+          {detail.properties.map((property) => (
+            <Badge key={property.id} variant="neutral">
+              {property.name}
+              {editable && (
+                <button
+                  type="button"
+                  className={styles.badgeRemove}
+                  title={t('common:actions.delete')}
+                  onClick={() => mutations.removeProperty.mutate(property.id)}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </Badge>
+          ))}
+        </div>
+
+        {editable && pickerOpen && (
+          <div className={styles.pickerPanel}>
+            <input
+              className="input"
+              placeholder={t('recipes:pickers.search')}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              autoFocus
+            />
+            <div className={styles.pickerList}>
+              {filteredAvailable.map((property) => (
+                <button
+                  type="button"
+                  key={property.id}
+                  className={styles.pickerRow}
+                  onClick={() => mutations.addProperty.mutate(property.id)}
+                >
+                  <span>{property.name}</span>
+                  <Plus size={14} />
+                </button>
+              ))}
+              {filteredAvailable.length === 0 && (
+                <p className="muted" style={{ padding: 'var(--space-3)' }}>
+                  {t('recipes:pickers.empty')}
+                </p>
+              )}
+            </div>
+            <div className={styles.pickerFooter}>
               <button
                 type="button"
                 className="btn btn--ghost"
@@ -347,21 +452,21 @@ function PropertiesSection({
                 {t('ingredients:detail.done')}
               </button>
             </div>
-          )}
-        </>
-      )}
-    </section>
+          </div>
+        )}
+      </div>
+    </CardSection>
   )
 }
 
-/** Einheitsgewichte: Tabelle mit onBlur-Commit + Add-Zeile (Edit-Modus). */
 function WeightsSection({
-  detail,
-  editable,
-}: {
+                          detail,
+                          editable,
+                        }: {
   detail: IngredientDetail
   editable: boolean
 }) {
+  const { t } = useTranslation([])
   const mutations = useIngredientMutations(detail.ingredient.id)
   const units = useUnits()
   const assignedUnits = new Set(detail.weights.map((weight) => weight.unit_id))
@@ -375,29 +480,33 @@ function WeightsSection({
     if (newUnitId === 0 || !newWeight.trim()) return
     mutations.addWeight.mutate(
       { unit_id: newUnitId, weight: newWeight.trim() },
-      { onSuccess: () => {
-        setNewUnitId(0)
-        setNewWeight('')
-      } },
+      {
+        onSuccess: () => {
+          setNewUnitId(0)
+          setNewWeight('')
+        },
+      },
     )
   }
 
   return (
-    <section className="card">
-      <h2 className="section-subtitle">{t('ingredients:detail.weightsTitle')}</h2>
-      <p className="muted">{t('ingredients:detail.weightsHint')}</p>
-      {detail.weights.length === 0 && !editable ? (
-        <p className="muted">{t('ingredients:detail.weightsEmpty')}</p>
-      ) : (
-        <table className="table">
-          <thead>
+    <CardSection
+      title={t('ingredients:detail.weightsTitle')}
+      subtitle={t('ingredients:detail.weightsHint')}
+    >
+      <div className={styles.sectionBody}>
+        {detail.weights.length === 0 && !editable ? (
+          <p className="muted">{t('ingredients:detail.weightsEmpty')}</p>
+        ) : (
+          <table className="table">
+            <thead>
             <tr>
               <th>{t('ingredients:detail.colUnit')}</th>
               <th className="num">{t('ingredients:detail.colWeightKg')}</th>
               {editable && <th aria-hidden="true" />}
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             {detail.weights.length === 0 && (
               <tr>
                 <td colSpan={3} className="muted">
@@ -419,15 +528,17 @@ function WeightsSection({
                 onRemove={() => mutations.removeWeight.mutate(weight.unit_id)}
               />
             ))}
-          </tbody>
-          {editable && availableUnits.length > 0 && (
-            <tfoot>
+            </tbody>
+            {editable && availableUnits.length > 0 && (
+              <tfoot>
               <tr>
                 <td>
                   <select
                     className="input"
                     value={newUnitId}
-                    onChange={(event) => setNewUnitId(Number(event.target.value))}
+                    onChange={(event) =>
+                      setNewUnitId(Number(event.target.value))
+                    }
                   >
                     <option value={0}>{t('ingredients:detail.pickUnit')}</option>
                     {availableUnits.map((unit) => (
@@ -452,30 +563,32 @@ function WeightsSection({
                     disabled={newUnitId === 0 || !newWeight.trim()}
                     onClick={addWeight}
                   >
+                    <Plus size={15} />
                     {t('recipes:drawers.add')}
                   </button>
                 </td>
               </tr>
-            </tfoot>
-          )}
-        </table>
-      )}
-    </section>
+              </tfoot>
+            )}
+          </table>
+        )}
+      </div>
+    </CardSection>
   )
 }
 
-/** Gewichtszeile: Inline-Input, Commit bei Blur (kein Commit bei Tippfehler). */
 function WeightRow({
-  weight,
-  editable,
-  onCommit,
-  onRemove,
-}: {
+                     weight,
+                     editable,
+                     onCommit,
+                     onRemove,
+                   }: {
   weight: { unit_id: number; weight: string | number }
   editable: boolean
   onCommit: (kg: string) => void
   onRemove: () => void
 }) {
+  const { t } = useTranslation(['ingredients', 'common'])
   const units = useUnits()
   const [value, setValue] = useState(String(weight.weight))
 
@@ -506,11 +619,11 @@ function WeightRow({
         <td>
           <button
             type="button"
-            className="btn btn--ghost"
+            className="icon-btn"
             title={t('common:actions.delete')}
             onClick={onRemove}
           >
-            ✕
+            <Trash2 size={15} />
           </button>
         </td>
       )}
@@ -518,18 +631,18 @@ function WeightRow({
   )
 }
 
-/** Hub-Drawer: zeigt die geteilte Ansicht als Overlay-Body. */
 export function IngredientDrawer({
-  id,
-  onClose,
-}: {
+                                   id,
+                                   onClose,
+                                 }: {
   id: number
   onClose: () => void
 }) {
+  const { t } = useTranslation([])
   const detail = useIngredient(id)
   return (
     <Drawer
-      title={detail.data?.ingredient.name ??t('nav:ingredients')}
+      title={detail.data?.ingredient.name ?? t('nav:ingredients')}
       onClose={onClose}
     >
       <IngredientView

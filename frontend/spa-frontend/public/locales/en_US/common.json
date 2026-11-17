@@ -40,6 +40,7 @@
     "emptyFiltered": "No {{noun}} match this filter.",
     "emptyInitial": "No {{noun}} found. Create the first one via “{{createLabel}}”."
   },
+  "no": "No",
   "placeholder": {
     "comingIn": "This view will be implemented in <strong>{{phase}}</strong>.",
     "inProgress": "In progress"
@@ -87,5 +88,6 @@
     "kg": "{{value}} kg",
     "kj": "{{value}} kJ",
     "kjPerG": "{{value}} kJ/g"
-  }
+  },
+  "yes": "Yes"
 }

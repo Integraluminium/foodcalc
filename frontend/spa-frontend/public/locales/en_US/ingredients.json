@@ -19,6 +19,7 @@
     "energy": "Energy (kJ/g)",
     "energyHint": "Energy density — basis for energy-based scaling in events.",
     "fullView": "Open full view →",
+    "hasSources": "Has sources",
     "invalidId": "Invalid ingredient ID.",
     "loadError": "Could not load ingredient: {{error}}",
     "name": "Name",
@@ -46,6 +47,7 @@
     "colHasSources": "Has sources",
     "create": "+ New ingredient",
     "createTitle": "New ingredient",
+    "empty": "No ingredients found. Please create one with \"New Ingredient\".",
     "filterKind": "Type",
     "noun": "ingredients",
     "searchPlaceholder": "Search ingredient…"
