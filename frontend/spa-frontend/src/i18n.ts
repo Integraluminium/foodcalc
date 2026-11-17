@@ -1,11 +1,11 @@
 import i18n from 'i18next'
-import { initReactI18next } from 'react-i18next'
+import {initReactI18next} from 'react-i18next'
 
 type NamespaceDict = Record<string, unknown>
 type LocaleResources = Record<string, Record<string, NamespaceDict>>
 
 const modules = import.meta.glob<{ default: NamespaceDict }>(
-  '../public/locales/*/*.json',
+  '../src/locales/*/*.json',
   { eager: true },
 )
 
