@@ -1,62 +1,185 @@
-import i18n from "i18next";
-import type {FormEvent} from 'react'
-import {useState} from 'react'
-import {useTranslation} from "react-i18next";
-import {ApiError} from '../../api'
-import {SegmentedControl} from '../../components/ui/segmented_control/SegmentedControl.tsx'
+import {Sliders, User, Users} from 'lucide-react'
+import {type FormEvent, useState} from 'react'
+import {useTranslation} from 'react-i18next'
+import {ApiError, type GroupRole} from "../../api";
+import {CardSection} from '../../components/patterns/card_section/CardSection.tsx'
+import {Badge} from '../../components/ui/badge/Badge.tsx'
 import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
-import {useUserAdminMutations} from '../../hooks/queries/useUsers.ts'
+import {useGroups} from "../../hooks/queries/useMasterData.ts";
+import {useGroupAdminMutations, useGroupMembers, useUserAdminMutations} from "../../hooks/queries/useUsers.ts";
 import {useCurrentUser} from '../../hooks/useAuth.ts'
-import {GroupsSection} from './GroupsSection.tsx'
+import {usePermissions} from "../../hooks/usePermissions.ts";
+import {GroupMasterDetail} from './groups/GroupMasterDetail.tsx'
+import {DataSettingsRenderer} from './settings/DataSettingsRenderer.tsx'
+import {SettingsShell} from "./settings/settings_shell/SettingsShell.tsx";
+import {getSectionsByScope, type SettingsContext,} from './settings/settingsRegistry.ts'
 import styles from './SettingsPage.module.css'
 
-type Tab = 'account' | 'groups'
+type SettingsTab = 'account' | 'preferences' | 'groups'
 
-const TAB_OPTIONS = [
-  { value: 'account', label: i18n.t('settings:tabs.account') },
-  { value: 'groups', label: i18n.t('settings:tabs.groups') },
-] as const
+const STORAGE_KEY = 'foodcalc:user-settings'
 
-/**
- * Settings hub: own account (profile, password, memberships) and group
- * management. Members can manage the member lists of their groups; admins
- * additionally create/delete groups.
- */
+function useUserSettingsState() {
+  const { i18n } = useTranslation()
+  const [values, setValues] = useState<Record<string, unknown>>(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
+      return {
+        language: i18n.resolvedLanguage?.startsWith('en') ? 'en_US' : 'de_DE',
+        ...stored,
+      }
+    } catch {
+      return { language: 'de_DE' }
+    }
+  })
+
+  const updateSetting = (key: string, value: unknown) => {
+    setValues((prev) => {
+      const next = { ...prev, [key]: value }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+
+    // Real side effects for settings that affect global runtime behavior
+    if (key === 'language' && typeof value === 'string') {
+      value = value.startsWith('en') ? 'en_US' : 'de_DE'
+      console.log('Changing language to', value)
+      void i18n.changeLanguage(value)
+      document.documentElement.lang = value.slice(0, 2)
+      localStorage.setItem('lang', value)
+    }
+  }
+
+  return { values, updateSetting }
+}
+
 export default function SettingsPage() {
-  const [tab, setTab] = useState<Tab>('account')
-  const { t } = useTranslation(['settings', "common"])
+  const { t } = useTranslation(['settings', 'common'])
+  const { data: user } = useCurrentUser()
+  const [tab, setTab] = useState<SettingsTab>('account')
+  const { values, updateSetting } = useUserSettingsState()
+
+  const ctx: SettingsContext = {
+    isSystemAdmin: Boolean(user?.is_admin),
+    canManageGroup: true, // TODO: implement proper group management check if needed
+  }
+
+  // Note: make sure the language field options in settingsRegistry.ts use 'de_DE' and 'en_US'
+  const userSections = getSectionsByScope('user', ctx)
+  // const userSections = getSectionsByScope('system', ctx)
+
+  let navigationConfig = [
+    {
+      id: 'account',
+      label: t('settings:tabs.account'),
+      icon: User,
+    },
+    {
+      id: 'preferences',
+      label: t('settings:tabs.preferences'),
+      icon: Sliders,
+    },
+    {
+      id: 'groups',
+      label: t('settings:tabs.groups'),
+      icon: Users,
+    },
+  ];
+
 
   return (
-    <div className={styles.page}>
-      <h1 className="section-title">{t('settings:title')}</h1>
-      <SegmentedControl
-        options={[...TAB_OPTIONS]}
-        value={tab}
-        onChange={setTab}
-        ariaLabel={t('settings:tabs.label')}
-      />
-      {tab === 'account' ? <AccountPanel /> : <GroupsSection />}
-    </div>
+    <SettingsShell
+      title={t('settings:title')}
+      activeId={tab}
+      onSelect={(id) => setTab(id as SettingsTab)}
+      items={navigationConfig}
+    >
+      {tab === 'account' && <AccountPanel />}
+
+      {tab === 'preferences' && (
+        <DataSettingsRenderer
+          sections={userSections}
+          values={values}
+          onChange={updateSetting}
+          context={ctx}
+        />
+      )}
+
+      {tab === 'groups' && <ConnectedGroupsPanel />}
+    </SettingsShell>
+  )
+}
+
+/** Connects GroupMasterDetail to your real TanStack Query hooks (reusable in AdminPage too). */
+export function ConnectedGroupsPanel() {
+  const { isAdmin, canManageGroup } = usePermissions()
+  const groups = useGroups()
+  const { createGroup, removeGroup, addMember, removeMember, setMemberRole } =
+    useGroupAdminMutations()
+
+  const teamGroups = (groups.data ?? []).filter((g) => !g.is_personal)
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const activeGroupId =
+    teamGroups.find((g) => g.id === selectedGroupId)?.id ?? teamGroups[0]?.id ?? 0
+
+  const members = useGroupMembers(activeGroupId)
+
+  return (
+    <GroupMasterDetail
+      groups={teamGroups}
+      groupsPending={groups.isPending}
+      selectedGroupId={activeGroupId || null}
+      onSelectGroup={setSelectedGroupId}
+      members={members.data ?? []}
+      membersPending={members.isPending}
+      isSystemAdmin={isAdmin}
+      canManageGroup={canManageGroup}
+      onCreateGroup={async (name) => {
+        const created = await createGroup.mutateAsync(name)
+        setSelectedGroupId(created.id)
+      }}
+      onAddMember={async (groupId, identifier, role) => {
+        const added = await addMember.mutateAsync({ groupId, user: identifier })
+        if (added?.id && role !== added.role) {
+          await setMemberRole.mutateAsync({ groupId, userId: added.id, role })
+        }
+      }}
+      onChangeMemberRole={async (groupId, userId, role: GroupRole) => {
+        await setMemberRole.mutateAsync({ groupId, userId, role })
+      }}
+      onRemoveMember={async (groupId, userId) => {
+        await removeMember.mutateAsync({ groupId, userId })
+      }}
+      onDeleteGroup={async (groupId) => {
+        await removeGroup.mutateAsync(groupId)
+        setSelectedGroupId(null)
+      }}
+    />
   )
 }
 
 function AccountPanel() {
-  const { t } = useTranslation(['settings', "common"])
+  const { t } = useTranslation(['settings', 'common'])
   const { data: user } = useCurrentUser()
   const [savedPassword, setSavedPassword] = useState(false)
 
   if (!user) {
-    return (
-      <div className={styles.page}>
-        <Spinner />
-      </div>
-    )
+    return <Spinner />
   }
 
   return (
     <>
-      <div className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">Profil</h2>
+      <CardSection
+        title="Profil"
+        actions={
+          <>
+            <Badge variant={user.is_admin ? 'info' : 'neutral'}>
+              {user.is_admin ? 'Administrator' : 'Mitglied'}
+            </Badge>
+            <LanguageSwitcher />
+          </>
+        }
+      >
         <div className={styles.meta}>
           <span className={styles.field}>
             Benutzername: <strong>{user.username}</strong>
@@ -64,58 +187,54 @@ function AccountPanel() {
           <span className={styles.field}>
             E-Mail: <strong>{user.email}</strong>
           </span>
-          <span className={styles.adminBadge}>
-            {user.is_admin ? 'Administrator' : 'Mitglied'}
-          </span>
         </div>
-      </div>
+      </CardSection>
 
-      <div className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">{t('settings:rights.myGroups')}</h2>
-        <p className="muted">{t('settings:rights.myGroupsHint')}</p>
-        <ul className={styles.meta}>
-          {user.groups.map((group) => (
-            <li key={group.id} className={styles.field}>
-              <strong>{group.name}</strong>
-              {group.is_personal && (
-                <span className="muted"> · {t('settings:rights.rolePersonal')}</span>
-              )}
-              <span
-                className={`badge ${
-                  group.role === 'manager'
-                    ? 'badge--success'
-                    : group.role === 'editor'
-                      ? 'badge--info'
-                      : 'badge--neutral'
-                }`}
-              >
-                {t(`roles.${group.role ?? 'viewer'}`)}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="muted">{t('settings:rights.roleLegend')}</p>
-      </div>
+      {/*<CardSection*/}
+      {/*  title={t('settings:rights.myGroups')}*/}
+      {/*  subtitle={t('settings:rights.myGroupsHint')}*/}
+      {/*>*/}
+      {/*  <ul className={styles.meta}>*/}
+      {/*    {user.groups.map((group) => (*/}
+      {/*      <li key={group.id} className={styles.field}>*/}
+      {/*        <strong>{group.name}</strong>*/}
+      {/*        {group.is_personal && (*/}
+      {/*          <span className="muted">*/}
+      {/*            {' '}*/}
+      {/*            · {t('settings:rights.rolePersonal')}*/}
+      {/*          </span>*/}
+      {/*        )}*/}
+      {/*        <Badge*/}
+      {/*          variant={*/}
+      {/*            group.role === 'manager'*/}
+      {/*              ? 'success'*/}
+      {/*              : group.role === 'editor'*/}
+      {/*                ? 'info'*/}
+      {/*                : 'neutral'*/}
+      {/*          }*/}
+      {/*        >*/}
+      {/*          {t(`roles.${group.role ?? 'viewer'}`)}*/}
+      {/*        </Badge>*/}
+      {/*      </li>*/}
+      {/*    ))}*/}
+      {/*  </ul>*/}
+      {/*  <p className="muted">{t('settings:rights.roleLegend')}</p>*/}
+      {/*</CardSection>*/}
 
-      <LanguageSwitcher />
-
-      <div className={`card ${styles.card}`}>
-        <h2 className="section-subtitle">{t('settings:password.title')}</h2>
+      <CardSection title={t('settings:password.title')}>
         <PasswordForm userId={user.id} onSaved={() => setSavedPassword(true)} />
         {savedPassword && (
           <p className={styles.success}>{t('settings:password.saved')}</p>
         )}
-      </div>
-
-      {/*<GroupPanel />*/}
+      </CardSection>
     </>
   )
 }
 
 function PasswordForm({
-  userId,
-  onSaved,
-}: {
+                        userId,
+                        onSaved,
+                      }: {
   userId: number
   onSaved: () => void
 }) {

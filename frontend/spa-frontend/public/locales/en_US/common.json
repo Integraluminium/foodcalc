@@ -50,6 +50,9 @@
     "manager": "Manager",
     "viewer": "Viewer"
   },
+  "search": {
+    "noResults": "No Settings found"
+  },
   "state": {
     "dirty": "Unsaved changes",
     "discard": "Discard",

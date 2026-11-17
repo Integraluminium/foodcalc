@@ -50,6 +50,9 @@
     "manager": "Verwalter",
     "viewer": "Leser"
   },
+  "search": {
+    "noResults": "Keine passenden Einstellungen gefunden"
+  },
   "state": {
     "dirty": "Ungespeicherte Änderungen",
     "discard": "Verwerfen",

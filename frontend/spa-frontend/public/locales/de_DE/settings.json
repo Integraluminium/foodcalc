@@ -40,7 +40,8 @@
   "tabs": {
     "account": "Konto",
     "groups": "Gruppen",
-    "label": "Bereich"
+    "label": "Bereich",
+    "preferences": "Voreinstellungen"
   },
   "tabsAria": "Einstellungsbereich wählen",
   "title": "Einstellungen"

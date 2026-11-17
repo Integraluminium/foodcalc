@@ -40,7 +40,8 @@
   "tabs": {
     "account": "Account",
     "groups": "Groups",
-    "label": "Section"
+    "label": "Section",
+    "preferences": "Pre-Settings"
   },
   "tabsAria": "Select settings section",
   "title": "Settings"
