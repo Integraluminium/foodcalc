@@ -5,7 +5,7 @@ import type {GroupRole} from '../../api'
 import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
 import {useGroupAdminMutations, useGroupMembers,} from '../../hooks/queries/useUsers.ts'
-import {usePermissions} from '../../hooks/usePermissions.ts'
+import {useGlobalPermission, useGroupPermission} from "../../hooks/usePermissions.ts";
 import styles from './GroupsSection.module.css'
 
 /**
@@ -16,7 +16,6 @@ import styles from './GroupsSection.module.css'
  */
 export function GroupsSection() {
   const { t } = useTranslation([])
-  const { isAdmin, canManageGroup } = usePermissions()
   const groups = useGroups()
   const { createGroup, removeGroup } = useGroupAdminMutations()
   const [newName, setNewName] = useState('')
@@ -31,7 +30,7 @@ export function GroupsSection() {
 
   return (
     <div className={styles.groupsColumn}>
-      {isAdmin && (
+      {useGlobalPermission("admin:manage_master_data") && (
         <form
           className={`card ${styles.panel} ${styles.createRow}`}
           onSubmit={handleCreate}
@@ -66,7 +65,7 @@ export function GroupsSection() {
               key={group.id}
               groupId={group.id}
               name={group.name}
-              canManage={canManageGroup(group.id)}
+              canManage={useGroupPermission(group.id, "group:manage_members")}
               onRemove={() => {
                 if (
                   window.confirm(

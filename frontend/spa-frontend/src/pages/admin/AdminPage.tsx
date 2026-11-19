@@ -1,27 +1,28 @@
 import {t} from "i18next";
 import {useState} from 'react'
-import type {GroupRole} from '../../api/types.ts'
+import type {GroupRole} from '../../api'
+import {RequireGlobalPermission} from "../../components/auth/RequirePermissions.tsx";
 import {ConfirmDialog} from '../../components/patterns/dialog/ConfirmDialog.tsx'
 import {SegmentedControl} from '../../components/ui/segmented_control/SegmentedControl.tsx'
 import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../hooks/queries/useMasterData.ts'
 import {useAdminSelfGrant, useUserAdminMutations, useUsers,} from '../../hooks/queries/useUsers.ts'
-import {usePermissions} from '../../hooks/usePermissions.ts'
+import {useGlobalPermission} from "../../hooks/usePermissions.ts";
 import {GroupsSection} from '../settings/GroupsSection.tsx'
 import styles from './AdminPage.module.css'
 
 type Tab = 'users' | 'groups'
 
 const TAB_OPTIONS = [
-  { value: 'users', label: 'Benutzer' },
-  { value: 'groups', label: 'Gruppen' },
+  {value: 'users', label: 'Benutzer'},
+  {value: 'groups', label: 'Gruppen'},
 ] as const
 
 export default function AdminPage() {
-  const { isAdmin } = usePermissions()
   const [tab, setTab] = useState<Tab>('users')
 
-  if (!isAdmin) {
+  let hasGlobalPerm = useGlobalPermission('admin:manage_users');
+  if (!hasGlobalPerm) {
     return (
       <p className="secondary">
         Diese Seite ist Administratoren vorbehalten.
@@ -30,18 +31,23 @@ export default function AdminPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className="section-title">Verwaltung</h1>
-        <SegmentedControl
-          options={[...TAB_OPTIONS]}
-          value={tab}
-          onChange={setTab}
-          ariaLabel="Verwaltungsbereich wählen"
-        />
+    <RequireGlobalPermission
+      permission={'admin:manage_users'}
+      redirectTo={"/events"}
+    >
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <h1 className="section-title">Verwaltung</h1>
+          <SegmentedControl
+            options={[...TAB_OPTIONS]}
+            value={tab}
+            onChange={setTab}
+            ariaLabel="Verwaltungsbereich wählen"
+          />
+        </div>
+        {tab === 'users' ? <UsersPanel/> : <GroupsPanel/>}
       </div>
-      {tab === 'users' ? <UsersPanel /> : <GroupsPanel />}
-    </div>
+    </RequireGlobalPermission>
   )
 }
 
@@ -50,14 +56,14 @@ export default function AdminPage() {
 function UsersPanel() {
   const [search, setSearch] = useState('')
   const users = useUsers(search)
-  const { update, remove, changePassword } = useUserAdminMutations()
+  const {update, remove, changePassword} = useUserAdminMutations()
   const [deleteUser, setDeleteUser] = useState<{
     id: number
     username: string
   } | null>(null)
 
   const updateAdmin = (id: number, is_admin: boolean) =>
-    update.mutate({ id, is_admin })
+    update.mutate({id, is_admin})
 
   return (
     <div className={`card ${styles.panel}`}>
@@ -74,7 +80,7 @@ function UsersPanel() {
       </div>
 
       {users.isPending ? (
-        <Spinner />
+        <Spinner/>
       ) : users.isError ? (
         <p className="secondary">
           Benutzer konnten nicht geladen werden: {String(users.error)}
@@ -83,27 +89,27 @@ function UsersPanel() {
         <div className={styles.tableWrap}>
           <table className="table">
             <thead>
-              <tr>
-                <th>Benutzer</th>
-                <th>E-Mail</th>
-                <th>Gruppen</th>
-                <th className="num">Admin</th>
-                <th />
-              </tr>
+            <tr>
+              <th>Benutzer</th>
+              <th>E-Mail</th>
+              <th>Gruppen</th>
+              <th className="num">Admin</th>
+              <th/>
+            </tr>
             </thead>
             <tbody>
-              {users.data.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    {row.username}
-                    {row.groups.some((group) => group.is_personal) && (
-                      <span className={`muted ${styles.personalTag}`}>
+            {users.data.map((row) => (
+              <tr key={row.id}>
+                <td>
+                  {row.username}
+                  {row.groups.some((group) => group.is_personal) && (
+                    <span className={`muted ${styles.personalTag}`}>
                         {' '}
-                        (persönliche Gruppe)
+                      (persönliche Gruppe)
                       </span>
-                    )}
-                  </td>
-                  <td className={`secondary ${styles.email}`}>{row.email}</td>
+                  )}
+                </td>
+                <td className={`secondary ${styles.email}`}>{row.email}</td>
                 <td>
                   {row.groups.map((group) => group.name).join(', ') || '–'}
                 </td>
@@ -141,7 +147,7 @@ function UsersPanel() {
                     className={styles.iconButton}
                     title="Benutzer löschen"
                     onClick={() =>
-                      setDeleteUser({ id: row.id, username: row.username })
+                      setDeleteUser({id: row.id, username: row.username})
                     }
                   >
                     🗑
@@ -149,7 +155,7 @@ function UsersPanel() {
                 </td>
               </tr>
             ))}
-          </tbody>
+            </tbody>
           </table>
         </div>
       )}
@@ -176,8 +182,8 @@ function UsersPanel() {
 function GroupsPanel() {
   return (
     <>
-      <SelfGrantCard />
-      <GroupsSection />
+      <SelfGrantCard/>
+      <GroupsSection/>
     </>
   )
 }
@@ -195,7 +201,7 @@ function SelfGrantCard() {
 
   const submit = () => {
     if (typeof groupId !== 'number') return
-    selfGrant.mutate({ groupId, role })
+    selfGrant.mutate({groupId, role})
   }
 
   return (

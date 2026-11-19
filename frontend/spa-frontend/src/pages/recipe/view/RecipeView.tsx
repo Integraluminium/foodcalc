@@ -14,7 +14,7 @@ import {ExportButton} from '../../../components/ui/button/ExportButton.tsx'
 import {useGroupName} from '../../../hooks/queries/useGroupName.ts'
 import {useRecipe, useRecipeMutations, useRecipeTree} from '../../../hooks/queries/useRecipes.ts'
 import {useCurrentUser} from '../../../hooks/useAuth.ts'
-import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {useGroupPermission} from "../../../hooks/usePermissions.ts";
 import {formatDecimal, formatKjPerG, formatMinutes} from '../../../lib/format.ts'
 import {RecipeIngredientsDrawer} from '../drawers/RecipeIngredientsDrawer.tsx'
 import {RecipeMetaDrawer} from '../drawers/RecipeMetaDrawer.tsx'
@@ -112,7 +112,6 @@ function RecipeViewContent({
   const groupName = useGroupName()
   const tree = useRecipeTree(recipe.id)
   const mutations = useRecipeMutations(recipe.id)
-  const { canViewGroup, canEditGroup, canManageGroup } = usePermissions()
   const { data: user } = useCurrentUser()
 
   const personalGroupId =
@@ -122,7 +121,10 @@ function RecipeViewContent({
   const [transferOpen, setTransferOpen] = useState(false)
   const [drawer, setDrawer] = useState<'meta' | 'ingredients' | 'steps' | null>(null)
 
-  const editable = canEditGroup(recipe.group_id)
+  const canEditRecipe = useGroupPermission(recipe.group_id, "recipes:edit")
+  const canTransferOwnership = useGroupPermission(recipe.group_id, "recipes:transfer_owner");
+  let canViewRecipe = useGroupPermission(recipe.group_id, "recipes:view");
+
   const isPage = variant === 'page'
   const closeDrawer = () => setDrawer(null)
 
@@ -141,17 +143,17 @@ function RecipeViewContent({
       >
         <Printer size={14} /> {t('recipes:detail.pdf')}
       </ExportButton>
-      {canManageGroup(recipe.group_id) && (
+      {canTransferOwnership && (
         <button type="button" className="btn btn--ghost" onClick={() => setTransferOpen(true)}>
           {t('common:transfer.button')}
         </button>
       )}
-      {editable && (
+      {canEditRecipe && (
         <button type="button" className="btn btn--ghost" onClick={() => setDrawer('meta')}>
           <Pencil size={14} /> {t('recipes:drawers.triggerMeta')}
         </button>
       )}
-      {canViewGroup(recipe.group_id) && (
+      {canViewRecipe && (
         <button
           type="button"
           className="btn btn--ghost"
@@ -167,7 +169,7 @@ function RecipeViewContent({
           <Copy size={14} /> {t('recipes:detail.clone')}
         </button>
       )}
-      {editable && (
+      {canEditRecipe && (
         <button type="button" className="btn btn--danger" onClick={() => setConfirmDelete(true)}>
           <Trash2 size={14} /> {t('common:actions.delete')}
         </button>
@@ -236,7 +238,7 @@ function RecipeViewContent({
       <CardSection
         title={t('recipes:detail.tree')}
         actions={
-          editable && (
+          canEditRecipe && (
             <button
               type="button"
               className="btn btn--ghost btn--sm"
@@ -261,7 +263,7 @@ function RecipeViewContent({
       <CardSection
         title={t('recipes:detail.steps')}
         actions={
-          editable && (
+          canEditRecipe && (
             <button
               type="button"
               className="btn btn--ghost btn--sm"

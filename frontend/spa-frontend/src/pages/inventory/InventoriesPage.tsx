@@ -38,6 +38,7 @@ export default function InventoriesPage() {
         searchPlaceholder={t('inventories:searchPlaceholder')}
         ownerFilter={ownerFilter}
         onOwnerFilterChange={setOwnerFilter}
+        canCreateNew={true}
         columns={columns}
         rows={filtered}
         getRowKey={(inv) => inv.id}

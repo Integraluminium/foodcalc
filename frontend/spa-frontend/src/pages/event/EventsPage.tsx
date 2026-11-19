@@ -7,6 +7,7 @@ import type {DataTableColumn} from '../../components/patterns/table/DataTable.ts
 import {useEvents} from '../../hooks/queries/useEvents.ts'
 import {useGroupName} from '../../hooks/queries/useGroupName.ts'
 import {useFilteredList} from '../../hooks/useFilteredList.ts'
+import {useGlobalPermission} from "../../hooks/usePermissions.ts";
 import {formatDateRange, formatDecimal, toNumber} from '../../lib/format.ts'
 import styles from './EventsPage.module.css'
 import {EventMetadataDrawer} from './workspace/overview/EventMetadataDrawer.tsx'
@@ -90,6 +91,7 @@ export default function EventsPage() {
       searchPlaceholder={t('events:list.searchPlaceholder')}
       ownerFilter={ownerFilter}
       onOwnerFilterChange={setOwnerFilter}
+      canCreateNew={useGlobalPermission("admin:allow_creating")}
       columns={columns}
       rows={filtered}
       getRowKey={(event) => event.id}

@@ -8,27 +8,30 @@ import {Badge} from '../../../../components/ui/badge/Badge.tsx'
 import {ExportButton} from '../../../../components/ui/button/ExportButton.tsx'
 import {useEvent, useEventId, useEventInventories, useEventMutations,} from '../../../../hooks/queries/useEvents.ts'
 import {useGroupName} from "../../../../hooks/queries/useGroupName.ts";
-import {usePermissions} from '../../../../hooks/usePermissions.ts'
+import {useCurrentUser} from "../../../../hooks/useAuth.ts";
 import {eventAggregates} from '../../../../lib/eventAggregation.ts'
 import {formatDateRange, formatDecimal, toNumber} from '../../../../lib/format.ts'
+import {hasGroupPermission} from "../../../../lib/permissions.ts";
 import styles from '../EventDetailPage.module.css'
 import {EventMetadataDrawer} from "./EventMetadataDrawer.tsx";
 
 export function OverviewTab() {
-  const { t } = useTranslation([])
+  const {t} = useTranslation([])
   const eventId = useEventId()
-  const { data: detail } = useEvent(eventId)
+  const {data: detail} = useEvent(eventId)
   useEventMutations(eventId);
   const linkedInventories = useEventInventories(eventId)
   const groupName = useGroupName()
-  const { canEditGroup, canManageGroup } = usePermissions()
+  // const { canEditGroup, canManageGroup } = usePermissions()
+  // const { can } = usePermissions(detail?.event.group_id)
   useNavigate();
   const [editOpen, setEditOpen] = useState(false)
 
   if (!detail) return null
-
-  const editable = canEditGroup(detail.event.group_id)
-  canManageGroup(detail.event.group_id);
+  const {data: user} = useCurrentUser()
+  const editable = hasGroupPermission(user, detail?.event.group_id ?? 0, 'events:manage_meals')
+  // const editable = canEditGroup(detail.event.group_id)
+  // canManageGroup(detail.event.group_id);
   const aggregates = eventAggregates(detail.meals, detail.total_cost)
   const budget = toNumber(detail.event.budget)
 
@@ -45,7 +48,7 @@ export function OverviewTab() {
                 className="btn btn--ghost btn--sm"
                 onClick={() => setEditOpen(true)}
               >
-                <Pencil size={14} /> {t('common:actions.edit')}
+                <Pencil size={14}/> {t('common:actions.edit')}
               </button>
             )}
           </div>
@@ -67,7 +70,7 @@ export function OverviewTab() {
           <dd>{formatDecimal(aggregates.weightKg)} kg</dd>
           <dt>{t('events:overview.cost')}</dt>
           <dd>
-            <BudgetBar cost={aggregates.cost} budget={budget} />
+            <BudgetBar cost={aggregates.cost} budget={budget}/>
           </dd>
           {detail.event.comment && (
             <>

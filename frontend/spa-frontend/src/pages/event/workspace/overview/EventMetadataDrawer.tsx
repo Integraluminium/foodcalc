@@ -10,7 +10,7 @@ import {Spinner} from '../../../../components/ui/spinner/Spinner.tsx'
 import {useCreateEvent, useEventMutations} from "../../../../hooks/queries/useEvents.ts";
 import {useGroups} from '../../../../hooks/queries/useMasterData.ts'
 import {useCurrentUser} from '../../../../hooks/useAuth.ts'
-import {usePermissions} from '../../../../hooks/usePermissions.ts'
+import {hasGroupPermission} from "../../../../lib/permissions.ts";
 
 interface EventMetadataDialogProps {
   /** `null` = create new event, `Event` = edit existing metadata. */
@@ -27,15 +27,13 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
   const create = useCreateEvent()
   const mutations = useEventMutations(event?.id ?? 0)
 
-  const { canEditGroup, canManageGroup } = usePermissions()
-
-  const canSave = !isEdit || canEditGroup(event.group_id)
-  const manageable = isEdit && canManageGroup(event.group_id)
+  const canSave = !isEdit || hasGroupPermission(user, event?.group_id ?? 0, 'events:manage_meals')
+  const manageable = isEdit && hasGroupPermission(user, event?.group_id ?? 0, 'events:manage_meals')
 
   const [transferOpen, setTransferOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const editableGroups = (user?.groups ?? []).filter((g) => canEditGroup(g.id))
+  const editableGroups = (user?.groups ?? []).filter((g) => hasGroupPermission(user, g.id, 'events:manage_meals'))
   const personalGroupId =
     editableGroups.find((g) => g.is_personal)?.id ??
     editableGroups[0]?.id ??

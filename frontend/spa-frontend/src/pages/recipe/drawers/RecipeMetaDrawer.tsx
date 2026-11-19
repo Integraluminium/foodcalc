@@ -11,7 +11,7 @@ import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/O
 import {SegmentedControl} from '../../../components/ui/segmented_control/SegmentedControl.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from '../../../hooks/queries/useMasterData.ts'
-import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {useGroupPermission} from "../../../hooks/usePermissions.ts";
 import styles from './RecipeDrawers.module.css'
 
 /**
@@ -28,7 +28,12 @@ export function RecipeMetaDrawer({
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const groups = useGroups()
-  const { canManageGroup } = usePermissions()
+
+  const recipeOwnerGroupId = recipe?.group_id ?? 0
+  let canDeleteRecipe = useGroupPermission(recipeOwnerGroupId,  "recipes:delete");
+  let canTransferOwnerShip = useGroupPermission(recipeOwnerGroupId,  "recipes:transfer_owner");
+
+
 
   const [name, setName] = useState(recipe?.name ?? '')
   const [kind, setKind] = useState<'meal' | 'component'>(recipe?.kind ?? 'meal')
@@ -81,6 +86,8 @@ export function RecipeMetaDrawer({
 
   const handleDelete = async () => {
     if (!recipe) return
+    if (!canDeleteRecipe) return
+
     setSaving(true)
     try {
       await recipesApi.remove(recipe.id)
@@ -128,7 +135,9 @@ export function RecipeMetaDrawer({
                 <span>
                   {groups.data?.find((group) => group.id === recipe.group_id)?.name ?? recipe.group_id}
                 </span>
-                {canManageGroup(recipe.group_id) && (
+                {
+
+                  canTransferOwnerShip && (
                   <button type="button" className="btn btn--ghost" onClick={() => setTransferOpen(true)}>
                     {t('common:transfer.open')}
                   </button>
@@ -156,7 +165,7 @@ export function RecipeMetaDrawer({
         )}
         {error && <p className="secondary">{error}</p>}
         <div className={styles.footer}>
-          {recipe && (
+          {recipe && canDeleteRecipe && (
             <button type="button" className="btn btn--ghost" onClick={() => setConfirmDelete(true)}>
               {t('common:actions.delete')}
             </button>

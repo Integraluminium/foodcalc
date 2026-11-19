@@ -2,7 +2,7 @@ import {MutationCache, QueryCache, QueryClient, QueryClientProvider} from '@tans
 import type {ComponentType} from 'react'
 import {createBrowserRouter, Navigate, RouterProvider} from 'react-router-dom'
 import {ApiError} from './api'
-import RequireAuth from './components/layout/RequireAuth.tsx'
+import RequireAuth from './components/auth/RequireAuth.tsx'
 import AppShell from './components/layout/shell/AppShell.tsx'
 import {notify} from './components/ui/toast/toast.ts'
 import PlaceholderPage from './pages/placeholder/PlaceholderPage.tsx'

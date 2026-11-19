@@ -11,7 +11,7 @@ import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/O
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useCreateIngredient, useIngredientUsages,} from '../../../hooks/queries/useIngredients.ts'
 import {useGroups} from '../../../hooks/queries/useMasterData.ts'
-import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {useGroupPermission} from "../../../hooks/usePermissions.ts";
 import styles from './IngredientDrawers.module.css'
 
 const FORM_ID = 'ingredient-data-form'
@@ -108,7 +108,6 @@ export function IngredientDataForm({
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const groups = useGroups()
-  const { canManageGroup } = usePermissions()
   const usages = useIngredientUsages(ingredient?.ingredient.id ?? null)
   const create = useCreateIngredient()
 
@@ -189,6 +188,8 @@ export function IngredientDataForm({
 
   const usageCount = usages.data?.length ?? 0
 
+  const ingredientGroupId = ingredient?.ingredient.group_id ?? 0
+  let canTransferOwnerShip = useGroupPermission(ingredientGroupId, 'ingredients:transfer_owner');
   return (
     <>
       <form
@@ -246,7 +247,7 @@ export function IngredientDataForm({
                   (group) => group.id === ingredient.ingredient.group_id,
                 )?.name ?? ingredient.ingredient.group_id}
               </span>
-              {canManageGroup(ingredient.ingredient.group_id) && (
+              {canTransferOwnerShip && (
                 <button
                   type="button"
                   className="btn btn--ghost"

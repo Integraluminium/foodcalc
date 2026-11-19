@@ -8,6 +8,8 @@
  * - Optional values arrive as `null` in JSON → `T | null`
  */
 
+import type {GlobalPermission, GroupPermission} from "../lib/permissions.ts";
+
 /** Backend `BigDecimal`, always transported as a string ("14.86"). */
 export type Decimal = string
 
@@ -22,7 +24,8 @@ export interface Group {
   id: number
   name: string
   is_personal: boolean
-  role?: GroupRole
+  roles: GroupRole[]
+  permissions: GroupPermission[]
 }
 
 export interface User {
@@ -30,6 +33,11 @@ export interface User {
   username: string
   email: string
   is_admin: boolean
+  global_permissions: GlobalPermission[]
+}
+
+export interface GroupMember extends AdminUser {
+  roles: GroupRole[]
 }
 
 /** `GET /api/auth/me` — the session user plus the groups they belong to. */

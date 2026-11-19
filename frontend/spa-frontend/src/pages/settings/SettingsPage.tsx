@@ -8,7 +8,7 @@ import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from "../../hooks/queries/useMasterData.ts";
 import {useGroupAdminMutations, useGroupMembers, useUserAdminMutations} from "../../hooks/queries/useUsers.ts";
 import {useCurrentUser} from '../../hooks/useAuth.ts'
-import {usePermissions} from "../../hooks/usePermissions.ts";
+import {useGlobalPermission, useGroupPermission} from "../../hooks/usePermissions.ts";
 import {GroupMasterDetail} from './groups/GroupMasterDetail.tsx'
 import {DataSettingsRenderer} from './settings/DataSettingsRenderer.tsx'
 import {SettingsShell} from "./settings/settings_shell/SettingsShell.tsx";
@@ -112,7 +112,6 @@ export default function SettingsPage() {
 
 /** Connects GroupMasterDetail to your real TanStack Query hooks (reusable in AdminPage too). */
 export function ConnectedGroupsPanel() {
-  const { isAdmin, canManageGroup } = usePermissions()
   const groups = useGroups()
   const { createGroup, removeGroup, addMember, removeMember, setMemberRole } =
     useGroupAdminMutations()
@@ -132,8 +131,8 @@ export function ConnectedGroupsPanel() {
       onSelectGroup={setSelectedGroupId}
       members={members.data ?? []}
       membersPending={members.isPending}
-      isSystemAdmin={isAdmin}
-      canManageGroup={canManageGroup}
+      isSystemAdmin={useGlobalPermission('admin:manage_users')}
+      canManageGroup={(groupId) => useGroupPermission(groupId, 'group:manage_members')}
       onCreateGroup={async (name) => {
         const created = await createGroup.mutateAsync(name)
         setSelectedGroupId(created.id)

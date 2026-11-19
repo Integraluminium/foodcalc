@@ -90,6 +90,7 @@ export default function RecipesPage() {
         }
         ownerFilter={ownerFilter}
         onOwnerFilterChange={setOwnerFilter}
+        canCreateNew={true}
         columns={columns}
         rows={rows}
         getRowKey={(recipe) => recipe.id}

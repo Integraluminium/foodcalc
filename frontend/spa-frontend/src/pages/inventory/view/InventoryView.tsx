@@ -1,7 +1,7 @@
 import {t} from "i18next";
 import type {FormEvent} from 'react'
 import {useState} from 'react'
-import type {Inventory, InventoryItemWithName} from '../../../api/types.ts'
+import type {Inventory, InventoryItemWithName} from '../../../api'
 import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
 import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
 import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
@@ -9,7 +9,7 @@ import {SegmentedControl} from '../../../components/ui/segmented_control/Segment
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredients} from '../../../hooks/queries/useIngredients.ts'
 import {useInventory, useInventoryItems, useInventoryMutations,} from '../../../hooks/queries/useInventories.ts'
-import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {useGroupPermission} from "../../../hooks/usePermissions.ts";
 import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import styles from './InventoryView.module.css'
 
@@ -62,8 +62,12 @@ function InventoryContent({
   const items = useInventoryItems(inventory.id)
   const mutations = useInventoryMutations(inventory.id)
   const ingredients = useIngredients()
-  const { canEditGroup, canManageGroup } = usePermissions()
-  const editable = canEditGroup(inventory.group_id)
+
+  const inventoryOwnerId = inventory.group_id
+  const editable = useGroupPermission(inventoryOwnerId, 'inventories:edit')
+  let canTransferOwnership = useGroupPermission(inventoryOwnerId, 'inventories:transfer_owner');
+  let canDeleteInventory = useGroupPermission(inventoryOwnerId,'inventories:delete');
+
   const [mode, setMode] = useState<ItemMode>('edit')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
@@ -79,6 +83,7 @@ function InventoryContent({
       { onSuccess: () => event.currentTarget.reset() },
     )
   }
+
 
   return (
     <>
@@ -171,7 +176,7 @@ function InventoryContent({
         </form>
       )}
 
-      {canManageGroup(inventory.group_id) && (
+      {canTransferOwnership && (
         <button
           type="button"
           className="btn btn--ghost"
@@ -180,7 +185,7 @@ function InventoryContent({
           {t('common:transfer.button')}
         </button>
       )}
-      {editable && (
+      {canDeleteInventory && (
         <button
           type="button"
           className="btn btn--danger"

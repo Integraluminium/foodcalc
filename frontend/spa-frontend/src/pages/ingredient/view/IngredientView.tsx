@@ -12,7 +12,7 @@ import {Badge} from '../../../components/ui/badge/Badge.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredient, useIngredientMutations, useIngredientUsages,} from '../../../hooks/queries/useIngredients.ts'
 import {useGroups, useProperties, useStores, useUnits,} from '../../../hooks/queries/useMasterData.ts'
-import {usePermissions} from '../../../hooks/usePermissions.ts'
+import {useGroupPermission, usePermittedGroups} from "../../../hooks/usePermissions.ts";
 import {formatDecimal, toNumber} from '../../../lib/format.ts'
 import {IngredientDataDrawer, IngredientDataForm,} from '../drawers/IngredientDataDrawer.tsx'
 import {IngredientSourcesDrawer, SourcesEditor,} from '../drawers/IngredientSourcesDrawer.tsx'
@@ -67,9 +67,12 @@ function IngredientViewBody({
   const groups = useGroups()
   const stores = useStores()
   const units = useUnits()
-  const { canEditGroup, canManageGroup } = usePermissions()
+  // const { can } = usePermissions(ingredient.group_id)
 
-  const editable = canEditGroup(ingredient.group_id)
+  let canViewIngredient = useGroupPermission(ingredient.group_id,"ingredients:view");
+  let canDeleteIngredient = useGroupPermission(ingredient.group_id,'ingredients:delete');
+  const editable = useGroupPermission(ingredient.group_id, "ingredients:edit")
+
   const groupName =
     groups.data?.find((group) => group.id === ingredient.group_id)?.name ??
     String(ingredient.group_id)
@@ -132,9 +135,10 @@ function IngredientViewBody({
     </div>
   )
 
+
   const headerActions = (
     <div className="row-actions">
-      {canManageGroup(ingredient.group_id) && (
+      {usePermittedGroups("ingredients:transfer_owner") && (
         <button
           type="button"
           className="btn btn--ghost"
@@ -143,7 +147,7 @@ function IngredientViewBody({
           {t('common:transfer.open')}
         </button>
       )}
-      {editable && (
+      {canViewIngredient && (
         <button
           type="button"
           className="btn btn--ghost"
@@ -153,7 +157,7 @@ function IngredientViewBody({
           {t('ingredients:detail.triggerData')}
         </button>
       )}
-      {editable && (
+      {canDeleteIngredient && (
         <button
           type="button"
           className="btn btn--danger"

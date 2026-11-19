@@ -228,9 +228,9 @@ export function GroupMasterDetail({
                 >
                   <div className={styles.groupItemMain}>
                     <span className={styles.groupName}>{group.name}</span>
-                    {group.role && (
+                    {group.roles && (
                       <span className={styles.groupMeta}>
-                        {t(`common:roles.${group.role}`)}
+                        {t(`common:roles.${group.roles}`)}
                       </span>
                     )}
                   </div>
@@ -254,17 +254,17 @@ export function GroupMasterDetail({
               title={activeGroup.name}
               subtitle={t('settings:rights.personalNote')}
               actions={
-                activeGroup.role && (
+                activeGroup.roles && (
                   <Badge
                     variant={
-                      activeGroup.role === 'manager'
+                      activeGroup.roles.includes('manager')
                         ? 'success'
-                        : activeGroup.role === 'editor'
+                        : activeGroup.roles.includes('editor')
                           ? 'info'
                           : 'neutral'
                     }
                   >
-                    {t(`common:roles.${activeGroup.role}`)}
+                    {t(`common:roles.${activeGroup.roles}`)}
                   </Badge>
                 )
               }

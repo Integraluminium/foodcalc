@@ -69,6 +69,7 @@ export default function IngredientsPage() {
       searchPlaceholder={t('ingredients:list.searchPlaceholder')}
       ownerFilter={ownerFilter}
       onOwnerFilterChange={setOwnerFilter}
+      canCreateNew={true}
       columns={columns}
       rows={filtered}
       getRowKey={(ing) => ing.id}

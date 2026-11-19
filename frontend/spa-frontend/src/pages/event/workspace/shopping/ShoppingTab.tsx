@@ -21,7 +21,7 @@ import {
 } from '../../../../hooks/queries/useEvents.ts'
 import {useInventories} from '../../../../hooks/queries/useInventories.ts'
 import {useStores} from '../../../../hooks/queries/useMasterData.ts'
-import {usePermissions} from '../../../../hooks/usePermissions.ts'
+import {useGroupPermission} from "../../../../hooks/usePermissions.ts";
 import {formatDayLabel, formatDecimal, toNumber} from '../../../../lib/format.ts'
 import styles from '../EventDetailPage.module.css'
 import {AddTourDialog} from './AddTourDialog.tsx'
@@ -33,12 +33,17 @@ function todayIsoDate(): string {
 }
 
 export function ShoppingTab() {
-  const { t } = useTranslation([])
+  const {t} = useTranslation([])
   const eventId = useEventId()
   const shopping = useShoppingList(eventId)
   const mutations = useEventMutations(eventId)
   const detail = useEvent(eventId)
-  const editable = usePermissions().canEditGroup(detail.data?.event.group_id ?? 0)
+
+  const eventGroupId = detail.data?.event.group_id ?? 0
+  let canEditTour = useGroupPermission(eventGroupId, "events:shopping:edit_tour");
+  let canAddTour = useGroupPermission(eventGroupId, "events:shopping:add_tour");
+
+
 
   const [tourDialogOpen, setTourDialogOpen] = useState(false)
   const [prefillStore, setPrefillStore] = useState<number | null>(null)
@@ -54,13 +59,13 @@ export function ShoppingTab() {
       <div className="tab-toolbar">
         <span className="muted">
           {shopping.data
-            ?t('events:shopping.summary', {
+            ? t('events:shopping.summary', {
               tours: shopping.data.tours.length,
               uncovered: shopping.data.without_tour.length,
             })
-            :t('events:shopping.loading')}
+            : t('events:shopping.loading')}
         </span>
-        {editable && (
+        {canAddTour && (
           <button
             type="button"
             className="btn btn--primary"
@@ -83,15 +88,17 @@ export function ShoppingTab() {
           <EmptyState message={t('events:shopping.empty')}/>
         ) : (
           <CardSection highlight={true}>
-            {shopping.data.tours.map((tour) => (
-              <TourGroup
-                key={tour.id}
-                tour={tour}
-                editable={editable}
-                onRemove={() => mutations.removeTour.mutate(tour.id)}
-                onEdit={() => openTourDialog(tour.store_id)}
-              />
-            ))}
+            {shopping.data.tours.map((tour) => {
+              return (
+                <TourGroup
+                  key={tour.id}
+                  tour={tour}
+                  editable={canEditTour}
+                  onRemove={() => mutations.removeTour.mutate(tour.id)}
+                  onEdit={() => openTourDialog(tour.store_id)}
+                />
+              );
+            })}
           </CardSection>
         )}
 
@@ -104,7 +111,7 @@ export function ShoppingTab() {
         ) : (
           <WithoutTourGroup
             items={shopping.data.without_tour}
-            editable={editable}
+            editable={canAddTour}
             onCreateTourForStore={(storeId) => openTourDialog(storeId)}
           />
         )}
@@ -146,23 +153,23 @@ function TourGroup({
   const columns: DataTableColumn<TourItem>[] = [
     {
       key: 'ingredient',
-      label:t('events:shopping.col.ingredient'),
+      label: t('events:shopping.col.ingredient'),
       render: (item) => item.ingredient_name,
     },
     {
       key: 'amount',
-      label:t('events:shopping.col.amount'),
+      label: t('events:shopping.col.amount'),
       align: 'num',
       render: (item) => `${formatDecimal(item.weight)} kg`,
     },
     {
       key: 'category',
-      label:t('events:shopping.col.category'),
+      label: t('events:shopping.col.category'),
       render: (item) => <span className="secondary">{item.category ?? '–'}</span>,
     },
     {
       key: 'price',
-      label:t('events:shopping.col.price'),
+      label: t('events:shopping.col.price'),
       align: 'num',
       render: (item) => (item.price === null ? '–' : `${formatDecimal(item.price)} €`),
     },
@@ -209,7 +216,7 @@ function TourGroup({
             {tour.items.length} {t('events:calculation.col.positions')} ·{' '}
             {tour.total_price !== null
               ? `${formatDecimal(tour.total_price)} €`
-              :t('events:calculation.noPrices')}
+              : t('events:calculation.noPrices')}
           </span>
           <>
             <Badge variant="warning">TODO</Badge>
@@ -225,7 +232,7 @@ function TourGroup({
               <button
                 type="button"
                 className={styles.iconButton}
-                title={completed ?t('events:shopping.reopen') :t('events:shopping.markCompleted')}
+                title={completed ? t('events:shopping.reopen') : t('events:shopping.markCompleted')}
                 onClick={() =>
                   mutations.setTourCompleted.mutate({
                     tourId: tour.id,
@@ -292,18 +299,18 @@ function WithoutTourGroup({
   const columns: DataTableColumn<IngredientWithoutTour>[] = [
     {
       key: 'ingredient',
-      label:t('events:shopping.col.ingredient'),
+      label: t('events:shopping.col.ingredient'),
       render: (item) => item.ingredient_name,
     },
     {
       key: 'amount',
-      label:t('events:shopping.col.amount'),
+      label: t('events:shopping.col.amount'),
       align: 'num',
       render: (item) => `${formatDecimal(item.weight)} kg`,
     },
     {
       key: 'store',
-      label:t('events:shopping.col.store'),
+      label: t('events:shopping.col.store'),
       render: (item) => <span className="secondary">{item.store_name}</span>,
     },
     ...(editable
@@ -351,7 +358,7 @@ function WithoutTourGroup({
 }
 
 function InventorySection({eventId}: { eventId: number }) {
-  const { t } = useTranslation([])
+  const {t} = useTranslation([])
   const linked = useEventInventories(eventId)
   const all = useInventories()
   const coverage = useInventoryCoverage(eventId)
@@ -365,18 +372,18 @@ function InventorySection({eventId}: { eventId: number }) {
   const columns: DataTableColumn<CoverageRow>[] = [
     {
       key: 'ingredient',
-      label:t('events:inventory.col.ingredient'),
+      label: t('events:inventory.col.ingredient'),
       render: (row) => row.ingredient_name,
     },
     {
       key: 'demand',
-      label:t('events:inventory.col.demand'),
+      label: t('events:inventory.col.demand'),
       align: 'num',
       render: (row) => `${formatDecimal(toNumber(row.demand_kg) ?? 0)} kg`,
     },
     {
       key: 'covered',
-      label:t('events:inventory.col.covered'),
+      label: t('events:inventory.col.covered'),
       align: 'num',
       render: (row) => {
         const demand = toNumber(row.demand_kg) ?? 0
@@ -390,7 +397,7 @@ function InventorySection({eventId}: { eventId: number }) {
     },
     {
       key: 'missing',
-      label:t('events:inventory.col.missing'),
+      label: t('events:inventory.col.missing'),
       align: 'num',
       render: (row) => {
         const demand = toNumber(row.demand_kg) ?? 0
@@ -469,7 +476,7 @@ function InventorySection({eventId}: { eventId: number }) {
 }
 
 function OverridesSection({eventId}: { eventId: number }) {
-  const { t } = useTranslation([])
+  const {t} = useTranslation([])
   const shopping = useShoppingList(eventId)
   const overrides = useEventOverrides(eventId)
   const mutations = useEventMutations(eventId)
@@ -499,21 +506,21 @@ function OverridesSection({eventId}: { eventId: number }) {
 
   const storeName = (storeId: number) =>
     stores.data?.find((s) => s.id === storeId)?.name ??
-   t('events:overrides.storeFallback', {id: storeId})
+    t('events:overrides.storeFallback', {id: storeId})
 
   type OverrideRow = NonNullable<typeof overrides.data>[number]
 
   const columns: DataTableColumn<OverrideRow>[] = [
     {
       key: 'ingredient',
-      label:t('events:overrides.col.ingredient'),
+      label: t('events:overrides.col.ingredient'),
       render: (override) => override.ingredient_name,
     },
     {
       key: 'source',
-      label:t('events:overrides.col.source'),
+      label: t('events:overrides.col.source'),
       render: (override) =>
-        override.store_name ??t('events:overrides.storeFallback', {id: override.store_id}),
+        override.store_name ?? t('events:overrides.storeFallback', {id: override.store_id}),
     },
     {
       key: 'actions',

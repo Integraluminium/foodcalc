@@ -18,6 +18,7 @@ export interface ListPageProps<T> {
   ownerFilter?: GroupFilter
   onOwnerFilterChange?: (value: GroupFilter) => void
   extraFilters?: ReactNode
+  canCreateNew: boolean
 
   columns: readonly DataTableColumn<T>[]
   rows: readonly T[] | undefined
@@ -43,6 +44,7 @@ export function ListPage<T>({
                               ownerFilter,
                               onOwnerFilterChange,
                               extraFilters,
+                              canCreateNew,
                               columns,
                               rows,
                               getRowKey,
@@ -61,9 +63,11 @@ export function ListPage<T>({
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className="section-title">{title}</h1>
-        <button type="button" className="btn btn--primary" onClick={onCreate}>
-          {createLabel}
-        </button>
+        {canCreateNew && ( // TODO: remove hardcoded permission check
+          <button type="button" className="btn btn--primary" onClick={onCreate}>
+            {createLabel}
+          </button>
+        )}
       </div>
 
       <SearchBar
