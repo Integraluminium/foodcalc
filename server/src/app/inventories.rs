@@ -100,7 +100,7 @@ pub async fn update_inventory(
         None,
         Some(json!(saved)),
     )
-        .await;
+    .await;
 
     Ok(saved)
 }
@@ -130,11 +130,10 @@ pub async fn delete_inventory(
         None,
         None,
     )
-        .await;
+    .await;
 
     Ok(())
 }
-
 
 // ---------------------------------------------------------------- items
 #[derive(Debug, Deserialize)]
@@ -170,9 +169,9 @@ pub async fn add_inventory_item(
     // Check permissions
     actor.ctx.assert_inventory_perm(inventory_id, foodlib_new::policy::InventoryPerm::Edit).await?;
 
-    let amount: BigDecimal = BigDecimal::from_str(&input.amount)
-        .map_err(|_|             foodlib_new::Error::InvalidInput {
-            message: format!("invalid amount value: {}", input.amount)
+    let amount: BigDecimal =
+        BigDecimal::from_str(&input.amount).map_err(|_| foodlib_new::Error::InvalidInput {
+            message: format!("invalid amount value: {}", input.amount),
         })?;
     if amount <= BigDecimal::from(0) {
         return Err(foodlib_new::Error::InvalidInput {
@@ -199,7 +198,7 @@ pub async fn add_inventory_item(
         None,
         Some(json!(result)),
     )
-        .await;
+    .await;
 
     Ok(result)
 }
@@ -214,9 +213,9 @@ pub async fn update_inventory_item(
     // Check permissions
     actor.ctx.assert_inventory_perm(inventory_id, foodlib_new::policy::InventoryPerm::Edit).await?;
 
-    let amount: BigDecimal = BigDecimal::from_str(&input.amount)
-        .map_err(|_|             foodlib_new::Error::InvalidInput {
-            message: format!("invalid amount value: {}", input.amount)
+    let amount: BigDecimal =
+        BigDecimal::from_str(&input.amount).map_err(|_| foodlib_new::Error::InvalidInput {
+            message: format!("invalid amount value: {}", input.amount),
         })?;
     if amount <= BigDecimal::from(0) {
         return Err(foodlib_new::Error::InvalidInput {
@@ -243,7 +242,7 @@ pub async fn update_inventory_item(
         None,
         Some(json!(item)),
     )
-        .await;
+    .await;
 
     Ok(item)
 }
@@ -271,7 +270,7 @@ pub async fn remove_inventory_item(
         None,
         None,
     )
-        .await;
+    .await;
 
     Ok(())
 }
@@ -306,7 +305,7 @@ pub async fn transfer_inventory_ownership(
         None,
         Some(json!({ "from_group_id": current.group_id })),
     )
-        .await;
+    .await;
 
     Ok(())
 }

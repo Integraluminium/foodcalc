@@ -16,7 +16,7 @@ use time::OffsetDateTime;
 pub(crate) use foodlib_new::ops::audit::{action, AuditFilter, AuditRecord};
 use foodlib_new::policy::GlobalPermission;
 
-use super::{AppCtx, Error, MyAppState, Result};
+use super::{AppCtx, AuthMethod, Error, MyAppState, Result};
 
 /// Records one audit entry with the actor's channel stamped into `details`.
 /// Audit writes are post-commit and never block the change (documented
@@ -38,7 +38,25 @@ pub async fn record(
             value
                 .as_object_mut()
                 .expect("checked above")
-                .insert("channel".into(), channel);
+                .insert("channel".into(), channel.clone());
+            // Credential attribution: which auth method (and for tokens, which
+            // token of the user) performed the action.
+            let auth_method = match &actor.auth {
+                AuthMethod::SessionCookie => serde_json::json!("session_cookie"),
+                AuthMethod::PersonalApiToken {
+                    token_id,
+                    token_name,
+                    ..
+                } => serde_json::json!({
+                    "method": "personal_api_token",
+                    "id": token_id,
+                    "name": token_name,
+                }),
+            };
+            value
+                .as_object_mut()
+                .expect("checked above")
+                .insert("auth_method".into(), auth_method);
         }
         _ => details = Some(serde_json::json!({ "channel": channel })),
     }

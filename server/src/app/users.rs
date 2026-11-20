@@ -17,7 +17,6 @@ use crate::app::audit;
 use crate::app::auth::ApiGroup;
 use crate::app::{AppCtx, Error, MyAppState, Result};
 
-
 // ------------------------------------------------------------------ DTOs
 
 /// Member projection as exposed to clients.
@@ -259,8 +258,17 @@ pub async fn delete_user(state: &MyAppState, actor: &AppCtx, id: i64) -> Result<
         });
     }
     state.users().delete_user_cascade(id).await?;
-    audit::record(state, actor, action::USER_DELETED, None, None, None, None, Some(serde_json::json!({})))
-        .await;
+    audit::record(
+        state,
+        actor,
+        action::USER_DELETED,
+        None,
+        None,
+        None,
+        None,
+        Some(serde_json::json!({})),
+    )
+    .await;
     Ok(())
 }
 
@@ -283,9 +291,12 @@ pub async fn change_password(
         });
     }
     if is_self {
-        let current_password = payload.current_password.as_deref().ok_or(Error::Validation {
-            message: "current_password is required to change your own password".into(),
-        })?;
+        let current_password = payload
+            .current_password
+            .as_deref()
+            .ok_or(Error::Validation {
+                message: "current_password is required to change your own password".into(),
+            })?;
         if !current_password.is_empty()
             && !bcrypt::verify(current_password, &actor.ctx.user.password_hash).unwrap_or(false)
         {
@@ -460,7 +471,9 @@ pub async fn list_members(
 ) -> Result<Vec<MemberWithRoles>> {
     if !actor.ctx.can_global(GlobalPermission::ManageUsers) && !actor.ctx.can_access_group(group_id)
     {
-        return Err(Error::Forbidden("you are not a member of this group".into()));
+        return Err(Error::Forbidden(
+            "you are not a member of this group".into(),
+        ));
     }
     let members = state.users().get_group_members_with_roles(group_id).await?;
     Ok(members

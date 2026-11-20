@@ -128,13 +128,21 @@ async fn create_group(
 
 /// `DELETE /api/groups/{id}` — requires `group:delete` on the group; refuses
 /// personal and non-empty groups.
-async fn delete_group(State(state): State<MyAppState>, actor: AppCtx, Path(id): Path<i32>) -> Response {
+async fn delete_group(
+    State(state): State<MyAppState>,
+    actor: AppCtx,
+    Path(id): Path<i32>,
+) -> Response {
     respond_no_content(users::delete_group(&state, &actor, id).await)
 }
 
 /// `GET /api/groups/{id}/members` — members (or user admins) see member list
 /// with all assigned role slugs.
-async fn list_members(State(state): State<MyAppState>, actor: AppCtx, Path(id): Path<i32>) -> Response {
+async fn list_members(
+    State(state): State<MyAppState>,
+    actor: AppCtx,
+    Path(id): Path<i32>,
+) -> Response {
     respond(users::list_members(&state, &actor, id).await)
 }
 

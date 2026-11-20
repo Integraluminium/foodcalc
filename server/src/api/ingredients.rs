@@ -10,7 +10,10 @@ use axum::{
 use serde::Deserialize;
 
 use crate::app::ingredients;
-use crate::app::ingredients::{IngredientCreateInput, IngredientPropertyInput, IngredientSourceInput, IngredientUpdateInput, IngredientWeightInput, IngredientWeightUpdateInput};
+use crate::app::ingredients::{
+    IngredientCreateInput, IngredientPropertyInput, IngredientSourceInput, IngredientUpdateInput,
+    IngredientWeightInput, IngredientWeightUpdateInput,
+};
 use crate::{
     api::{respond, respond_created, respond_no_content},
     app::AppCtx,
@@ -63,8 +66,6 @@ async fn list_ingredients(
 
 // ---------------------------------------------------------------- create
 
-
-
 async fn create_ingredient(
     State(state): State<MyAppState>,
     actor: AppCtx,
@@ -75,8 +76,6 @@ async fn create_ingredient(
 
 // ---------------------------------------------------------------- detail
 
-
-
 async fn get_ingredient(
     State(state): State<MyAppState>,
     actor: AppCtx,
@@ -86,8 +85,6 @@ async fn get_ingredient(
 }
 
 // ------------------------------------------------------- update / delete
-
-
 
 async fn update_ingredient(
     State(state): State<MyAppState>,
@@ -111,7 +108,7 @@ async fn delete_ingredient(
 async fn list_sources(
     State(state): State<MyAppState>,
     actor: AppCtx,
-    Path(id): Path<i32>
+    Path(id): Path<i32>,
 ) -> Response {
     respond(ingredients::list_sources(&state, &actor, id).await)
 }
@@ -122,7 +119,7 @@ async fn add_source(
     Path(id): Path<i32>,
     Json(payload): Json<IngredientSourceInput>,
 ) -> Response {
-   respond_created(ingredients::add_source(&state, &actor, id, payload).await)
+    respond_created(ingredients::add_source(&state, &actor, id, payload).await)
 }
 
 async fn update_source(
@@ -131,7 +128,7 @@ async fn update_source(
     Path((id, source_id)): Path<(i32, i32)>,
     Json(payload): Json<IngredientSourceInput>,
 ) -> Response {
-   respond(ingredients::update_source(&state, &actor, id, source_id, payload).await)
+    respond(ingredients::update_source(&state, &actor, id, source_id, payload).await)
 }
 
 async fn delete_source(
@@ -142,12 +139,11 @@ async fn delete_source(
     respond_no_content(ingredients::delete_source(&state, &actor, id, source_id).await)
 }
 
-
-
 async fn list_weights(
     State(state): State<MyAppState>,
     actor: AppCtx,
-    Path(id): Path<i32>) -> Response {
+    Path(id): Path<i32>,
+) -> Response {
     respond(ingredients::list_weights(&state, &actor, id).await)
 }
 
@@ -219,9 +215,7 @@ async fn transfer_owner(
     Path(id): Path<i32>,
     Json(payload): Json<OwnerTransferInput>,
 ) -> Response {
-    respond_no_content(
-        ingredients::transfer_owner(&state, &ctx, id, payload.group_id).await,
-    )
+    respond_no_content(ingredients::transfer_owner(&state, &ctx, id, payload.group_id).await)
 }
 
 // ----------------------------------------------------------------- usages

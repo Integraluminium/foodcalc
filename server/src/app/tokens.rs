@@ -8,7 +8,8 @@ use sha2::{Digest, Sha256};
 use sqlx::FromRow;
 use time::{Duration, OffsetDateTime};
 
-use crate::app::{audit, AppCtx, Error, MyAppState, Result};
+use crate::app::risk;
+use crate::app::{audit, AppCtx, AuthMethod, Error, MyAppState, Result};
 
 const TOKEN_PREFIX_TAG: &str = "fc_";
 
@@ -18,6 +19,10 @@ pub struct CreateTokenInput {
     pub name: String,
     /// Optional lifetime in days (omit for a non-expiring token).
     pub expires_in_days: Option<i64>,
+    /// Optional capability profile: the tool risk classes this token's agent
+    /// may execute (e.g. `["read"]` for a read-only agent, `["read", "plan"]`
+    /// for a planning agent). Omit for an unrestricted token (all classes).
+    pub allowed_risk_classes: Option<Vec<String>>,
 }
 
 /// Metadata returned when listing a user's tokens (never includes `token_hash`).
@@ -26,6 +31,7 @@ pub struct ApiTokenInfo {
     pub id: i64,
     pub name: String,
     pub token_prefix: String,
+    pub allowed_risk_classes: Option<Vec<String>>,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
     #[serde(with = "time::serde::rfc3339::option")]
@@ -64,15 +70,15 @@ pub async fn list_my_tokens(state: &MyAppState, actor: &AppCtx) -> Result<Vec<Ap
 
     let tokens = sqlx::query_as::<_, ApiTokenInfo>(
         r#"
-        SELECT id, name, token_prefix, created_at, last_used_at, expires_at
+        SELECT id, name, token_prefix, allowed_risk_classes, created_at, last_used_at, expires_at
         FROM user_api_tokens
         WHERE user_id = $1
         ORDER BY created_at DESC
         "#,
     )
-        .bind(actor.ctx.user.id)
-        .fetch_all(&*pool)
-        .await?;
+    .bind(actor.ctx.user.id)
+    .fetch_all(&*pool)
+    .await?;
 
     Ok(tokens)
 }
@@ -107,6 +113,12 @@ pub async fn create_my_token(
         None => None,
     };
 
+    if let Some(classes) = &input.allowed_risk_classes {
+        if let Err(message) = risk::validate_risk_classes(classes) {
+            return Err(Error::Validation { message });
+        }
+    }
+
     let raw_token = generate_raw_token();
     let token_prefix: String = raw_token.chars().take(10).collect();
     let token_hash = hash_token(&raw_token);
@@ -114,15 +126,16 @@ pub async fn create_my_token(
 
     let info = sqlx::query_as::<_, ApiTokenInfo>(
         r#"
-        INSERT INTO user_api_tokens (user_id, name, token_prefix, token_hash, expires_at)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, name, token_prefix, created_at, last_used_at, expires_at
+        INSERT INTO user_api_tokens (user_id, name, token_prefix, token_hash, allowed_risk_classes, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id, name, token_prefix, allowed_risk_classes, created_at, last_used_at, expires_at
         "#,
     )
         .bind(actor.ctx.user.id)
         .bind(name)
         .bind(&token_prefix)
         .bind(&token_hash)
+        .bind(input.allowed_risk_classes.clone())
         .bind(expires_at)
         .fetch_one(&*pool)
         .await?;
@@ -135,9 +148,13 @@ pub async fn create_my_token(
         Some(info.id as i32),
         None,
         None,
-        Option::from(json!({ "name": info.name, "prefix": info.token_prefix })),
+        Option::from(json!({
+            "name": info.name,
+            "prefix": info.token_prefix,
+            "allowed_risk_classes": info.allowed_risk_classes,
+        })),
     )
-        .await;
+    .await;
 
     Ok(CreatedApiToken {
         info,
@@ -156,10 +173,10 @@ pub async fn revoke_my_token(state: &MyAppState, actor: &AppCtx, token_id: i64) 
         WHERE id = $1 AND user_id = $2
         "#,
     )
-        .bind(token_id)
-        .bind(actor.ctx.user.id)
-        .execute(&*pool)
-        .await?;
+    .bind(token_id)
+    .bind(actor.ctx.user.id)
+    .execute(&*pool)
+    .await?;
 
     if res.rows_affected() == 0 {
         return Err(Error::NotFound {
@@ -178,14 +195,19 @@ pub async fn revoke_my_token(state: &MyAppState, actor: &AppCtx, token_id: i64) 
         None,
         Option::from(json!({})),
     )
-        .await;
+    .await;
 
     Ok(())
 }
 
 /// Validates a raw Bearer token, checks expiration, updates `last_used_at`,
-/// and resolves the owning user's full [`AuthCtx`].
-pub async fn authenticate_bearer_token(foodlib: &FoodLib, raw_token: &str) -> Result<AuthCtx> {
+/// and resolves the owning user's full [`AuthCtx`] together with the token
+/// identity + capability profile (`AuthMethod::PersonalApiToken`) for audit
+/// attribution and MCP tool gating.
+pub async fn authenticate_bearer_token(
+    foodlib: &FoodLib,
+    raw_token: &str,
+) -> Result<(AuthCtx, AuthMethod)> {
     let trimmed = raw_token.trim();
     if trimmed.is_empty() {
         return Err(Error::Unauthorized("empty bearer token".into()));
@@ -194,18 +216,24 @@ pub async fn authenticate_bearer_token(foodlib: &FoodLib, raw_token: &str) -> Re
     let token_hash = hash_token(trimmed);
     let pool = foodlib.pool_arc();
 
-    let row: Option<(i64, i64, Option<OffsetDateTime>)> = sqlx::query_as(
+    let row: Option<(
+        i64,
+        i64,
+        String,
+        Option<Vec<String>>,
+        Option<OffsetDateTime>,
+    )> = sqlx::query_as(
         r#"
-        SELECT id, user_id, expires_at
+        SELECT id, user_id, name, allowed_risk_classes, expires_at
         FROM user_api_tokens
         WHERE token_hash = $1
         "#,
     )
-        .bind(&token_hash)
-        .fetch_optional(&*pool)
-        .await?;
+    .bind(&token_hash)
+    .fetch_optional(&*pool)
+    .await?;
 
-    let (token_id, user_id, expires_at) =
+    let (token_id, user_id, token_name, allowed_risk_classes, expires_at) =
         row.ok_or_else(|| Error::Unauthorized("invalid API token".into()))?;
 
     if let Some(exp) = expires_at {
@@ -228,5 +256,11 @@ pub async fn authenticate_bearer_token(foodlib: &FoodLib, raw_token: &str) -> Re
         .execute(&*pool)
         .await;
 
-    AuthCtx::from_user(foodlib, user).await
+    let ctx = AuthCtx::from_user(foodlib, user).await?;
+    let auth = AuthMethod::PersonalApiToken {
+        token_id,
+        token_name,
+        allowed_risk_classes,
+    };
+    Ok((ctx, auth))
 }

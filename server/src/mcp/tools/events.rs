@@ -2,15 +2,13 @@
 
 use bigdecimal::ToPrimitive;
 use rmcp::{
-    handler::server::wrapper::Parameters,
-    model::{CallToolResult, ContentBlock},
-    schemars::JsonSchema,
-    service::RequestContext,
-    tool, tool_router, ErrorData as McpError, RoleServer,
+    handler::server::wrapper::Parameters, model::CallToolResult, schemars::JsonSchema,
+    service::RequestContext, tool, tool_router, ErrorData as McpError, RoleServer,
 };
 use serde::Deserialize;
 use serde_json::json;
 
+use super::{actor_attribution, confirm_or_abort};
 use crate::app::{
     events::{
         self,
@@ -23,7 +21,7 @@ use crate::app::{
 use crate::mcp::{
     auth::extract_actor,
     error::{map_app_error_to_tool, map_tool_result, tool_json},
-    ConfirmMutation, FoodcalcMcpServer,
+    FoodcalcMcpServer,
 };
 
 /// Parameters for `list_events`.
@@ -87,6 +85,9 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "list_events") {
+            return Ok(denied);
+        }
         let summaries = match events::list_summaries(&self.state, &actor.ctx).await {
             Ok(list) => list,
             Err(err) => return map_app_error_to_tool(err),
@@ -126,6 +127,9 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "get_event_catering_brief") {
+            return Ok(denied);
+        }
         let event_id = params.event_id;
 
         let details = match events::get_event_details(&self.state, &actor.ctx, event_id).await {
@@ -133,24 +137,19 @@ impl FoodcalcMcpServer {
             Err(err) => return map_app_error_to_tool(err),
         };
 
-        let (planner_meals, shopping_list, food_preps, linked_inventories, coverage) =
-            match tokio::try_join!(
-                meals::list(&self.state, &actor.ctx, event_id),
-                events::get_shopping_list(&self.state, &actor.ctx, event_id),
-                list_food_preps(&self.state, &actor.ctx, event_id),
-                list_event_inventories(&self.state, &actor.ctx, event_id),
-                inventory_coverage(&self.state, &actor.ctx, event_id),
-            ) {
-                Ok(res) => res,
-                Err(err) => return map_app_error_to_tool(err),
-            };
+        let (planner_meals, shopping_list, food_preps, linked_inventories, coverage) = match tokio::try_join!(
+            meals::list(&self.state, &actor.ctx, event_id),
+            events::get_shopping_list(&self.state, &actor.ctx, event_id),
+            list_food_preps(&self.state, &actor.ctx, event_id),
+            list_event_inventories(&self.state, &actor.ctx, event_id),
+            inventory_coverage(&self.state, &actor.ctx, event_id),
+        ) {
+            Ok(res) => res,
+            Err(err) => return map_app_error_to_tool(err),
+        };
 
         let total_servings: i64 = planner_meals.iter().map(|m| i64::from(m.servings)).sum();
-        let max_meal_servings: i32 = planner_meals
-            .iter()
-            .map(|m| m.servings)
-            .max()
-            .unwrap_or(0);
+        let max_meal_servings: i32 = planner_meals.iter().map(|m| m.servings).max().unwrap_or(0);
         let total_energy_kj: f64 = planner_meals
             .iter()
             .map(|m| m.energy_per_serving.to_f64().unwrap_or(0.0) * f64::from(m.servings))
@@ -197,12 +196,16 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "add_meal_to_event") {
+            return Ok(denied);
+        }
 
         // Pre-validate read access & resolve names so the elicitation prompt is clear and accurate.
-        let event_details = match events::get_event_details(&self.state, &actor.ctx, params.event_id).await {
-            Ok(d) => d,
-            Err(err) => return map_app_error_to_tool(err),
-        };
+        let event_details =
+            match events::get_event_details(&self.state, &actor.ctx, params.event_id).await {
+                Ok(d) => d,
+                Err(err) => return map_app_error_to_tool(err),
+            };
         let recipe = match self.state.recipes().get(params.recipe_id).await {
             Ok(r) if actor.ctx.can_access_group(r.group_id) => r,
             Ok(_) => {
@@ -215,7 +218,7 @@ impl FoodcalcMcpServer {
         };
 
         let summary = format!(
-            "Confirm adding meal to event '{}' (ID {}):\n\
+            "{}\nConfirm adding meal to event '{}' (ID {}):\n\
              - Recipe: '{}' (ID {})\n\
              - Start time: {}\n\
              - End time: {}\n\
@@ -223,6 +226,7 @@ impl FoodcalcMcpServer {
              - Energy per serving: {} kJ\n\
              - Place ID: {}\n\
              - Comment: {}",
+            actor_attribution(&actor),
             event_details.event.name,
             params.event_id,
             recipe.name,
@@ -238,18 +242,10 @@ impl FoodcalcMcpServer {
             params.comment.as_deref().unwrap_or("(none)"),
         );
 
-        match context.peer.elicit::<ConfirmMutation>(summary).await {
-            Ok(Some(ConfirmMutation { confirmed: true })) => {}
-            Ok(_) => {
-                return Ok(CallToolResult::error(vec![ContentBlock::text(
-                    "Operation aborted: user declined or dismissed confirmation to add the meal.",
-                )]));
-            }
-            Err(err) => {
-                return Ok(CallToolResult::error(vec![ContentBlock::text(format!(
-                    "Operation aborted: elicitation confirmation could not be completed ({err})."
-                ))]));
-            }
+        if let Some(aborted) =
+            confirm_or_abort(&self.state, &actor, &context, "add_meal_to_event", summary).await
+        {
+            return Ok(aborted);
         }
 
         let input = MealAddInput {
@@ -285,21 +281,37 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "update_shopping_tour") {
+            return Ok(denied);
+        }
 
         // Pre-validate event & tour visibility before eliciting confirmation.
-        let event_details = match events::get_event_details(&self.state, &actor.ctx, params.event_id).await {
-            Ok(d) => d,
-            Err(err) => return map_app_error_to_tool(err),
-        };
+        let event_details =
+            match events::get_event_details(&self.state, &actor.ctx, params.event_id).await {
+                Ok(d) => d,
+                Err(err) => return map_app_error_to_tool(err),
+            };
         let current_tour = match self.state.events().get_shopping_tour(params.tour_id).await {
             Ok(t) => t,
             Err(err) => return map_app_error_to_tool(err),
         };
+        // Reject tours of other events *before* eliciting confirmation so a
+        // wrong tour_id cannot surface another event's tour data to the user.
+        if current_tour.event_id != params.event_id {
+            return map_app_error_to_tool(AppError::Validation {
+                message: format!(
+                    "tour {tour} does not belong to event {event}",
+                    tour = params.tour_id,
+                    event = params.event_id,
+                ),
+            });
+        }
 
         let summary = format!(
-            "Confirm updating shopping tour #{} for event '{}' (ID {}):\n\
+            "{}\nConfirm updating shopping tour #{} for event '{}' (ID {}):\n\
              - Current date: {} -> New date: {}\n\
              - Current store ID: {} -> New store ID: {}",
+            actor_attribution(&actor),
             params.tour_id,
             event_details.event.name,
             params.event_id,
@@ -309,18 +321,16 @@ impl FoodcalcMcpServer {
             params.store_id,
         );
 
-        match context.peer.elicit::<ConfirmMutation>(summary).await {
-            Ok(Some(ConfirmMutation { confirmed: true })) => {}
-            Ok(_) => {
-                return Ok(CallToolResult::error(vec![ContentBlock::text(
-                    "Operation aborted: user declined or dismissed confirmation to update the shopping tour.",
-                )]));
-            }
-            Err(err) => {
-                return Ok(CallToolResult::error(vec![ContentBlock::text(format!(
-                    "Operation aborted: elicitation confirmation could not be completed ({err})."
-                ))]));
-            }
+        if let Some(aborted) = confirm_or_abort(
+            &self.state,
+            &actor,
+            &context,
+            "update_shopping_tour",
+            summary,
+        )
+        .await
+        {
+            return Ok(aborted);
         }
 
         let input = TourInput {

@@ -1,10 +1,8 @@
 //! Ingredient catalog search and inventory overview MCP tools.
 
 use rmcp::{
-    handler::server::wrapper::Parameters,
-    model::CallToolResult,
-    service::RequestContext,
-    tool, tool_router, ErrorData as McpError, RoleServer,
+    handler::server::wrapper::Parameters, model::CallToolResult, service::RequestContext, tool,
+    tool_router, ErrorData as McpError, RoleServer,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -49,6 +47,9 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "search_ingredients") {
+            return Ok(denied);
+        }
         let query = IngredientListQuery {
             search: params.search,
             property_id: params.property_id,
@@ -68,12 +69,16 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "get_inventory_overview") {
+            return Ok(denied);
+        }
 
         if let Some(inventory_id) = params.inventory_id {
-            let inventory = match inventories::get_inventory(&self.state, &actor, inventory_id).await {
-                Ok(inv) => inv,
-                Err(err) => return map_app_error_to_tool(err),
-            };
+            let inventory =
+                match inventories::get_inventory(&self.state, &actor, inventory_id).await {
+                    Ok(inv) => inv,
+                    Err(err) => return map_app_error_to_tool(err),
+                };
             let items =
                 match inventories::list_inventory_items(&self.state, &actor, inventory_id).await {
                     Ok(items) => items,

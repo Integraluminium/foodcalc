@@ -63,7 +63,10 @@ impl FoodcalcMcpServer {
 
         Ok(
             GetPromptResult::new(vec![PromptMessage::new_text(Role::User, prompt_text)])
-                .with_description(format!("Menu planning workflow for event #{}", args.event_id)),
+                .with_description(format!(
+                    "Menu planning workflow for event #{}",
+                    args.event_id
+                )),
         )
     }
 

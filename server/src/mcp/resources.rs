@@ -55,7 +55,7 @@ pub async fn read_resource(
                 master::get_available_stores(state),
                 master::get_available_event_places(state),
             )
-                .map_err(map_app_error_to_mcp)?;
+            .map_err(map_app_error_to_mcp)?;
 
             let payload = json!({
                 "units": units,
