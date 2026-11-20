@@ -19,6 +19,8 @@ mod api;
 mod frontend;
 // #[cfg(feature = "legacy-frontend")]
 mod htmx_middleware;
+#[cfg(feature = "mcp")]
+mod mcp;
 
 pub use app::state::{FoodLib, MyAppState};
 
@@ -93,6 +95,9 @@ async fn main() {
     // page-wrapping middleware) is compile-time optional via the
     // `legacy-frontend` feature.
     let router = Router::new().nest("/api", api::api_router());
+
+    #[cfg(feature = "mcp")]
+    let router = router.nest("/mcp", mcp::mcp_router(state.clone()));
 
     // #[cfg(feature = "legacy-frontend")]
     let router = router.merge(frontend::frontend_router());
