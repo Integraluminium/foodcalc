@@ -128,7 +128,10 @@ fn build_request_state_codec() -> Arc<RequestStateCodec> {
             chunk.copy_from_slice(&rand_u64.to_le_bytes());
         }
     }
-    Arc::new(RequestStateCodec::new(&key))
+    Arc::new(
+        RequestStateCodec::try_new(&key)
+            .expect("32-byte HMAC key meets RequestStateCodec minimum length"),
+    )
 }
 
 /// Builds the Axum router to be nested at `/mcp`.

@@ -14,6 +14,8 @@ use crate::app::users;
 use crate::app::AppCtx;
 use crate::MyAppState;
 
+use crate::app::tokens::{self, CreateTokenInput};
+
 // DTOs shared with the app layer.
 pub use crate::app::users::{
     AddMemberInput, AdminSelfGrantInput, GlobalPermissionsInput, GroupCreateInput,
@@ -202,10 +204,34 @@ async fn clear_group_default_roles(
 /// `GET/PUT /api/settings/member-defaults` — global default roles for new
 /// members of groups without their own default. Guard `admin:manage_settings`.
 pub fn settings_router() -> Router<MyAppState> {
-    Router::new().route(
-        "/member-defaults",
-        get(get_member_defaults).put(put_member_defaults),
-    )
+    Router::new()
+        .route(
+            "/member-defaults",
+            get(get_member_defaults).put(put_member_defaults),
+        )
+        .route("/tokens", get(list_my_tokens).post(create_my_token))
+        .route("/tokens/{id}", delete(revoke_my_token))
+}
+
+
+async fn list_my_tokens(State(state): State<MyAppState>, actor: AppCtx) -> Response {
+    respond(tokens::list_my_tokens(&state, &actor).await)
+}
+
+async fn create_my_token(
+    State(state): State<MyAppState>,
+    actor: AppCtx,
+    Json(payload): Json<CreateTokenInput>,
+) -> Response {
+    respond_created(tokens::create_my_token(&state, &actor, payload).await)
+}
+
+async fn revoke_my_token(
+    State(state): State<MyAppState>,
+    actor: AppCtx,
+    Path(id): Path<i64>,
+) -> Response {
+    respond_no_content(tokens::revoke_my_token(&state, &actor, id).await)
 }
 
 #[derive(Debug, serde::Deserialize)]
