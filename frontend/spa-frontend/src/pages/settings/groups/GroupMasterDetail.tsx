@@ -1,336 +1,386 @@
 import {Plus, Trash2, UserPlus} from 'lucide-react'
 import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import type {Group, GroupMember} from "../../../api";
-import {CardSection} from "../../../components/patterns/card_section/CardSection.tsx";
-import {ConfirmDialog} from "../../../components/patterns/dialog/ConfirmDialog.tsx";
-import type {DataTableColumn} from "../../../components/patterns/table/DataTable.tsx";
-import {DataTable} from "../../../components/patterns/table/DataTable.tsx";
-import {Badge} from "../../../components/ui/badge/Badge.tsx";
-import {Spinner} from "../../../components/ui/spinner/Spinner.tsx";
+import type {Group, GroupMember, RoleSlug} from '../../../api'
+import {CardSection} from '../../../components/patterns/card_section/CardSection.tsx'
+import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.tsx'
+import {Badge} from '../../../components/ui/badge/Badge.tsx'
+import {MemberRoleDetailDrawer} from '../../../components/patterns/roles/MemberRoleDetailDrawer.tsx'
+import {RoleMatrixLegend} from '../../../components/patterns/roles/RoleMatrixLegend.tsx'
+import {RoleMultiSelect} from '../../../components/patterns/roles/RoleMultiSelect.tsx'
+import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
+import {
+  useGroupAdminMutations,
+  useGroupDefaultRoles,
+  useGroupDefaultRolesMutations,
+  useGroupMembers,
+  useRoles,
+} from '../../../hooks/queries/useUsers.ts'
+import {useGroupPermission} from '../../../hooks/usePermissions.ts'
+import {roleLabel} from '../../../lib/roles.ts'
 import styles from './GroupMasterDetail.module.css'
 
-export type GroupRole = 'viewer' | 'member' | 'admin'
+const MANAGE_MEMBERS = 'group:manage_members'
+const MANAGE_SETTINGS = 'group:manage_settings'
 
-export interface ManagedGroupMember {
-  user_id: number
-  username: string
-  display_name?: string | null
-  role: GroupRole
-}
-
-export interface ManagedGroup {
-  id: number
-  name: string
-  is_personal: boolean
-  members: ManagedGroupMember[]
-  settings?: Record<string, unknown>
-}
-
-export function GroupMasterDetail({
-                                    groups,
-                                    groupsPending,
-                                    selectedGroupId,
-                                    onSelectGroup,
-                                    members,
-                                    membersPending,
-                                    isSystemAdmin,
-                                    canManageGroup,
-                                    onCreateGroup,
-                                    onAddMember,
-                                    onChangeMemberRole,
-                                    onRemoveMember,
-                                    onDeleteGroup,
-                                  }: {
+export interface GroupMasterDetailProps {
   groups: Group[]
   groupsPending: boolean
   selectedGroupId: number | null
   onSelectGroup: (id: number) => void
-  members: GroupMember[]
-  membersPending: boolean
-  isSystemAdmin: boolean
-  canManageGroup: (groupId: number) => boolean
-  onCreateGroup: (name: string) => Promise<void>
-  onAddMember: (groupId: number, identifier: string, role: GroupRole) => Promise<void>
-  onChangeMemberRole: (groupId: number, userId: number, role: GroupRole) => Promise<void>
-  onRemoveMember: (groupId: number, userId: number) => Promise<void>
-  onDeleteGroup: (groupId: number) => Promise<void>
-}) {
-  const { t } = useTranslation(['settings', 'common'])
+  /** Optional create callback; when absent the create bar is hidden. */
+  onCreateGroup?: (name: string) => Promise<void>
+}
+
+interface DrawerTarget {
+  userId: number
+  username: string
+  roles: RoleSlug[]
+}
+
+/**
+ * UX-C group permission management: preset add-bar, inline role pills with
+ * a popover checklist, per-member detail drawer with the effective
+ * permission preview, configurable default roles and a catalog-rendered
+ * role matrix. Everything below renders from `GET /api/roles`.
+ */
+export function GroupMasterDetail({
+  groups,
+  groupsPending,
+  selectedGroupId,
+  onSelectGroup,
+  onCreateGroup,
+}: GroupMasterDetailProps) {
+  const {t} = useTranslation(['settings', 'common'])
+  const {data: roles} = useRoles()
+  const {addMember, removeMember, setMemberRoles: setMemberRolesMutation, removeGroup} =
+    useGroupAdminMutations()
+
   const [search, setSearch] = useState('')
   const [newGroupName, setNewGroupName] = useState('')
-  const [creating, setCreating] = useState(false)
-
   const [memberInput, setMemberInput] = useState('')
-  const [memberRole, setMemberRole] = useState<GroupRole>('viewer')
-  const [addingMember, setAddingMember] = useState(false)
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [memberRoles, setMemberRoles] = useState<RoleSlug[]>([])
+  const [drawer, setDrawer] = useState<DrawerTarget | null>(null)
+  const [confirmDeleteGroup, setConfirmDeleteGroup] = useState(false)
+  const [confirmRemoveMember, setConfirmRemoveMember] = useState<GroupMember | null>(null)
+  const [defaultsDraft, setDefaultsDraft] = useState<RoleSlug[] | null>(null)
 
-  if (groupsPending) {
-    return <Spinner />
-  }
-
-  const visibleGroups = groups.filter(
-    (g) => !g.is_personal && g.name.toLowerCase().includes(search.trim().toLowerCase()),
+  const visibleGroups = groups.filter((g) =>
+    g.name.toLowerCase().includes(search.trim().toLowerCase()),
   )
   const activeGroup =
     visibleGroups.find((g) => g.id === selectedGroupId) ?? visibleGroups[0] ?? null
+  const activeGroupId = activeGroup?.id ?? 0
 
-  const editable =
-    activeGroup !== null && (isSystemAdmin || canManageGroup(activeGroup.id))
+  // Hooks stay unconditional; inactive/zero ids simply resolve to `false`.
+  // Queries are gated on the same permissions the backend enforces, so groups
+  // without manage rights never fire the guarded endpoints (no 401/403).
+  const canManageMembers = useGroupPermission(activeGroupId, MANAGE_MEMBERS)
+  const canManageSettings = useGroupPermission(activeGroupId, MANAGE_SETTINGS)
+  const canDeleteGroup = useGroupPermission(activeGroupId, 'group:delete')
+  // Member list: backend allows any member (or user admin) to view it —
+  // shown read-only for non-managers, so it is not gated on permissions.
+  const members = useGroupMembers(activeGroupId)
+  // Only fires when the session user holds `group:manage_settings` — the same
+  // guard the backend enforces — so restricted groups never produce 401/403.
+  const defaultsQuery = useGroupDefaultRoles(activeGroupId, canManageSettings)
+  const defaultsMutations = useGroupDefaultRolesMutations(activeGroupId)
 
-  const handleCreate = async () => {
-    const trimmed = newGroupName.trim()
-    if (!trimmed) return
-    setCreating(true)
-    try {
-      await onCreateGroup(trimmed)
-      setNewGroupName('')
-    } finally {
-      setCreating(false)
-    }
-  }
+  if (groupsPending) return <Spinner/>
+
+  const memberRows = members.data ?? []
+
+  // Sole holder of `group:manage_members` may not lose that role (backend
+  // enforces the same invariant — mirrored here so the UI shows a lock).
+  const holders = memberRows.filter((member) =>
+    member.roles.some(
+      (slug) =>
+        roles?.find((role) => role.slug === slug)?.permissions.includes(MANAGE_MEMBERS) ??
+        false,
+    ),
+  )
+  const lockedRolesFor = (member: GroupMember): string[] =>
+    holders.length === 1 &&
+    holders[0].id === member.id &&
+    member.roles.includes(MANAGE_MEMBERS)
+      ? [MANAGE_MEMBERS]
+      : []
+  const lockedReason = t('settings:rights.lastManagerHint')
 
   const handleAddMember = async () => {
-    if (!activeGroup || !memberInput.trim()) return
-    setAddingMember(true)
+    const identifier = memberInput.trim()
+    if (!identifier || !activeGroup) return
     try {
-      await onAddMember(activeGroup.id, memberInput.trim(), memberRole)
+      await addMember.mutateAsync({
+        groupId: activeGroup.id,
+        user: identifier,
+        roles: memberRoles.length > 0 ? memberRoles : undefined,
+      })
       setMemberInput('')
-    } finally {
-      setAddingMember(false)
+      setMemberRoles([])
+    } catch {
+      // Toasts are surfaced by the global error handler.
     }
   }
 
   const handleDeleteGroup = async () => {
     if (!activeGroup) return
-    setDeleting(true)
     try {
-      await onDeleteGroup(activeGroup.id)
-      setConfirmDeleteOpen(false)
+      await removeGroup.mutateAsync(activeGroup.id)
     } finally {
-      setDeleting(false)
+      setConfirmDeleteGroup(false)
     }
   }
 
-  const memberColumns: DataTableColumn<GroupMember>[] = [
-    {
-      key: 'user',
-      label: t('settings:rights.memberCol', 'Mitglied'),
-      render: (m) => (
-        <div>
-          <strong>{m.username}</strong>
-          <span className="muted"> · {m.email}</span>
-          {m.is_admin && (
-            <>
-              {' '}
-              <Badge variant="info">Admin</Badge>
-            </>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'role',
-      label: t('settings:rights.roleLabel', 'Rolle'),
-      render: (m) =>
-        editable ? (
-          <select
-            className={`input ${styles.roleSelect}`}
-            value={m.role}
-            onChange={(e) =>
-              void onChangeMemberRole(
-                activeGroup!.id,
-                m.id,
-                e.target.value as GroupRole,
-              )
-            }
-          >
-            <option value="viewer">{t('common:roles.viewer', 'Leser')}</option>
-            <option value="editor">{t('common:roles.editor', 'Bearbeiter')}</option>
-            <option value="manager">{t('common:roles.manager', 'Verwalter')}</option>
-          </select>
-        ) : (
-          <Badge variant={m.role === 'manager' ? 'success' : 'neutral'}>
-            {t(`common:roles.${m.role}`)}
-          </Badge>
-        ),
-    },
-    ...(editable
-      ? [
-        {
-          key: 'actions',
-          label: '',
-          align: 'num' as const,
-          render: (m: GroupMember) => (
-            <button
-              type="button"
-              className="icon-btn"
-              title={t('settings:rights.removeMember', 'Mitglied entfernen')}
-              onClick={() => void onRemoveMember(activeGroup!.id, m.id)}
-            >
-              <Trash2 size={15} />
-            </button>
-          ),
-        },
-      ]
-      : []),
-  ]
+  const defaultRoles = defaultsQuery.data?.roles ?? null
+  const resolvedDefaults = defaultsQuery.data?.resolved ?? []
+  const defaultsValue = defaultsDraft ?? defaultRoles ?? []
 
   return (
     <div className={styles.layout}>
       <aside className={styles.masterPane}>
         <input
           className="input"
-          placeholder={t('settings:rights.searchPlaceholder', 'Gruppen filtern…')}
+          placeholder={t('settings:rights.searchGroup')}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
         />
-
-        {isSystemAdmin && (
+        <ul className={styles.groupList}>
+          {visibleGroups.map((group) => (
+            <li key={group.id}>
+              <button
+                type="button"
+                className={`${styles.groupItem} ${group.id === activeGroup?.id ? styles.groupItemActive : ''}`}
+                onClick={() => onSelectGroup(group.id)}
+              >
+                <span className={styles.groupItemMain}>
+                  <span className={styles.groupName}>{group.name}</span>
+                  <span className={styles.groupMeta}>
+                    {(group.roles ?? []).map((slug) => (
+                      <Badge key={slug} variant="neutral">
+                        {roleLabel(slug, t, roles)}
+                      </Badge>
+                    ))}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        {onCreateGroup && (
           <div className={styles.createRow}>
             <input
               className="input"
-              placeholder={t('settings:rights.createPlaceholder', 'Neue Gruppe…')}
+              placeholder={t('settings:rights.newGroupName')}
               value={newGroupName}
-              onChange={(e) => setNewGroupName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') void handleCreate()
+              onChange={(event) => setNewGroupName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && newGroupName.trim()) {
+                  void onCreateGroup(newGroupName.trim()).then(() => setNewGroupName(''))
+                }
               }}
             />
             <button
               type="button"
-              className="btn btn--primary"
-              disabled={creating || !newGroupName.trim()}
-              onClick={() => void handleCreate()}
-              title={t('settings:rights.createButton', 'Erstellen')}
+              className="btn btn--primary btn--sm"
+              disabled={!newGroupName.trim()}
+              onClick={() => {
+                void onCreateGroup(newGroupName.trim()).then(() => setNewGroupName(''))
+              }}
             >
-              <Plus size={16} />
+              <Plus size={14}/> {t('settings:rights.createGroup')}
             </button>
           </div>
         )}
-
-        <div className={styles.groupList}>
-          {visibleGroups.length === 0 ? (
-            <p className="muted">{t('settings:rights.empty', 'Keine Gruppen.')}</p>
-          ) : (
-            visibleGroups.map((group) => {
-              const isSelected = activeGroup?.id === group.id
-              return (
-                <button
-                  key={group.id}
-                  type="button"
-                  className={`${styles.groupItem} ${
-                    isSelected ? styles.groupItemActive : ''
-                  }`}
-                  onClick={() => onSelectGroup(group.id)}
-                >
-                  <div className={styles.groupItemMain}>
-                    <span className={styles.groupName}>{group.name}</span>
-                    {group.roles && (
-                      <span className={styles.groupMeta}>
-                        {t(`common:roles.${group.roles}`)}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              )
-            })
-          )}
-        </div>
       </aside>
 
       <div className={styles.detailPane}>
-        {!activeGroup ? (
-          <CardSection>
-            <p className="muted">
-              {t('settings:rights.selectHint', 'Wähle links eine Gruppe aus.')}
-            </p>
-          </CardSection>
+        {activeGroup === null ? (
+          <p className="muted">{t('settings:rights.noGroups')}</p>
         ) : (
           <>
             <CardSection
-              title={activeGroup.name}
-              subtitle={t('settings:rights.personalNote')}
+              title={t('settings:rights.defaultsTitle')}
+              subtitle={t('settings:rights.defaultsSubtitle')}
+            >
+              {canManageSettings ? (
+                <div className={styles.sectionBody}>
+                  {defaultsQuery.isPending ? (
+                    <Spinner size="sm"/>
+                  ) : (
+                    <>
+                      <RoleMultiSelect
+                        roles={roles}
+                        value={defaultsValue}
+                        onChange={(next) => setDefaultsDraft(next)}
+                        emptyLabel={t('settings:rights.defaultsEmpty')}
+                      />
+                      <p className="muted">
+                        {t('settings:rights.defaultsResolved', {
+                          roles:
+                            resolvedDefaults
+                              .map((slug) => roleLabel(slug, t, roles))
+                              .join(', ') || '—',
+                        })}
+                      </p>
+                      <div className="row-actions">
+                        <button
+                          type="button"
+                          className="btn btn--primary btn--sm"
+                          disabled={defaultsValue.length === 0 || defaultsMutations.set.isPending}
+                          onClick={() => {
+                            void defaultsMutations.set
+                              .mutateAsync(defaultsValue)
+                              .then(() => setDefaultsDraft(null))
+                          }}
+                        >
+                          {t('common:actions.save')}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          disabled={defaultsQuery.data?.inherited ?? false}
+                          onClick={() => {
+                            void defaultsMutations.clear.mutateAsync().then(() => setDefaultsDraft(null))
+                          }}
+                        >
+                          {t('settings:rights.defaultsReset')}
+                        </button>
+                      </div>
+                      {defaultsQuery.data?.inherited && (
+                        <p className="muted">{t('settings:rights.defaultsInherited')}</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              ) : (
+                <p className="muted">{t('settings:rights.defaultsNoPermission')}</p>
+              )}
+            </CardSection>
+
+            <CardSection
+              title={t('settings:rights.membersTitle', {count: memberRows.length})}
               actions={
-                activeGroup.roles && (
-                  <Badge
-                    variant={
-                      activeGroup.roles.includes('manager')
-                        ? 'success'
-                        : activeGroup.roles.includes('editor')
-                          ? 'info'
-                          : 'neutral'
-                    }
-                  >
-                    {t(`common:roles.${activeGroup.roles}`)}
-                  </Badge>
-                )
+                <span className="muted">
+                  {t('settings:rights.ownGroupRoles', {
+                    roles: (activeGroup.roles ?? [])
+                      .map((slug) => roleLabel(slug, t, roles))
+                      .join(', '),
+                  })}
+                </span>
               }
             >
               <div className={styles.sectionBody}>
-                {editable && (
+                {canManageMembers && (
                   <div className={styles.addMemberBar}>
                     <input
                       className={`input ${styles.addMemberInput}`}
                       placeholder={t('settings:rights.addMemberPlaceholder')}
                       value={memberInput}
-                      onChange={(e) => setMemberInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') void handleAddMember()
+                      onChange={(event) => setMemberInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') void handleAddMember()
                       }}
                     />
-                    <select
-                      className={`input ${styles.roleSelect}`}
-                      value={memberRole}
-                      onChange={(e) => setMemberRole(e.target.value as GroupRole)}
-                    >
-                      <option value="viewer">{t('common:roles.viewer')}</option>
-                      <option value="editor">{t('common:roles.editor')}</option>
-                      <option value="manager">{t('common:roles.manager')}</option>
-                    </select>
+                    <RoleMultiSelect
+                      roles={roles}
+                      value={memberRoles}
+                      onChange={setMemberRoles}
+                      emptyLabel={t('settings:rights.addMemberDefaultHint')}
+                    />
                     <button
                       type="button"
-                      className="btn btn--primary"
-                      disabled={!memberInput.trim() || addingMember}
+                      className="btn btn--primary btn--sm"
+                      disabled={!memberInput.trim() || addMember.isPending}
                       onClick={() => void handleAddMember()}
                     >
-                      <UserPlus size={15} />
-                      {t('settings:rights.addMemberButton')}
+                      <UserPlus size={14}/> {t('settings:rights.addMemberButton')}
                     </button>
                   </div>
                 )}
 
-                {membersPending ? (
-                  <Spinner size="sm" />
+                {members.isPending ? (
+                  <Spinner size="sm"/>
                 ) : (
-                  <DataTable
-                    columns={memberColumns}
-                    rows={members}
-                    getRowKey={(m) => m.id}
-                    emptyMessage={t('settings:rights.noMembers')}
-                  />
+                  <table className="table">
+                    <thead>
+                    <tr>
+                      <th>{t('common:table.name')}</th>
+                      <th>{t('settings:rights.rolesColumn')}</th>
+                      <th className="num">{t('common:table.actions')}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {memberRows.map((member) => (
+                      <tr key={member.id}>
+                        <td>
+                          {member.username}
+                          <span className="muted"> · {member.email}</span>
+                        </td>
+                        <td>
+                          <RoleMultiSelect
+                            roles={roles}
+                            value={member.roles}
+                            disabled={!canManageMembers}
+                            lockedRoles={lockedRolesFor(member)}
+                            lockedReason={lockedReason}
+                            emptyLabel={t('settings:rights.noRoles')}
+                            onChange={(next) => {
+                              void setMemberRolesMutation.mutateAsync({
+                                groupId: activeGroup.id,
+                                userId: member.id,
+                                roles: next,
+                              })
+                            }}
+                          />
+                        </td>
+                        <td className="num">
+                          <div className="row-actions">
+                            <button
+                              type="button"
+                              className="btn btn--ghost btn--sm"
+                              onClick={() =>
+                                setDrawer({
+                                  userId: member.id,
+                                  username: member.username,
+                                  roles: member.roles,
+                                })
+                              }
+                            >
+                              {t('settings:rights.details')}
+                            </button>
+                            {canManageMembers && (
+                              <button
+                                type="button"
+                                className="btn btn--ghost btn--sm"
+                                title={t('common:actions.delete')}
+                                onClick={() => setConfirmRemoveMember(member)}
+                              >
+                                <Trash2 size={13}/>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    </tbody>
+                  </table>
                 )}
               </div>
             </CardSection>
 
-            {isSystemAdmin && (
-              <CardSection title={t('settings:rights.deleteGroup', 'Gruppe löschen')}>
+            <RoleMatrixLegend roles={roles}/>
+
+            {canDeleteGroup && (
+              <CardSection title={t('settings:rights.deleteGroup')}>
                 <div className={styles.dangerRow}>
-                  <span className="muted">
-                    {t(
-                      'settings:rights.deleteHint',
-                      'Löscht die Gruppe dauerhaft, sofern keine Ressourcen mehr zugewiesen sind.',
-                    )}
-                  </span>
+                  <span className="muted">{t('settings:rights.deleteHint')}</span>
                   <button
                     type="button"
                     className="btn btn--danger"
-                    onClick={() => setConfirmDeleteOpen(true)}
+                    onClick={() => setConfirmDeleteGroup(true)}
                   >
-                    <Trash2 size={15} />
-                    {t('settings:rights.deleteGroup')}
+                    <Trash2 size={15}/> {t('settings:rights.deleteGroup')}
                   </button>
                 </div>
               </CardSection>
@@ -339,15 +389,53 @@ export function GroupMasterDetail({
         )}
       </div>
 
-      {activeGroup && confirmDeleteOpen && (
+      {drawer && (
+        <MemberRoleDetailDrawer
+          memberName={drawer.username}
+          roles={roles}
+          value={drawer.roles}
+          lockedRoles={(() => {
+            const member = memberRows.find((m) => m.id === drawer.userId)
+            return member ? lockedRolesFor(member) : []
+          })()}
+          lockedReason={lockedReason}
+          onChange={(next) => {
+            setDrawer({...drawer, roles: next})
+            if (activeGroup) {
+              void setMemberRolesMutation.mutateAsync({
+                groupId: activeGroup.id,
+                userId: drawer.userId,
+                roles: next,
+              })
+            }
+          }}
+          onClose={() => setDrawer(null)}
+        />
+      )}
+
+      {confirmRemoveMember && activeGroup && (
+        <ConfirmDialog
+          title={t('settings:rights.removeMemberTitle')}
+          message={t('settings:rights.removeMemberMessage', {
+            name: confirmRemoveMember.username,
+          })}
+          pending={removeMember.isPending}
+          onConfirm={() => {
+            void removeMember
+              .mutateAsync({groupId: activeGroup.id, userId: confirmRemoveMember.id})
+              .finally(() => setConfirmRemoveMember(null))
+          }}
+          onCancel={() => setConfirmRemoveMember(null)}
+        />
+      )}
+
+      {activeGroup && confirmDeleteGroup && (
         <ConfirmDialog
           title={t('settings:rights.deleteGroup')}
-          message={t('settings:rights.deleteGroupConfirm', {
-            name: activeGroup.name,
-          })}
-          pending={deleting}
+          message={t('settings:rights.deleteGroupConfirm', {name: activeGroup.name})}
+          pending={removeGroup.isPending}
           onConfirm={() => void handleDeleteGroup()}
-          onCancel={() => setConfirmDeleteOpen(false)}
+          onCancel={() => setConfirmDeleteGroup(false)}
         />
       )}
     </div>

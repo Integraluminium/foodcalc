@@ -12,6 +12,15 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+.groupRolesList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 
 .meta {
   display: flex;

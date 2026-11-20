@@ -5,6 +5,7 @@ export interface SegmentOption<T extends string> {
   value: T
   label: string
   icon?: ReactNode
+  disabled?: boolean
 }
 
 interface Props<T extends string> {
@@ -31,9 +32,11 @@ export function SegmentedControl<T extends string>({
           className={
             option.value === value
               ? `${styles.option} ${styles.active}`
+              : option.disabled ? `${styles.option} ${styles.disabled}`
               : styles.option
           }
           onClick={() => onChange(option.value)}
+          disabled={option.disabled}
         >
           {option.icon}
           <span>{option.label}</span>

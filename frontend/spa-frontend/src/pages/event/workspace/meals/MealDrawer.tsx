@@ -35,11 +35,15 @@ export function MealDialog({
                              meal,
                              defaultStart,
                              onClose,
+                             onDuplicate,
+                             onRemove,
                            }: {
   eventId: number
   meal?: PlannerMeal
   defaultStart?: string
   onClose: () => void
+  onDuplicate?: (meal: PlannerMeal) => void
+  onRemove?: (meal: PlannerMeal) => void
 }) {
   const { t } = useTranslation([])
   const recipes = useRecipes()
@@ -48,9 +52,11 @@ export function MealDialog({
 
   // TODO: IMPORTANT - No change of recipes possible after initial selection!
   //      To do that, just add another recipe and delete the current one.
-  const [recipeSearch, setRecipeSearch] = useState('')
-  const [kindFilter, setKindFilter] = useState<RecipeKindFilter>('all')
-  const [recipeId, setRecipeId] = useState<number | null>(meal?.recipe_id ?? null)
+  // Search/filter UI is commented out for now; the values below keep the
+  // filtering logic intact for when the picker returns.
+  const recipeSearch = ''
+  const kindFilter: RecipeKindFilter = 'all'
+  const [recipeId] = useState<number | null>(meal?.recipe_id ?? null)
   const [servings, setServings] = useState(String(meal?.servings ?? 30))
   const [energyPerServing, setEnergyPerServing] = useState(
     String(toNumber(meal?.energy_per_serving) ?? 2400),
@@ -125,6 +131,7 @@ export function MealDialog({
         </>
       }
     >
+      <form id="meal-form" onSubmit={handleSubmit}>
       <table className="table table--compact">
         <thead>
         <th>Property</th>
@@ -146,7 +153,7 @@ export function MealDialog({
         <tr>
           <td>{t('events:mealDrawer.energyPerPortion')}</td>
           <td>
-            <SegmentedControl options={ENERGY_PRESETS.map((p) => ({label: p.label, value: p.kj}))}
+            <SegmentedControl options={ENERGY_PRESETS.map((p) => ({label: p.label, value: String(p.kj)}))}
                               value={energyPerServing} onChange={(value) => setEnergyPerServing(value)}/>
 
             <input
@@ -256,20 +263,25 @@ export function MealDialog({
           <td>Management</td>
           <td>
             <div style={{display: 'flex', flexDirection: 'row', gap: 'var(--space-2)'}}>
-              <button type="button" className="btn btn--ghost" onClick={() => onDuplicate(meal)}>
-                <Copy size={15}/>
-                {t('events:plan.duplicate')}
-              </button>
-              <button type="button" className="btn btn--danger" title={t('events:plan.removeFromPlan')}
-                      onClick={() => onRemove(meal)}>
-                <Trash2 size={15}/>
-                {t('events:plan.removeFromPlan')}
-              </button>
+              {onDuplicate && meal && (
+                <button type="button" className="btn btn--ghost" onClick={() => onDuplicate(meal)}>
+                  <Copy size={15}/>
+                  {t('events:plan.duplicate')}
+                </button>
+              )}
+              {onRemove && meal && (
+                <button type="button" className="btn btn--danger" title={t('events:plan.removeFromPlan')}
+                        onClick={() => onRemove(meal)}>
+                  <Trash2 size={15}/>
+                  {t('events:plan.removeFromPlan')}
+                </button>
+              )}
             </div>
           </td>
         </tr>
         </tbody>
       </table>
+      </form>
 
       <div className={styles.preview}>
         <Badge variant="warning" title={"TODO"}>TODO: Make this section more informative</Badge>

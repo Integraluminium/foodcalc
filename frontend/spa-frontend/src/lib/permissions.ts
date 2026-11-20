@@ -34,12 +34,24 @@ export type GroupPermission =
   | 'inventories:transfer_owner'
   // Group administration
   | 'group:manage_members'
+  | 'group:manage_settings'
   | 'group:delete'
 
-export type GlobalPermission =
-  | 'admin:manage_users'
-  | 'admin:manage_master_data'
-  | "admin:allow_creating"
+const arrayWithAllGlobalPermissionsAsValues = [
+  'admin:manage_users',
+  'admin:manage_master_data',
+  "admin:allow_creating",
+  'admin:manage_settings',
+  'admin:view_audit_log'
+] as const;
+
+type GlobalPermission = typeof arrayWithAllGlobalPermissionsAsValues[number];
+// export type GlobalPermission =
+//   | 'admin:manage_users'
+//   | 'admin:manage_master_data'
+//   | "admin:allow_creating"
+//   | 'admin:manage_settings'
+//   | 'admin:view_audit_log'
 
 export function hasGroupPermission(
   user: CurrentUser | null | undefined,
@@ -65,4 +77,11 @@ export function hasGlobalPermission(
 ): boolean {
   if (!user) return false
   return user.global_permissions?.includes(permission) ?? false
+}
+
+export function hasAnyGlobalPermission(
+  user: CurrentUser | null | undefined,
+): boolean {
+  if (!user) return false
+  return arrayWithAllGlobalPermissionsAsValues.some((p) => user.global_permissions?.includes(p))
 }

@@ -31,3 +31,9 @@
   color: #bfdbfe;
   font-weight: 600;
 }
+
+.disabled {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}

@@ -201,7 +201,10 @@
     "toursHint": "Each trip lists ingredients matching its “buy by” window; downloads the list as plain text.",
     "unassignItem": "Unassign item (reverts to automatic matching)",
     "withoutTour": "Without trip",
-    "withoutTourHint": "Ingredients whose default store does not yet have a trip within the matching time window."
+    "withoutTourHint": "Ingredients whose default store does not yet have a trip within the matching time window.",
+    "emptyCoverage": "No inventory coverage for this event.",
+    "emptyWithoutTour": "All ingredients are already assigned to a tour.",
+    "emptyOverrides": "No source overrides defined."
   },
   "timeline": {
     "empty": "No scheduled items yet: add meals, shopping trips, or prep cooking.",
@@ -232,7 +235,24 @@
       "overview": "Overview",
       "plan": "Meal plan",
       "shopping": "Shopping & logistics",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "team": "Team & access"
     }
+  },
+  "team": {
+    "inheritedTitle": "Access via the group",
+    "inheritedSubtitle": "Members of the owning group inherit its permissions for this event.",
+    "inheritedNoDetail": "The group composition is only visible to the head.",
+    "groupMembers": "Members",
+    "groupRoles": "Role distribution",
+    "directTitle": "Shared directly for this event ({{count}})",
+    "directSubtitle": "These grants apply only to this event — independent of group memberships.",
+    "directHint": "Direct grants are ideal for guest cooks or external purchasers.",
+    "addPlaceholder": "Username or email…",
+    "addButton": "Share",
+    "empty": "No direct grants yet.",
+    "revoke": "Revoke grant",
+    "revokeTitle": "Revoke grant",
+    "revokeMessage": "Remove the event access of {{name}}?"
   }
 }

@@ -169,7 +169,6 @@ export function IngredientDataForm({
   }
 
   const handleDelete = async () => {
-    const { t } = useTranslation(["ingredients"])
     if (!ingredient) return
     updatePending(true)
     try {

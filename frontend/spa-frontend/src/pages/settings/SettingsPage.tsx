@@ -1,14 +1,16 @@
 import {Sliders, User, Users} from 'lucide-react'
 import {type FormEvent, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {ApiError, type GroupRole} from "../../api";
+import {ApiError} from "../../api";
 import {CardSection} from '../../components/patterns/card_section/CardSection.tsx'
+import {RoleMatrixLegend} from '../../components/patterns/roles/RoleMatrixLegend.tsx'
 import {Badge} from '../../components/ui/badge/Badge.tsx'
 import {Spinner} from '../../components/ui/spinner/Spinner.tsx'
 import {useGroups} from "../../hooks/queries/useMasterData.ts";
-import {useGroupAdminMutations, useGroupMembers, useUserAdminMutations} from "../../hooks/queries/useUsers.ts";
+import {useGroupAdminMutations, useRoles, useUserAdminMutations} from "../../hooks/queries/useUsers.ts";
 import {useCurrentUser} from '../../hooks/useAuth.ts'
-import {useGlobalPermission, useGroupPermission} from "../../hooks/usePermissions.ts";
+import {useGlobalPermission} from '../../hooks/usePermissions.ts'
+import {roleLabel} from '../../lib/roles.ts'
 import {GroupMasterDetail} from './groups/GroupMasterDetail.tsx'
 import {DataSettingsRenderer} from './settings/DataSettingsRenderer.tsx'
 import {SettingsShell} from "./settings/settings_shell/SettingsShell.tsx";
@@ -42,11 +44,11 @@ function useUserSettingsState() {
 
     // Real side effects for settings that affect global runtime behavior
     if (key === 'language' && typeof value === 'string') {
-      value = value.startsWith('en') ? 'en_US' : 'de_DE'
-      console.log('Changing language to', value)
-      void i18n.changeLanguage(value)
-      document.documentElement.lang = value.slice(0, 2)
-      localStorage.setItem('lang', value)
+      const lang = value.startsWith('en') ? 'en_US' : 'de_DE'
+      console.log('Changing language to', lang)
+      void i18n.changeLanguage(lang)
+      document.documentElement.lang = lang.slice(0, 2)
+      localStorage.setItem('lang', lang)
     }
   }
 
@@ -110,18 +112,18 @@ export default function SettingsPage() {
   )
 }
 
-/** Connects GroupMasterDetail to your real TanStack Query hooks (reusable in AdminPage too). */
+/** Connects the self-contained GroupMasterDetail to the query layer. */
 export function ConnectedGroupsPanel() {
   const groups = useGroups()
-  const { createGroup, removeGroup, addMember, removeMember, setMemberRole } =
-    useGroupAdminMutations()
+  const {createGroup} = useGroupAdminMutations()
+  // Creating groups (and any new domain object) requires `admin:allow_creating`
+  // — hide the create bar instead of letting the request 403.
+  const canCreate = useGlobalPermission('admin:allow_creating')
 
   const teamGroups = (groups.data ?? []).filter((g) => !g.is_personal)
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
   const activeGroupId =
     teamGroups.find((g) => g.id === selectedGroupId)?.id ?? teamGroups[0]?.id ?? 0
-
-  const members = useGroupMembers(activeGroupId)
 
   return (
     <GroupMasterDetail
@@ -129,30 +131,14 @@ export function ConnectedGroupsPanel() {
       groupsPending={groups.isPending}
       selectedGroupId={activeGroupId || null}
       onSelectGroup={setSelectedGroupId}
-      members={members.data ?? []}
-      membersPending={members.isPending}
-      isSystemAdmin={useGlobalPermission('admin:manage_users')}
-      canManageGroup={(groupId) => useGroupPermission(groupId, 'group:manage_members')}
-      onCreateGroup={async (name) => {
-        const created = await createGroup.mutateAsync(name)
-        setSelectedGroupId(created.id)
-      }}
-      onAddMember={async (groupId, identifier, role) => {
-        const added = await addMember.mutateAsync({ groupId, user: identifier })
-        if (added?.id && role !== added.role) {
-          await setMemberRole.mutateAsync({ groupId, userId: added.id, role })
-        }
-      }}
-      onChangeMemberRole={async (groupId, userId, role: GroupRole) => {
-        await setMemberRole.mutateAsync({ groupId, userId, role })
-      }}
-      onRemoveMember={async (groupId, userId) => {
-        await removeMember.mutateAsync({ groupId, userId })
-      }}
-      onDeleteGroup={async (groupId) => {
-        await removeGroup.mutateAsync(groupId)
-        setSelectedGroupId(null)
-      }}
+      onCreateGroup={
+        canCreate
+          ? async (name) => {
+              const created = await createGroup.mutateAsync(name)
+              setSelectedGroupId(created.id)
+            }
+          : undefined
+      }
     />
   )
 }
@@ -160,6 +146,7 @@ export function ConnectedGroupsPanel() {
 function AccountPanel() {
   const { t } = useTranslation(['settings', 'common'])
   const { data: user } = useCurrentUser()
+  const { data: roles } = useRoles()
   const [savedPassword, setSavedPassword] = useState(false)
 
   if (!user) {
@@ -219,6 +206,24 @@ function AccountPanel() {
       {/*  </ul>*/}
       {/*  <p className="muted">{t('settings:rights.roleLegend')}</p>*/}
       {/*</CardSection>*/}
+
+      <CardSection title={t('settings:account.myGroups')}>
+        <ul className={styles.groupRolesList}>
+          {user.groups.map((group) => (
+            <li key={group.id}>
+              <strong>{group.name}</strong>{' '}
+              <span className="row-actions">
+                {group.roles.map((slug) => (
+                  <Badge key={slug} variant={group.is_personal ? 'success' : 'info'}>
+                    {roleLabel(slug, t, roles)}
+                  </Badge>
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <RoleMatrixLegend roles={roles}/>
+      </CardSection>
 
       <CardSection title={t('settings:password.title')}>
         <PasswordForm userId={user.id} onSaved={() => setSavedPassword(true)} />

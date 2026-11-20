@@ -1,0 +1,66 @@
+.group {
+  margin-top: 0.75rem;
+}
+
+.groupLabel {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, #6b7280);
+}
+
+.option {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.4rem;
+}
+
+.option:hover {
+  background: var(--color-surface-raised, #f3f5f8);
+}
+
+.optionName {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.optionHint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6b7280);
+}
+
+.section {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #d7dde5);
+}
+
+.sectionTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.domainLabel {
+  margin: 0.4rem 0 0.1rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6b7280);
+}
+
+.permissionList {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: var(--color-text, #374151);
+}
+
+.lockedHint {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--color-warning, #b45309);
+}

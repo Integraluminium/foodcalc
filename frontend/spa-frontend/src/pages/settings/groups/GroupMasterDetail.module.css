@@ -37,6 +37,9 @@
     gap: var(--space-1);
     max-height: 480px;
     overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
 .groupItem {
@@ -79,6 +82,9 @@
 }
 
 .groupMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     font-size: var(--text-xs);
     color: var(--text-muted);
 }

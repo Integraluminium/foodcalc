@@ -71,3 +71,39 @@
 .personalTag {
   font-size: var(--text-sm);
 }
+
+/* UserAccessDrawer (access drawer sections) */
+.drawerSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.permissionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  cursor: pointer;
+}
+
+.permissionRow input {
+  margin-top: 3px;
+}
+
+.permissionName {
+  display: block;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.permissionHint {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}

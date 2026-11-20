@@ -2,7 +2,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
 import {useParams} from "react-router-dom";
 import type {ShoppingList} from '../../api'
 import {queryKeys} from '../../api'
-import {eventsApi, type MealAddInput, type MealUpdateInput, type TourInput,} from '../../api/endpoints/events'
+import {eventMembersApi, eventsApi, type MealAddInput, type MealUpdateInput, type TourInput,} from '../../api/endpoints/events'
 import {notify} from '../../components/ui/toast/toast.ts'
 
 const EVENTS_ROOT = ['events'] as const
@@ -250,4 +250,40 @@ export function useEventMutations(eventId: number) {
     addOverride,
     removeOverride,
   }
+}
+
+/** Direct collaborators of an event (`event_user_roles`). */
+export function useEventMembers(eventId: number) {
+  return useQuery({
+    queryKey: queryKeys.eventMembers(eventId),
+    queryFn: () => eventMembersApi.list(eventId),
+    enabled: eventId > 0,
+  })
+}
+
+/** Add/update/remove event collaborators; refreshes members + event detail. */
+export function useEventMemberMutations(eventId: number) {
+  const queryClient = useQueryClient()
+  const invalidate = () => {
+    void queryClient.invalidateQueries({queryKey: queryKeys.eventMembers(eventId)})
+    void queryClient.invalidateQueries({queryKey: queryKeys.events.detail(eventId)})
+    void queryClient.invalidateQueries({queryKey: queryKeys.audit({})})
+  }
+
+  const add = useMutation({
+    mutationFn: (args: { user: string; roles: string[] }) =>
+      eventMembersApi.add(eventId, args.user, args.roles),
+    onSuccess: invalidate,
+  })
+  const setRoles = useMutation({
+    mutationFn: (args: { userId: number; roles: string[] }) =>
+      eventMembersApi.setRoles(eventId, args.userId, args.roles),
+    onSuccess: invalidate,
+  })
+  const remove = useMutation({
+    mutationFn: (userId: number) => eventMembersApi.remove(eventId, userId),
+    onSuccess: invalidate,
+  })
+
+  return {add, setRoles, remove}
 }

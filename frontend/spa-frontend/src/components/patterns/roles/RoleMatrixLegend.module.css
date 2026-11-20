@@ -1,0 +1,48 @@
+.legend {
+  margin-top: 0.75rem;
+}
+
+.summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.card {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.description {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.permissions {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  word-break: break-all;
+}

@@ -46,8 +46,13 @@
     "inProgress": "In Arbeit"
   },
   "roles": {
+    "cook": "Koch",
     "editor": "Bearbeiter",
-    "manager": "Verwalter",
+    "manager": "Leitung",
+    "serving": "Ausgabe",
+    "shopper": "Einkauf",
+    "stocker": "Lager",
+    "team": "Teammitglied",
     "viewer": "Leser"
   },
   "search": {

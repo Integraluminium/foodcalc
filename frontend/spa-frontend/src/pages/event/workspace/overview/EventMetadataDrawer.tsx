@@ -2,7 +2,7 @@ import {ArrowRightLeft, Copy, Trash2} from 'lucide-react'
 import {type FormEvent, useState} from 'react'
 import {useTranslation} from "react-i18next";
 import {useNavigate} from 'react-router-dom'
-import type {Event} from '../../../../api'
+import type {Event, GroupPermission} from '../../../../api'
 import {ConfirmDialog} from '../../../../components/patterns/dialog/ConfirmDialog.tsx'
 import {Drawer} from '../../../../components/patterns/drawer/Drawer.tsx'
 import {OwnerTransferDialog} from '../../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
@@ -15,10 +15,12 @@ import {hasGroupPermission} from "../../../../lib/permissions.ts";
 interface EventMetadataDialogProps {
   /** `null` = create new event, `Event` = edit existing metadata. */
   event: Event | null
+  /** Resolved permissions of the current user for this event. */
+  permissions?: GroupPermission[]
   onClose: () => void
 }
 
-export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps) {
+export function EventMetadataDrawer({ event, permissions, onClose }: EventMetadataDialogProps) {
   const { t } = useTranslation(["events", "common"])
   const isEdit = event !== null
   const navigate = useNavigate()
@@ -27,13 +29,19 @@ export function EventMetadataDrawer({ event, onClose }: EventMetadataDialogProps
   const create = useCreateEvent()
   const mutations = useEventMutations(event?.id ?? 0)
 
-  const canSave = !isEdit || hasGroupPermission(user, event?.group_id ?? 0, 'events:manage_meals')
-  const manageable = isEdit && hasGroupPermission(user, event?.group_id ?? 0, 'events:manage_meals')
+  // Direct event collaborators hold `events:edit` via the resolved override.
+  const canSave =
+    !isEdit ||
+    Boolean(permissions?.includes('events:edit')) ||
+    hasGroupPermission(user, event?.group_id ?? 0, 'events:edit')
+  const manageable = canSave
 
   const [transferOpen, setTransferOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const editableGroups = (user?.groups ?? []).filter((g) => hasGroupPermission(user, g.id, 'events:manage_meals'))
+  const editableGroups = (user?.groups ?? []).filter((g) =>
+    hasGroupPermission(user, g.id, 'events:create'),
+  )
   const personalGroupId =
     editableGroups.find((g) => g.is_personal)?.id ??
     editableGroups[0]?.id ??

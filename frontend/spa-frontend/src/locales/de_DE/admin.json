@@ -1,5 +1,34 @@
 {
   "forbidden": "Diese Seite ist Administratoren vorbehalten.",
+  "admin": {    "manageUsers": "Benutzerverwaltung",
+    "manageUsersHint": "Konten verwalten, globale Rechte vergeben.",
+    "manageMasterData": "Stammdaten verwalten",
+    "manageMasterDataHint": "Einheiten, Allergene, Eigenschaften, Händler.",
+    "manageSettings": "Systemeinstellungen",
+    "manageSettingsHint": "Globale Standard-Rollen und Aufbewahrung.",
+    "viewAuditLog": "Protokoll einsehen",
+    "viewAuditLogHint": "Sicherheitsrelevantes Protokoll lesen und exportieren.",
+    "allowCreating": "Neue Objekte anlegen",
+    "allowCreatingHint": "Gruppen, Events, Rezepte, Zutaten, Inventare anlegen."
+  },
+  "system": {
+    "memberDefaultsTitle": "Standard-Rollen für neue Mitglieder (global)",
+    "memberDefaultsHint": "Gilt für alle Gruppen ohne eigenen Standard.",
+    "groupsOverriding": "{{count}} Gruppen verwenden eigene Standardwerte."
+  },
+  "audit": {
+    "time": "Zeitpunkt",
+    "actor": "Akteur",
+    "action": "Aktion",
+    "context": "Kontext",
+    "details": "Details",
+    "actionFilter": "Aktions-Präfix (z. B. access.)…",
+    "from": "Von",
+    "until": "Bis",
+    "export": "CSV-Export",
+    "empty": "Keine Einträge für diesen Filter.",
+    "total": "{{count}} Einträge"
+  },
   "selfGrantButton": "Mitgliedschaft eintragen",
   "selfGrantDone": "Mitgliedschaft eingetragen.",
   "selfGrantGroup": "Gruppe",
@@ -13,6 +42,13 @@
   "tabsAria": "Verwaltungsbereich wählen",
   "title": "Verwaltung",
   "users": {
+    "accessDrawerTitle": "Rechte & Gruppen: {{name}}",
+    "globalPermsTitle": "Globale Berechtigungen",
+    "groupMembershipsTitle": "Gruppenmitgliedschaften",
+    "noGroups": "Keine Gruppenmitgliedschaften.",
+    "personalGroup": "persönlich",
+    "groupRolesHint": "Rollen gelten pro Gruppe; persönliche Gruppen bleiben unverändert.",
+    "selfLockoutHint": "Du kannst dir selbst nicht die Benutzerverwaltung entziehen.",
     "colAdmin": "Admin",
     "colEmail": "E-Mail",
     "colGroups": "Gruppen",

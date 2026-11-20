@@ -34,7 +34,7 @@ export default function IngredientsPage() {
       key: 'cost',
       label: 'Kosten (€/g)',
       align: 'num',
-      render: (ing) => formatDecimal(NaN, 2),
+      render: () => formatDecimal(NaN, 2),
     },
     {
       key: 'sources',

@@ -25,11 +25,16 @@ export function OverviewTab() {
   // const { canEditGroup, canManageGroup } = usePermissions()
   // const { can } = usePermissions(detail?.event.group_id)
   useNavigate();
+  const {data: user} = useCurrentUser()
   const [editOpen, setEditOpen] = useState(false)
 
   if (!detail) return null
-  const {data: user} = useCurrentUser()
-  const editable = hasGroupPermission(user, detail?.event.group_id ?? 0, 'events:manage_meals')
+  // Resolved event permissions (group baseline ∪ direct event roles) take
+  // precedence; metadata editing requires `events:edit` — not `manage_meals`.
+  const editable = Boolean(
+    detail.permissions?.includes('events:edit') ||
+      hasGroupPermission(user, detail.event.group_id, 'events:edit'),
+  )
   // const editable = canEditGroup(detail.event.group_id)
   // canManageGroup(detail.event.group_id);
   const aggregates = eventAggregates(detail.meals, detail.total_cost)
@@ -133,6 +138,7 @@ export function OverviewTab() {
       {editOpen && (
         <EventMetadataDrawer
           event={detail.event}
+          permissions={detail.permissions}
           onClose={() => setEditOpen(false)}
         />
       )}

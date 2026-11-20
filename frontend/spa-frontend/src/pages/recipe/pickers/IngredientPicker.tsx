@@ -5,7 +5,7 @@ import {useState} from 'react'
 import {SearchBar} from "../../../components/patterns/searchbar/SearchBar.tsx";
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useCreateIngredient, useIngredients,} from '../../../hooks/queries/useIngredients.ts'
-import {useProperties, useUnits} from '../../../hooks/queries/useMasterData.ts'
+import {useUnits} from '../../../hooks/queries/useMasterData.ts'
 import {useCurrentUser} from '../../../hooks/useAuth.ts'
 import {useDebouncedValue} from '../../../hooks/useDebouncedValue.ts'
 import {formatDecimal} from '../../../lib/format.ts'
@@ -31,12 +31,11 @@ export function IngredientPicker({
 }) {
   const queryClient = useQueryClient()
   const units = useUnits()
-  const properties = useProperties()
   const user = useCurrentUser()
 
   const [search, setSearch] = useState('')
   const debounced = useDebouncedValue(search)
-  const [propertyId, setPropertyId] = useState(0)
+  const [propertyId] = useState(0)
   const [selected, setSelected] = useState<{ id: number; name: string } | null>(null)
   const [amount, setAmount] = useState('1')
   const [unitId, setUnitId] = useState(0)

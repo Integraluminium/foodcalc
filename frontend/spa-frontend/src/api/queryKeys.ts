@@ -45,5 +45,10 @@ export const queryKeys = {
   groups: {
     list: ['groups', 'list'] as const,
     members: (id: number) => ['groups', 'members', id] as const,
+    defaultRoles: (id: number) => ['groups', 'default-roles', id] as const,
   },
+  roles: ['roles'] as const,
+  eventMembers: (id: number) => ['events', 'members', id] as const,
+  memberDefaults: ['settings', 'member-defaults'] as const,
+  audit: (filters: unknown) => ['audit', filters] as const,
 } as const

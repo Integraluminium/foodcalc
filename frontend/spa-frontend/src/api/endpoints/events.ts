@@ -4,6 +4,7 @@ import type {
   EventDetail,
   EventInventoryCoverage,
   EventListItem,
+  EventMember,
   FoodPrepWithRecipe,
   Inventory,
   PlannerMeal,
@@ -146,4 +147,17 @@ export const eventsApi = {
 
   statusBoard: (eventId: number) =>
     api.get<StatusBoardSnapshot>(`/events/${eventId}/status-board`),
+}
+
+/** Direct per-event collaborators (grants without group membership). */
+export const eventMembersApi = {
+  list: (eventId: number) =>
+    api.get<EventMember[]>(`/events/${eventId}/members`),
+  /** `roles` are granted for this event only. */
+  add: (eventId: number, user: string, roles: string[]) =>
+    api.post<EventMember>(`/events/${eventId}/members`, {user, roles}),
+  setRoles: (eventId: number, userId: number, roles: string[]) =>
+    api.put<void>(`/events/${eventId}/members/${userId}`, {roles}),
+  remove: (eventId: number, userId: number) =>
+    api.delete<void>(`/events/${eventId}/members/${userId}`),
 }

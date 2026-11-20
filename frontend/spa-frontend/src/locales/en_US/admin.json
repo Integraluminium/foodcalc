@@ -1,5 +1,35 @@
 {
   "forbidden": "This page is restricted to administrators.",
+  "admin": {
+    "manageUsers": "User management",
+    "manageUsersHint": "Manage accounts, assign global permissions.",
+    "manageMasterData": "Master data",
+    "manageMasterDataHint": "Units, allergens, properties, vendors.",
+    "manageSettings": "System settings",
+    "manageSettingsHint": "Global default roles and retention.",
+    "viewAuditLog": "View audit log",
+    "viewAuditLogHint": "Read and export the security audit log.",
+    "allowCreating": "Create new objects",
+    "allowCreatingHint": "Create groups, events, recipes, ingredients, inventories."
+  },
+  "system": {
+    "memberDefaultsTitle": "Default roles for new members (global)",
+    "memberDefaultsHint": "Applies to all groups without their own default.",
+    "groupsOverriding": "{{count}} groups use their own defaults."
+  },
+  "audit": {
+    "time": "Time",
+    "actor": "Actor",
+    "action": "Action",
+    "context": "Context",
+    "details": "Details",
+    "actionFilter": "Action prefix (e.g. access.)…",
+    "from": "From",
+    "until": "Until",
+    "export": "CSV export",
+    "empty": "No entries for this filter.",
+    "total": "{{count}} entries"
+  },
   "selfGrantButton": "Add membership",
   "selfGrantDone": "Membership added.",
   "selfGrantGroup": "Group",
@@ -13,6 +43,13 @@
   "tabsAria": "Select administration section",
   "title": "Administration",
   "users": {
+    "accessDrawerTitle": "Access & groups: {{name}}",
+    "globalPermsTitle": "Global permissions",
+    "groupMembershipsTitle": "Group memberships",
+    "noGroups": "No group memberships.",
+    "personalGroup": "personal",
+    "groupRolesHint": "Roles apply per group; personal groups stay untouched.",
+    "selfLockoutHint": "You cannot revoke your own user-management permission.",
     "colAdmin": "Admin",
     "colEmail": "Email",
     "colGroups": "Groups",

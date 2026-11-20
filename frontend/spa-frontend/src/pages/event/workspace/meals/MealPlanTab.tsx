@@ -13,6 +13,9 @@ import {portionCost} from '../../../../lib/scaling.ts'
 import styles from '../EventDetailPage.module.css'
 import {MealDialog} from "./MealDrawer.tsx";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Translate = (...args: any[]) => any
+
 export function MealPlanTab() {
   const { t } = useTranslation([])
   const eventId = useEventId()
@@ -94,8 +97,7 @@ export function MealPlanTab() {
   )
 }
 
-function formatDish(meal: PlannerMeal) {
-  const {t} = useTranslation([])
+function formatDish(meal: PlannerMeal, t: Translate) {
   return (
     <>
       {meal.name}
@@ -152,7 +154,7 @@ function DayGroup({
     {
       key: 'dish',
       label:t('events:plan.col.dish'),
-      render: (meal) => formatDish(meal)
+      render: (meal) => formatDish(meal, t)
     },
     {
       key: 'place',
@@ -217,6 +219,7 @@ function DayGroup({
           isPending={false}
           isError={false}
           error={null}
+          emptyMessage={t('events:plan.empty')}
           getRowKey={() => 0}
           onRowClick={(meal) => onEdit(meal)}
           withChevron={true}

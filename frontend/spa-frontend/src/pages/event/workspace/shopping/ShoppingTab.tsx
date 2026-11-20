@@ -276,6 +276,7 @@ function TourGroup({
           isPending={false}
           isError={false}
           error={null}
+          emptyMessage={t('events:shopping.empty')}
           getRowKey={(item) => item.ingredient_id}
           highlight={false}
         />
@@ -350,6 +351,7 @@ function WithoutTourGroup({
         isPending={false}
         isError={false}
         error={null}
+        emptyMessage={t('events:shopping.emptyWithoutTour')}
         getRowKey={(item) => item.ingredient_id}
         highlight={false}
       />
@@ -467,6 +469,7 @@ function InventorySection({eventId}: { eventId: number }) {
           isPending={false}
           isError={false}
           error={null}
+          emptyMessage={t('events:shopping.emptyCoverage')}
           getRowKey={(row) => row.ingredient_id}
           highlight={false}
         />
@@ -595,6 +598,7 @@ function OverridesSection({eventId}: { eventId: number }) {
           isPending={false}
           isError={false}
           error={null}
+          emptyMessage={t('events:shopping.emptyOverrides')}
           getRowKey={(override) => override.source_id}
           highlight={false}
         />

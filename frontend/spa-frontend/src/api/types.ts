@@ -10,21 +10,33 @@
 
 import type {GlobalPermission, GroupPermission} from "../lib/permissions.ts";
 
+export type {GlobalPermission, GroupPermission};
+
 /** Backend `BigDecimal`, always transported as a string ("14.86"). */
 export type Decimal = string
 
 /** Backend `time::OffsetDateTime`, transported as RFC3339 ("2026-10-24T18:02:00Z"). */
 export type IsoDateTime = string
 
-/** Role of a member in a group (level-based ABAC). */
-export type GroupRole = 'viewer' | 'editor' | 'manager'
+/** Role slugs come from the backend role catalog (`GET /api/roles`) —
+ *  never hardcoded in the frontend. Display names via `common:roles.<slug>`. */
+export type RoleSlug = string
 
+export interface RoleDefinition {
+  slug: RoleSlug
+  name: string
+  description: string
+  /** `basic` = membership presets (Leser, Team, Leitung), `domain` = departments. */
+  category: 'basic' | 'domain'
+  is_system: boolean
+  permissions: GroupPermission[]
+}
 
 export interface Group {
   id: number
   name: string
   is_personal: boolean
-  roles: GroupRole[]
+  roles: RoleSlug[]
   permissions: GroupPermission[]
 }
 
@@ -37,7 +49,7 @@ export interface User {
 }
 
 export interface GroupMember extends AdminUser {
-  roles: GroupRole[]
+  roles: RoleSlug[]
 }
 
 /** `GET /api/auth/me` — the session user plus the groups they belong to. */
@@ -218,11 +230,8 @@ export interface RecipeTreeNode {
 }
 
 export interface AdminUserWithGroups extends AdminUser {
+  global_permissions: GlobalPermission[]
   groups: Group[]
-}
-
-export interface GroupMember extends AdminUser {
-    role: GroupRole
 }
 
 export interface UserUpdateInput {
@@ -291,6 +300,65 @@ export interface EventDetail {
   event: Event
   meals: PlannerMeal[]
   total_cost: Decimal
+  /** Resolved permissions of the current user for this event
+   *  (group baseline ∪ direct event roles) — basis for capability guards. */
+  permissions?: GroupPermission[]
+}
+
+/** Direct per-event collaborator (`event_user_roles`). */
+export interface EventMember {
+  user_id: number
+  username: string
+  email: string
+  roles: RoleSlug[]
+}
+
+/** Default roles for new members of a group. */
+export interface GroupDefaultRoles {
+  /** `null` = inherit the global default. */
+  roles: RoleSlug[] | null
+  /** What a new member would actually receive. */
+  resolved: RoleSlug[]
+  inherited: boolean
+}
+
+/** Global default roles (`app_settings['groups.default_member_roles']`). */
+export interface MemberDefaults {
+  roles: RoleSlug[]
+  groups_overriding: number
+}
+
+/** One audit-log row (ISO 27001 A.8.15). */
+export interface AuditEntry {
+  id: number
+  created_at: IsoDateTime
+  actor_user_id: number | null
+  actor_username: string
+  action: string
+  target_user_id: number | null
+  entity_type: string | null
+  entity_id: number | null
+  group_id: number | null
+  event_id: number | null
+  /** JSON object serialized as text. */
+  details: string
+}
+
+export interface AuditPage {
+  entries: AuditEntry[]
+  total: number
+}
+
+/** Query parameters of the audit endpoints. */
+export interface AuditFilter {
+  from?: string
+  until?: string
+  actor_user_id?: number
+  action?: string
+  group_id?: number
+  event_id?: number
+  limit?: number
+  offset?: number
 }
 
 export interface Place {

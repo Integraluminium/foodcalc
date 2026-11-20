@@ -46,8 +46,13 @@
     "inProgress": "In progress"
   },
   "roles": {
+    "cook": "Cook",
     "editor": "Editor",
-    "manager": "Manager",
+    "manager": "Head",
+    "serving": "Serving",
+    "shopper": "Purchasing",
+    "stocker": "Warehouse",
+    "team": "Team member",
     "viewer": "Viewer"
   },
   "search": {

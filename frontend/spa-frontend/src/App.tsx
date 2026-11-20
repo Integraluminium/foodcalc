@@ -144,6 +144,13 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: 'team',
+            lazy: lazyRoute(
+              () => import('./pages/event/workspace/team/TeamTab.tsx'),
+              'TeamTab',
+            ),
+          },
+          {
             path: 'kalkulation',
             lazy: lazyRoute(
               () => import('./pages/event/workspace/calculation/KalkulationTab.tsx'),

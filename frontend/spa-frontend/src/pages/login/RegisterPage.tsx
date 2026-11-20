@@ -1,6 +1,5 @@
 import type {FormEvent} from 'react'
 import {useState} from 'react'
-import {useTranslation} from "react-i18next";
 import {Link, Navigate, useNavigate} from 'react-router-dom'
 import {ApiError} from '../../api'
 import {BrandIcon} from '../../components/ui/icons/icons.tsx'
@@ -9,7 +8,6 @@ import {useCurrentUser, useRegister} from '../../hooks/useAuth.ts'
 import styles from './LoginPage.module.css'
 
 export default function RegisterPage() {
-  const { t } = useTranslation([])
   const { data: user } = useCurrentUser()
   const register = useRegister()
   const navigate = useNavigate()

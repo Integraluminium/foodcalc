@@ -1,6 +1,6 @@
 import {t} from "i18next";
 import {useState} from 'react'
-import {NavLink, Outlet, useLocation, useNavigation} from 'react-router-dom'
+import {NavLink, Outlet, useLocation} from 'react-router-dom'
 import {BoxIcon, BrandIcon, CalendarIcon, IngredientsIcon, RecipeIcon,} from '../../ui/icons/icons.tsx'
 import {Toasts} from '../../ui/toast/Toast.tsx'
 import styles from './AppShell.module.css'
@@ -27,8 +27,6 @@ const NAV_ITEMS = [
 
 export default function AppShell() {
     const location = useLocation()
-    const navigation = useNavigation()
-    const isNavigating = navigation.state === 'loading'
 
     // Einklappen manuell (Pfeil-Button, persistiert) oder automatisch im
     // Event-Workspace — die manuelle Wahl überschreibt den Workspace-Default.

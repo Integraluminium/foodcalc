@@ -29,7 +29,7 @@ export default function RecipesPage() {
     const [drawerRecipe, setDrawerRecipe] = useState<RecipeListItem | null>(null)
 
     // Server handles text search; useFilteredList handles search state + client-side owner filter
-    const { search, setSearch, ownerFilter, setOwnerFilter, filtered } =
+    const { search, setSearch, ownerFilter, setOwnerFilter } =
       useFilteredList<RecipeListItem>(undefined)
     const debouncedSearch = useDebouncedValue(search)
 

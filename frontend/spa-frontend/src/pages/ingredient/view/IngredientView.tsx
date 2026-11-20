@@ -8,7 +8,7 @@ import {ConfirmDialog} from '../../../components/patterns/dialog/ConfirmDialog.t
 import {Drawer} from '../../../components/patterns/drawer/Drawer.tsx'
 import {EntityHeader} from '../../../components/patterns/entity_header/EntityHeader.tsx'
 import {OwnerTransferDialog} from '../../../components/patterns/owner_transfer/OwnerTransferDialog.tsx'
-import {Badge} from '../../../components/ui/badge/Badge.tsx'
+import {Badge, type BadgeVariant} from '../../../components/ui/badge/Badge.tsx'
 import {Spinner} from '../../../components/ui/spinner/Spinner.tsx'
 import {useIngredient, useIngredientMutations, useIngredientUsages,} from '../../../hooks/queries/useIngredients.ts'
 import {useGroups, useProperties, useStores, useUnits,} from '../../../hooks/queries/useMasterData.ts'
@@ -72,6 +72,9 @@ function IngredientViewBody({
   let canViewIngredient = useGroupPermission(ingredient.group_id,"ingredients:view");
   let canDeleteIngredient = useGroupPermission(ingredient.group_id,'ingredients:delete');
   const editable = useGroupPermission(ingredient.group_id, "ingredients:edit")
+  // Hoisted hook: transfer button visibility, evaluated unconditionally.
+  const canTransferOwnership =
+    usePermittedGroups('ingredients:transfer_owner').length > 0
 
   const groupName =
     groups.data?.find((group) => group.id === ingredient.group_id)?.name ??
@@ -128,7 +131,11 @@ function IngredientViewBody({
     )
   }
 
-  const headerBadges = (
+  const headerBadges: {variant: BadgeVariant; children: string}[] = [
+    {variant: 'info', children: formatDecimal(ingredient.energy, 2) + ' kJ/g'},
+    {variant: 'neutral', children: groupName},
+  ]
+  const headerBadgesNode = (
     <div className={styles.badges}>
       <Badge variant="info">{formatDecimal(ingredient.energy, 2)} kJ/g</Badge>
       <Badge variant="neutral">{groupName}</Badge>
@@ -138,7 +145,7 @@ function IngredientViewBody({
 
   const headerActions = (
     <div className="row-actions">
-      {usePermittedGroups("ingredients:transfer_owner") && (
+      {canTransferOwnership && (
         <button
           type="button"
           className="btn btn--ghost"
@@ -181,7 +188,7 @@ function IngredientViewBody({
 
           <EntityHeader
             title={ingredient.name}
-            subtitle={ingredient.comment ?? undefined}
+            comment={ingredient.comment}
             badges={headerBadges}
             stats={[
               {
@@ -205,7 +212,7 @@ function IngredientViewBody({
         </>
       ) : (
         <div className={styles.overlayHeader}>
-          {headerBadges}
+          {headerBadgesNode}
           {ingredient.comment && <p className="muted">{ingredient.comment}</p>}
           <div className={styles.overlayActions}>
             <Link to={`/ingredients/${ingredient.id}`} className="secondary">

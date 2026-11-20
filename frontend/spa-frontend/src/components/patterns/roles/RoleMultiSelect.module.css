@@ -1,0 +1,99 @@
+.pills {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* Pills are rendered by the shared <Badge> component — only the remove
+   affordance and locked state are local. */
+.pillLocked {
+  opacity: 0.75;
+}
+
+.remove {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+.wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  border: 1px dashed var(--border);
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.trigger:hover {
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.popover {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  min-width: 16rem;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-overlay);
+}
+
+.groupLabel {
+  margin: 0.35rem 0.25rem 0.15rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.option {
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+  padding: 0.25rem 0.35rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--bg-elevated);
+}
+
+.optionLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.optionHint {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
