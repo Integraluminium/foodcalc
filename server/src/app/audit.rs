@@ -156,6 +156,7 @@ pub async fn purge(
     ctx: &AppCtx,
     until: Option<OffsetDateTime>,
 ) -> Result<u64> {
+    ctx.require_human()?;
     ctx.ctx.assert_global(GlobalPermission::ManageSettings)?;
     let Some(until) = until else {
         return Err(Error::Validation {

@@ -7,14 +7,17 @@ edition = "2021"
 
 
 [features]
-default = []
+default = ["mcp"]
 typst = ["dep:pdf_export"]
+mcp = ["dep:rmcp", "dep:schemars"]
 
 [dependencies]
 axum.workspace = true
 bcrypt = "0.16.0"
 foodlib_new = { path = "../foodlib_new", features = ["axum"] }
 pdf_export = { path = "../pdf_export", optional = true }
+rmcp = { version = "3", features = ["server", "macros", "transport-streamable-http-server", "request-state", "elicitation"], optional = true }
+schemars = { version = "1", optional = true }
 tower-http = { version = "0.6", features = ["cors", "fs", "trace"] }
 fern = { version = "0.6", features = ["colored"] }
 maud.workspace = true
@@ -35,3 +38,4 @@ tower-sessions = { version = "0.14.0", features = ["signed"] }
 tower-sessions-sqlx-store = { version = "0.15", features = ["postgres"] }
 urlencoding = "2"
 eyre = "0.6.14"
+mcp = "0.1.1"

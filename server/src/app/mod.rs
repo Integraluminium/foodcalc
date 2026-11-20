@@ -3,8 +3,8 @@
 //! Use-cases here bundle the permission checks (`AuthCtx`), business
 //! validation, `foodlib_new` orchestration and audit logging that used to
 //! live inline in the `api` handlers. HTTP handlers in `api` stay thin
-//! (extraction + serialization); the future `mcp` transport will call these
-//! functions directly instead of duplicating any of that logic.
+//! (extraction + serialization); the `mcp` transport calls these functions
+//! directly instead of duplicating any of that logic.
 //!
 //! Error type is `foodlib_new::Error` on purpose: it is transport-agnostic
 //! (`api::map_api_error` maps it to HTTP status codes, the frontend's
@@ -30,8 +30,7 @@ use foodlib_new::policy::Permission;
 
 /// Transport through which a request reached the application layer.
 /// Recorded in the audit log so human and automation actions are
-/// distinguishable. (`McpAgent` is constructed once the MCP transport lands.)
-#[allow(dead_code)]
+/// distinguishable.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Channel {
     /// HTMX/maud frontend.
