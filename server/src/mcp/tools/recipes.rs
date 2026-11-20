@@ -51,6 +51,9 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "search_recipes") {
+            return Ok(denied);
+        }
         let query = RecipeListQuery {
             r#type: params.recipe_type,
             search: params.search,
@@ -70,6 +73,9 @@ impl FoodcalcMcpServer {
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "get_recipe_scaled") {
+            return Ok(denied);
+        }
         let detail = match recipes::get_recipe(&self.state, &actor, params.recipe_id).await {
             Ok(d) => d,
             Err(err) => return map_app_error_to_tool(err),

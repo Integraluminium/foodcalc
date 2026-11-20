@@ -35,6 +35,7 @@ use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler,
 };
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 use crate::app::MyAppState;
 
@@ -84,13 +85,15 @@ impl ServerHandler for FoodcalcMcpServer {
                 .enable_prompts()
                 .build(),
         )
-            .with_protocol_version(ProtocolVersion::LATEST)
-            .with_server_info(Implementation::from_build_env())
-            .with_instructions(
-                "Foodcalc event-catering & recipe-scaling MCP server. Use tools to inspect \
+        .with_protocol_version(ProtocolVersion::LATEST)
+        .with_server_info(Implementation::from_build_env())
+        .with_instructions(
+            "Foodcalc event-catering & recipe-scaling MCP server. Use tools to inspect \
              events, recipes, ingredients, and inventories. Mutating operations require \
-             explicit user confirmation via MCP elicitation.",
-            )
+             explicit user confirmation via MCP elicitation. The acting API token may be \
+             restricted to tool risk classes ('read', 'plan'); on PermissionDenied, inform \
+             the user which class is missing and how to grant it in the settings UI.",
+        )
     }
 
     async fn list_resources(
@@ -113,19 +116,22 @@ impl ServerHandler for FoodcalcMcpServer {
     }
 }
 
-/// Derives a 32-byte HMAC signing key from `MCP_REQUEST_STATE_SECRET` (if set)
-/// or generates an ephemeral 32-byte key at startup.
+/// Derives a 32-byte HMAC signing key for the `RequestStateCodec`. When
+/// `MCP_REQUEST_STATE_SECRET` is set, the key is `SHA-256(secret)` (so any
+/// secret length yields a uniform, well-distributed key and state survives
+/// restarts). Otherwise an ephemeral key is generated at startup (session
+/// state is invalidated on every restart).
 fn build_request_state_codec() -> Arc<RequestStateCodec> {
     let mut key = [0u8; 32];
-    if let Ok(secret) = std::env::var("MCP_REQUEST_STATE_SECRET") {
-        let bytes = secret.as_bytes();
-        for (i, slot) in key.iter_mut().enumerate() {
-            *slot = bytes[i % bytes.len()];
+    match std::env::var("MCP_REQUEST_STATE_SECRET") {
+        Ok(secret) if !secret.is_empty() => {
+            key.copy_from_slice(&Sha256::digest(secret.as_bytes()));
         }
-    } else {
-        for chunk in key.chunks_exact_mut(8) {
-            let rand_u64 = RandomState::new().build_hasher().finish();
-            chunk.copy_from_slice(&rand_u64.to_le_bytes());
+        _ => {
+            for chunk in key.chunks_exact_mut(8) {
+                let rand_u64 = RandomState::new().build_hasher().finish();
+                chunk.copy_from_slice(&rand_u64.to_le_bytes());
+            }
         }
     }
     Arc::new(
@@ -137,13 +143,22 @@ fn build_request_state_codec() -> Arc<RequestStateCodec> {
 /// Builds the Axum router to be nested at `/mcp`.
 pub fn mcp_router(state: MyAppState) -> Router<MyAppState> {
     let state_codec = build_request_state_codec();
+    let service_state = state.clone();
     let service = StreamableHttpService::new(
-        move || Ok(FoodcalcMcpServer::new(state.clone(), state_codec.clone())),
+        move || {
+            Ok(FoodcalcMcpServer::new(
+                service_state.clone(),
+                state_codec.clone(),
+            ))
+        },
         LocalSessionManager::default().into(),
         StreamableHttpServerConfig::default(),
     );
 
     Router::new()
         .fallback_service(service)
-        .layer(middleware::from_fn(auth::require_mcp_auth))
+        .layer(middleware::from_fn_with_state(
+            state,
+            auth::require_mcp_auth,
+        ))
 }

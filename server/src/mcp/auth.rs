@@ -4,21 +4,27 @@
 //! MCP clients) with automatic fallback to `axum-login` session cookies.
 
 use axum::{
-    extract::{FromRequestParts, Request},
+    extract::{FromRequestParts, Request, State},
     http::{header::AUTHORIZATION, StatusCode},
     middleware::Next,
-    response::{IntoResponse, Response}, Json,
+    response::{IntoResponse, Response},
+    Json,
 };
-use foodlib_new::{auth_context::AuthCtx, FoodLib};
+use foodlib_new::auth_context::AuthCtx;
 use rmcp::{service::RequestContext, ErrorData as McpError, RoleServer};
 use serde_json::json;
 
-use crate::app::{tokens, AppCtx, Channel};
+use crate::app::{tokens, AppCtx, Channel, MyAppState};
 
 /// Middleware guarding `/mcp`: authenticates via `Authorization: Bearer <token>`
 /// when present, otherwise falls back to the browser session cookie, and attaches
-/// `AppCtx` stamped with `Channel::McpAgent` to request extensions.
-pub async fn require_mcp_auth(mut req: Request, next: Next) -> Response {
+/// `AppCtx` stamped with `Channel::McpAgent` (plus the API token metadata for
+/// audit attribution on the Bearer path) to request extensions.
+pub async fn require_mcp_auth(
+    State(state): State<MyAppState>,
+    mut req: Request,
+    next: Next,
+) -> Response {
     let bearer_token = req
         .headers()
         .get(AUTHORIZATION)
@@ -30,20 +36,22 @@ pub async fn require_mcp_auth(mut req: Request, next: Next) -> Response {
         .map(str::to_owned);
 
     let auth_result = if let Some(raw_token) = bearer_token {
-        match req.extensions().get::<FoodLib>().cloned() {
-            Some(foodlib) => tokens::authenticate_bearer_token(&foodlib, &raw_token).await,
-            None => Err(foodlib_new::Error::Misc("FoodLib extension missing".into())),
-        }
+        tokens::authenticate_bearer_token(&state.db, &raw_token)
+            .await
+            .map(|(ctx, auth)| (ctx, Some(auth)))
     } else {
         let (mut parts, body) = req.into_parts();
-        let res = AuthCtx::from_request_parts(&mut parts, &()).await;
+        let res = AuthCtx::from_request_parts(&mut parts, &state).await;
         req = Request::from_parts(parts, body);
-        res
+        res.map(|ctx| (ctx, None))
     };
 
     match auth_result {
-        Ok(ctx) => {
-            let actor = AppCtx::new(ctx, Channel::McpAgent);
+        Ok((ctx, auth)) => {
+            let mut actor = AppCtx::new(ctx, Channel::McpAgent);
+            if let Some(auth) = auth {
+                actor = actor.with_auth(auth);
+            }
             req.extensions_mut().insert(actor);
             next.run(req).await
         }
@@ -77,9 +85,6 @@ pub fn extract_actor(context: &RequestContext<RoleServer>) -> Result<AppCtx, Mcp
                 .cloned()
         })
         .ok_or_else(|| {
-            McpError::internal_error(
-                "missing authenticated MCP actor context on request",
-                None,
-            )
+            McpError::internal_error("missing authenticated MCP actor context on request", None)
         })
 }

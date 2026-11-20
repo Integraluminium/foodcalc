@@ -23,7 +23,9 @@ pub fn tool_json<T: Serialize>(value: &T) -> Result<CallToolResult, McpError> {
 
 /// Converts a domain `Result<T>` into an MCP tool result, routing recoverable
 /// errors to `CallToolResult::error` and infrastructure errors to `Err(McpError)`.
-pub fn map_tool_result<T: Serialize>(result: Result<T, AppError>) -> Result<CallToolResult, McpError> {
+pub fn map_tool_result<T: Serialize>(
+    result: Result<T, AppError>,
+) -> Result<CallToolResult, McpError> {
     match result {
         Ok(value) => tool_json(&value),
         Err(err) => map_app_error_to_tool(err),

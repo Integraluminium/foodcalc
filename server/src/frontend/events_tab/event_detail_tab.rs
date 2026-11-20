@@ -530,9 +530,9 @@ async fn ingredients_per_serving(foodlib: FoodLib, meal_id: Path<i32>) -> MRespo
 }
 
 use bigdecimal::BigDecimal;
-use std::collections::HashMap;
 #[cfg(feature = "typst")]
 use pdf_export::renderer::DishLabelLayout;
+use std::collections::HashMap;
 
 async fn render_ingredients_without_tours(
     foodlib: FoodLib,

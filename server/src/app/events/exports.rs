@@ -80,8 +80,14 @@ fn render_export_dish_labels(info: EventAllergenInfo) -> Result<Vec<u8>> {
 /// `GET …/exports/overview` — management summary PDF: frame data with budget
 /// status, planned meals with planner numbers, shopping tours and food-prep
 /// tasks. Requires `events:export`.
-pub async fn export_summary_pdf(state: &MyAppState, ctx: &AppCtx, event_id: i32) -> Result<ExportedFile> {
-    ctx.ctx.assert_event_action(event_id, EventPerm::Export).await?;
+pub async fn export_summary_pdf(
+    state: &MyAppState,
+    ctx: &AppCtx,
+    event_id: i32,
+) -> Result<ExportedFile> {
+    ctx.ctx
+        .assert_event_action(event_id, EventPerm::Export)
+        .await?;
     let event = state.events().get(event_id).await?;
     let total_cost = state.events().get_total_cost(event_id).await?;
     let meals = state.meals().get_event_meals_planner(event_id).await?;
@@ -141,8 +147,9 @@ pub async fn export_summary_pdf(state: &MyAppState, ctx: &AppCtx, event_id: i32)
     let filename = format!("{}_uebersicht", sanitize(&event.name));
 
     // TODO: implement appropriate Typst export function for event overview
-    let bytes: Result<Vec<u8>> =
-        Err(Error::Misc("Typst export for event overview not implemented".into()));
+    let bytes: Result<Vec<u8>> = Err(Error::Misc(
+        "Typst export for event overview not implemented".into(),
+    ));
 
     bytes.map(|bytes| ExportedFile {
         filename,
@@ -208,7 +215,6 @@ pub async fn export_allergen_list_for_event(
     })
 }
 
-
 /// `GET …/exports/labels` — tent-card dish labels PDF with the allergen
 /// summary per dish. Requires `events:export`.
 pub async fn export_dish_labels(
@@ -227,7 +233,6 @@ pub async fn export_dish_labels(
         bytes,
     })
 }
-
 
 pub async fn export_shopping_tour_list(
     state: &MyAppState,

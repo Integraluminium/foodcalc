@@ -8,7 +8,9 @@ use super::audit;
 use super::{assert_ownership_transfer, AppCtx, Error, MyAppState, Result};
 use bigdecimal::ToPrimitive;
 use foodlib_new::auth_context::AuthCtx;
-use foodlib_new::entities::recipe::{RecipeIngredient, RecipeKind, RecipeListItem, RecipeMetaIngredient, RecipeStep};
+use foodlib_new::entities::recipe::{
+    RecipeIngredient, RecipeKind, RecipeListItem, RecipeMetaIngredient, RecipeStep,
+};
 use foodlib_new::policy::{Permission, RecipePerm};
 use foodlib_new::recipe::Recipe;
 use serde::{Deserialize, Serialize};
@@ -178,7 +180,11 @@ pub async fn list_recipes(
         .into_iter()
         // Group visibility: members see their groups' recipes, admins see all.
         .filter(|recipe| ctx.group_ids.contains(&recipe.group_id))
-        .filter(|recipe| kind_filter.as_ref().map_or(true, |kind| &recipe.kind == kind))
+        .filter(|recipe| {
+            kind_filter
+                .as_ref()
+                .map_or(true, |kind| &recipe.kind == kind)
+        })
         .filter(|recipe| search.is_empty() || recipe.name.to_lowercase().contains(&search))
         .map(|recipe| to_dto(recipe, &group_name_by_id))
         .collect())
@@ -202,7 +208,6 @@ fn to_dto(recipe: RecipeListItem, group_name_by_id: &HashMap<i32, String>) -> Re
         energy_kj_per_g,
     }
 }
-
 
 // ----------------------------------------------------------------- detail
 
@@ -265,7 +270,10 @@ pub struct RecipeDetailDto {
 }
 
 /// Energy density in kJ/g from a stats row (kg / kJ); `None` for zero weight.
-pub fn energy_kj_per_g(weight_kg: &bigdecimal::BigDecimal, energy_kj: &bigdecimal::BigDecimal) -> Option<f64> {
+pub fn energy_kj_per_g(
+    weight_kg: &bigdecimal::BigDecimal,
+    energy_kj: &bigdecimal::BigDecimal,
+) -> Option<f64> {
     let weight_g = weight_kg.to_f64()? * 1000.0;
     (weight_g > 0.0).then(|| energy_kj.to_f64().unwrap_or(0.0) / weight_g)
 }
@@ -273,7 +281,7 @@ pub fn energy_kj_per_g(weight_kg: &bigdecimal::BigDecimal, energy_kj: &bigdecima
 pub async fn get_recipe(
     state: &MyAppState,
     actor: &AppCtx,
-    recipe_id: i32
+    recipe_id: i32,
 ) -> Result<RecipeDetailDto> {
     let recipe = state.recipes().get(recipe_id).await?;
     // Group-private reads: non-members get a plain 404.
@@ -500,10 +508,9 @@ pub struct RecipeIngredientInput {
 
 fn parse_amount(value: &str) -> Result<bigdecimal::BigDecimal> {
     use std::str::FromStr;
-    bigdecimal::BigDecimal::from_str(value)
-        .map_err(|_| Error::Validation {
-            message: format!("invalid decimal amount: {value}"),
-        })
+    bigdecimal::BigDecimal::from_str(value).map_err(|_| Error::Validation {
+        message: format!("invalid decimal amount: {value}"),
+    })
 }
 
 /// `POST /api/recipes/{id}/ingredients` — add an ingredient line.
@@ -557,7 +564,12 @@ pub async fn update_ingredient(
 }
 
 /// `DELETE /api/recipes/{id}/ingredients/{ingredient_id}` — remove the line.
-pub async fn remove_ingredient(state: &MyAppState, actor: &AppCtx, id: i32, ingredient_id: i32) -> Result<()> {
+pub async fn remove_ingredient(
+    state: &MyAppState,
+    actor: &AppCtx,
+    id: i32,
+    ingredient_id: i32,
+) -> Result<()> {
     actor.ctx.assert_recipe_perm(id, RecipePerm::Edit).await?;
     state.recipes().delete_ingredient(id, ingredient_id).await?;
     Ok(())
@@ -711,7 +723,12 @@ pub async fn update_sub_recipe(
 }
 
 /// `DELETE /api/recipes/{id}/sub-recipes/{child_id}` — remove the reference.
-pub async fn remove_sub_recipe(state: &MyAppState, actor: &AppCtx, id: i32, child_id: i32) -> Result<()> {
+pub async fn remove_sub_recipe(
+    state: &MyAppState,
+    actor: &AppCtx,
+    id: i32,
+    child_id: i32,
+) -> Result<()> {
     actor.ctx.assert_recipe_perm(id, RecipePerm::Edit).await?;
     state.recipes().delete_meta_ingredient(id, child_id).await?;
     Ok(())
