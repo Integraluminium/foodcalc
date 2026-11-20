@@ -16,6 +16,7 @@ import {DataSettingsRenderer} from './settings/DataSettingsRenderer.tsx'
 import {SettingsShell} from "./settings/settings_shell/SettingsShell.tsx";
 import {getSectionsByScope, type SettingsContext,} from './settings/settingsRegistry.ts'
 import styles from './SettingsPage.module.css'
+import {TokenManagement} from "./TokenManagement.tsx";
 
 type SettingsTab = 'account' | 'preferences' | 'groups'
 
@@ -162,7 +163,7 @@ function AccountPanel() {
             <Badge variant={user.is_admin ? 'info' : 'neutral'}>
               {user.is_admin ? 'Administrator' : 'Mitglied'}
             </Badge>
-            <LanguageSwitcher />
+            <LanguageSwitcher/>
           </>
         }
       >
@@ -226,11 +227,14 @@ function AccountPanel() {
       </CardSection>
 
       <CardSection title={t('settings:password.title')}>
-        <PasswordForm userId={user.id} onSaved={() => setSavedPassword(true)} />
+        <PasswordForm userId={user.id} onSaved={() => setSavedPassword(true)}/>
         {savedPassword && (
           <p className={styles.success}>{t('settings:password.saved')}</p>
         )}
       </CardSection>
+
+
+      <TokenManagement />
     </>
   )
 }

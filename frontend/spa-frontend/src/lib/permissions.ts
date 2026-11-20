@@ -45,7 +45,7 @@ const arrayWithAllGlobalPermissionsAsValues = [
   'admin:view_audit_log'
 ] as const;
 
-type GlobalPermission = typeof arrayWithAllGlobalPermissionsAsValues[number];
+export type GlobalPermission = typeof arrayWithAllGlobalPermissionsAsValues[number];
 // export type GlobalPermission =
 //   | 'admin:manage_users'
 //   | 'admin:manage_master_data'

@@ -1,41 +1,41 @@
 {
-  "forbidden": "This page is restricted to administrators.",
   "admin": {
-    "manageUsers": "User management",
-    "manageUsersHint": "Manage accounts, assign global permissions.",
+    "allowCreating": "Create new objects",
+    "allowCreatingHint": "Create groups, events, recipes, ingredients, inventories.",
     "manageMasterData": "Master data",
     "manageMasterDataHint": "Units, allergens, properties, vendors.",
     "manageSettings": "System settings",
     "manageSettingsHint": "Global default roles and retention.",
+    "manageUsers": "User management",
+    "manageUsersHint": "Manage accounts, assign global permissions.",
     "viewAuditLog": "View audit log",
-    "viewAuditLogHint": "Read and export the security audit log.",
-    "allowCreating": "Create new objects",
-    "allowCreatingHint": "Create groups, events, recipes, ingredients, inventories."
-  },
-  "system": {
-    "memberDefaultsTitle": "Default roles for new members (global)",
-    "memberDefaultsHint": "Applies to all groups without their own default.",
-    "groupsOverriding": "{{count}} groups use their own defaults."
+    "viewAuditLogHint": "Read and export the security audit log."
   },
   "audit": {
-    "time": "Time",
-    "actor": "Actor",
     "action": "Action",
+    "actionFilter": "Action prefix (e.g. access.)…",
+    "actor": "Actor",
     "context": "Context",
     "details": "Details",
-    "actionFilter": "Action prefix (e.g. access.)…",
-    "from": "From",
-    "until": "Until",
-    "export": "CSV export",
     "empty": "No entries for this filter.",
-    "total": "{{count}} entries"
+    "export": "CSV export",
+    "from": "From",
+    "time": "Time",
+    "total": "{{count}} entries",
+    "until": "Until"
   },
+  "forbidden": "This page is restricted to administrators.",
   "selfGrantButton": "Add membership",
   "selfGrantDone": "Membership added.",
   "selfGrantGroup": "Group",
   "selfGrantHint": "Admins follow group roles: join a group to view or edit its resources.",
   "selfGrantRole": "Role",
   "selfGrantTitle": "Own memberships (Admin)",
+  "system": {
+    "groupsOverriding": "{{count}} groups use their own defaults.",
+    "memberDefaultsHint": "Applies to all groups without their own default.",
+    "memberDefaultsTitle": "Default roles for new members (global)"
+  },
   "tabs": {
     "groups": "Groups",
     "users": "Users"
@@ -44,12 +44,6 @@
   "title": "Administration",
   "users": {
     "accessDrawerTitle": "Access & groups: {{name}}",
-    "globalPermsTitle": "Global permissions",
-    "groupMembershipsTitle": "Group memberships",
-    "noGroups": "No group memberships.",
-    "personalGroup": "personal",
-    "groupRolesHint": "Roles apply per group; personal groups stay untouched.",
-    "selfLockoutHint": "You cannot revoke your own user-management permission.",
     "colAdmin": "Admin",
     "colEmail": "Email",
     "colGroups": "Groups",
@@ -59,10 +53,16 @@
     "deleteMessage": "Delete “{{username}}” including their personal group? This is only possible if the personal group no longer owns any recipes, ingredients, inventories, or events.",
     "deleteTitle": "Delete user",
     "deleteUser": "Delete user",
+    "globalPermsTitle": "Global permissions",
+    "groupMembershipsTitle": "Group memberships",
+    "groupRolesHint": "Roles apply per group; personal groups stay untouched.",
     "loadError": "Could not load users: {{error}}",
+    "noGroups": "No group memberships.",
+    "personalGroup": "personal",
     "resetPassword": "Reset password",
     "resetPasswordPrompt": "New password for {{username}} (min. 8 characters):",
     "searchPlaceholder": "Search users (name / email)…",
+    "selfLockoutHint": "You cannot revoke your own user-management permission.",
     "toggleAdmin": "Toggle admin status"
   }
 }

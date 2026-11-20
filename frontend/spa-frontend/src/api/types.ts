@@ -520,3 +520,22 @@ export interface StatusBoardSnapshot {
     upcoming: ServingDishItem[]
   }
 }
+
+export interface APITokenInfo {
+  id: number
+  name: string
+  token_prefix: string
+  created_at: IsoDateTime
+  last_used_at: IsoDateTime | null
+  expires_at: IsoDateTime | null
+
+}
+export interface CreatedAPIToken {
+  token: string
+  info: APITokenInfo
+}
+
+export interface CreateTokenPayload {
+  name: string
+  expires_in_days?: number
+}

@@ -1,5 +1,5 @@
-import { api } from '../client'
-import type { CurrentUser, LoginInput, RegisterInput } from '../types'
+import {api} from '../client'
+import type {CurrentUser, LoginInput, RegisterInput} from '../types'
 
 /**
  * Auth endpoints. `login` returns 204 and only sets the session cookie —

@@ -172,6 +172,9 @@
     "downloadList": "Download list as text",
     "editTour": "Edit trip",
     "empty": "No shopping required (or recipes have no source-linked ingredients).",
+    "emptyCoverage": "No inventory coverage for this event.",
+    "emptyOverrides": "No source overrides defined.",
+    "emptyWithoutTour": "All ingredients are already assigned to a tour.",
     "loadError": "Could not load shopping list: {{error}}",
     "loading": "Loading shopping list…",
     "markCompleted": "Mark trip as completed (locks it)",
@@ -201,10 +204,23 @@
     "toursHint": "Each trip lists ingredients matching its “buy by” window; downloads the list as plain text.",
     "unassignItem": "Unassign item (reverts to automatic matching)",
     "withoutTour": "Without trip",
-    "withoutTourHint": "Ingredients whose default store does not yet have a trip within the matching time window.",
-    "emptyCoverage": "No inventory coverage for this event.",
-    "emptyWithoutTour": "All ingredients are already assigned to a tour.",
-    "emptyOverrides": "No source overrides defined."
+    "withoutTourHint": "Ingredients whose default store does not yet have a trip within the matching time window."
+  },
+  "team": {
+    "addButton": "Share",
+    "addPlaceholder": "Username or email…",
+    "directHint": "Direct grants are ideal for guest cooks or external purchasers.",
+    "directSubtitle": "These grants apply only to this event — independent of group memberships.",
+    "directTitle": "Shared directly for this event ({{count}})",
+    "empty": "No direct grants yet.",
+    "groupMembers": "Members",
+    "groupRoles": "Role distribution",
+    "inheritedNoDetail": "The group composition is only visible to the head.",
+    "inheritedSubtitle": "Members of the owning group inherit its permissions for this event.",
+    "inheritedTitle": "Access via the group",
+    "revoke": "Revoke grant",
+    "revokeMessage": "Remove the event access of {{name}}?",
+    "revokeTitle": "Revoke grant"
   },
   "timeline": {
     "empty": "No scheduled items yet: add meals, shopping trips, or prep cooking.",
@@ -235,24 +251,8 @@
       "overview": "Overview",
       "plan": "Meal plan",
       "shopping": "Shopping & logistics",
-      "timeline": "Timeline",
-      "team": "Team & access"
+      "team": "Team & access",
+      "timeline": "Timeline"
     }
-  },
-  "team": {
-    "inheritedTitle": "Access via the group",
-    "inheritedSubtitle": "Members of the owning group inherit its permissions for this event.",
-    "inheritedNoDetail": "The group composition is only visible to the head.",
-    "groupMembers": "Members",
-    "groupRoles": "Role distribution",
-    "directTitle": "Shared directly for this event ({{count}})",
-    "directSubtitle": "These grants apply only to this event — independent of group memberships.",
-    "directHint": "Direct grants are ideal for guest cooks or external purchasers.",
-    "addPlaceholder": "Username or email…",
-    "addButton": "Share",
-    "empty": "No direct grants yet.",
-    "revoke": "Revoke grant",
-    "revokeTitle": "Revoke grant",
-    "revokeMessage": "Remove the event access of {{name}}?"
   }
 }

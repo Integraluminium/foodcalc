@@ -2,10 +2,13 @@ import {api} from '../client'
 import type {
   AdminUser,
   AdminUserWithGroups,
+  APITokenInfo,
+  CreatedAPIToken,
+  CreateTokenPayload,
+  GlobalPermission,
   Group,
   GroupDefaultRoles,
   GroupMember,
-  GlobalPermission,
   MemberDefaults,
   PasswordChangeInput,
   RoleDefinition,
@@ -27,6 +30,12 @@ export const usersApi = {
   /** Replaces the user's global permissions (admin access drawer). */
   setGlobalPermissions: (id: number, permissions: GlobalPermission[]) =>
     api.put<void>(`/users/${id}/global-permissions`, {permissions}),
+
+  /** Fetch the user's API tokens. */
+  getListOfAPIToken: () => api.get<APITokenInfo[]>('/settings/tokens'),
+  createNewAPIToken: (input: CreateTokenPayload) => api.post<CreatedAPIToken>('/settings/tokens', input),
+  deleteAPIToken: (id: string) => api.delete<void>(`/settings/tokens/${id}`),
+
 }
 
 /** Backend role catalog — the SPA renders all role UIs from this. */

@@ -1,40 +1,41 @@
 {
-  "forbidden": "Diese Seite ist Administratoren vorbehalten.",
-  "admin": {    "manageUsers": "Benutzerverwaltung",
-    "manageUsersHint": "Konten verwalten, globale Rechte vergeben.",
+  "admin": {
+    "allowCreating": "Neue Objekte anlegen",
+    "allowCreatingHint": "Gruppen, Events, Rezepte, Zutaten, Inventare anlegen.",
     "manageMasterData": "Stammdaten verwalten",
     "manageMasterDataHint": "Einheiten, Allergene, Eigenschaften, Händler.",
     "manageSettings": "Systemeinstellungen",
     "manageSettingsHint": "Globale Standard-Rollen und Aufbewahrung.",
+    "manageUsers": "Benutzerverwaltung",
+    "manageUsersHint": "Konten verwalten, globale Rechte vergeben.",
     "viewAuditLog": "Protokoll einsehen",
-    "viewAuditLogHint": "Sicherheitsrelevantes Protokoll lesen und exportieren.",
-    "allowCreating": "Neue Objekte anlegen",
-    "allowCreatingHint": "Gruppen, Events, Rezepte, Zutaten, Inventare anlegen."
-  },
-  "system": {
-    "memberDefaultsTitle": "Standard-Rollen für neue Mitglieder (global)",
-    "memberDefaultsHint": "Gilt für alle Gruppen ohne eigenen Standard.",
-    "groupsOverriding": "{{count}} Gruppen verwenden eigene Standardwerte."
+    "viewAuditLogHint": "Sicherheitsrelevantes Protokoll lesen und exportieren."
   },
   "audit": {
-    "time": "Zeitpunkt",
-    "actor": "Akteur",
     "action": "Aktion",
+    "actionFilter": "Aktions-Präfix (z. B. access.)…",
+    "actor": "Akteur",
     "context": "Kontext",
     "details": "Details",
-    "actionFilter": "Aktions-Präfix (z. B. access.)…",
-    "from": "Von",
-    "until": "Bis",
-    "export": "CSV-Export",
     "empty": "Keine Einträge für diesen Filter.",
-    "total": "{{count}} Einträge"
+    "export": "CSV-Export",
+    "from": "Von",
+    "time": "Zeitpunkt",
+    "total": "{{count}} Einträge",
+    "until": "Bis"
   },
+  "forbidden": "Diese Seite ist Administratoren vorbehalten.",
   "selfGrantButton": "Mitgliedschaft eintragen",
   "selfGrantDone": "Mitgliedschaft eingetragen.",
   "selfGrantGroup": "Gruppe",
   "selfGrantHint": "Admins halten sich an die Gruppenrollen: Tritt einer Gruppe bei, um deren Ressourcen zu sehen oder zu bearbeiten.",
   "selfGrantRole": "Rolle",
   "selfGrantTitle": "Eigene Mitgliedschaften (Admin)",
+  "system": {
+    "groupsOverriding": "{{count}} Gruppen verwenden eigene Standardwerte.",
+    "memberDefaultsHint": "Gilt für alle Gruppen ohne eigenen Standard.",
+    "memberDefaultsTitle": "Standard-Rollen für neue Mitglieder (global)"
+  },
   "tabs": {
     "groups": "Gruppen",
     "users": "Benutzer"
@@ -43,12 +44,6 @@
   "title": "Verwaltung",
   "users": {
     "accessDrawerTitle": "Rechte & Gruppen: {{name}}",
-    "globalPermsTitle": "Globale Berechtigungen",
-    "groupMembershipsTitle": "Gruppenmitgliedschaften",
-    "noGroups": "Keine Gruppenmitgliedschaften.",
-    "personalGroup": "persönlich",
-    "groupRolesHint": "Rollen gelten pro Gruppe; persönliche Gruppen bleiben unverändert.",
-    "selfLockoutHint": "Du kannst dir selbst nicht die Benutzerverwaltung entziehen.",
     "colAdmin": "Admin",
     "colEmail": "E-Mail",
     "colGroups": "Gruppen",
@@ -58,10 +53,16 @@
     "deleteMessage": "„{{username}}“ inklusive persönlicher Gruppe löschen? Das ist nur möglich, wenn die persönliche Gruppe keine Rezepte/Zutaten/Inventare/Events mehr besitzt.",
     "deleteTitle": "Benutzer löschen",
     "deleteUser": "Benutzer löschen",
+    "globalPermsTitle": "Globale Berechtigungen",
+    "groupMembershipsTitle": "Gruppenmitgliedschaften",
+    "groupRolesHint": "Rollen gelten pro Gruppe; persönliche Gruppen bleiben unverändert.",
     "loadError": "Benutzer konnten nicht geladen werden: {{error}}",
+    "noGroups": "Keine Gruppenmitgliedschaften.",
+    "personalGroup": "persönlich",
     "resetPassword": "Passwort zurücksetzen",
     "resetPasswordPrompt": "Neues Passwort für {{username}} (mind. 8 Zeichen):",
     "searchPlaceholder": "Benutzer suchen (Name / E-Mail)…",
+    "selfLockoutHint": "Du kannst dir selbst nicht die Benutzerverwaltung entziehen.",
     "toggleAdmin": "Admin-Status umschalten"
   }
 }

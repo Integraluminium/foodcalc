@@ -172,6 +172,9 @@
     "downloadList": "Liste als Text herunterladen",
     "editTour": "Tour bearbeiten",
     "empty": "Keine Einkäufe nötig (oder die Rezepte haben keine quellenbezogenen Zutaten).",
+    "emptyCoverage": "Keine Inventar-Abdeckung für diese Veranstaltung.",
+    "emptyOverrides": "Keine quellbezogenen Overrides definiert.",
+    "emptyWithoutTour": "Alle Zutaten sind bereits einer Tour zugeordnet.",
     "loadError": "Einkaufsliste konnte nicht geladen werden: {{error}}",
     "loading": "Einkaufsliste wird geladen…",
     "markCompleted": "Tour als erledigt markieren (sperrt sie)",
@@ -201,10 +204,23 @@
     "toursHint": "Pro Tour die Zutaten mit passendem „besorgen bis“-Zeitfenster; lädt die Liste als Text.",
     "unassignItem": "Zuordnung aufheben (fällt zurück auf automatisch)",
     "withoutTour": "Ohne Tour",
-    "withoutTourHint": "Zutaten, deren Händler-Store noch keine Tour im passenden Zeitfenster hat.",
-    "emptyCoverage": "Keine Inventar-Abdeckung für diese Veranstaltung.",
-    "emptyWithoutTour": "Alle Zutaten sind bereits einer Tour zugeordnet.",
-    "emptyOverrides": "Keine quellbezogenen Overrides definiert."
+    "withoutTourHint": "Zutaten, deren Händler-Store noch keine Tour im passenden Zeitfenster hat."
+  },
+  "team": {
+    "addButton": "Freigeben",
+    "addPlaceholder": "Benutzername oder E-Mail…",
+    "directHint": "Direkte Freigaben eignen sich z. B. für Gastköche oder externe Einkäufer.",
+    "directSubtitle": "Diese Zugriffe gelten nur für dieses Event — unabhängig von Gruppenmitgliedschaften.",
+    "directTitle": "Direkt für dieses Event freigegeben ({{count}})",
+    "empty": "Noch keine direkten Freigaben.",
+    "groupMembers": "Mitglieder",
+    "groupRoles": "Rollen-Verteilung",
+    "inheritedNoDetail": "Die Gruppenzusammensetzung ist nur für die Leitung sichtbar.",
+    "inheritedSubtitle": "Mitglieder der besitzenden Gruppe erben deren Rechte für dieses Event.",
+    "inheritedTitle": "Zugriff über die Gruppe",
+    "revoke": "Freigabe entziehen",
+    "revokeMessage": "Den Event-Zugriff von {{name}} entfernen?",
+    "revokeTitle": "Freigabe entziehen"
   },
   "timeline": {
     "empty": "Noch keine Termine: Mahlzeiten, Touren oder Vorkochen anlegen.",
@@ -235,24 +251,8 @@
       "overview": "Übersicht",
       "plan": "Speiseplan",
       "shopping": "Einkäufe & Logistik",
-      "timeline": "Zeitplan",
-      "team": "Team & Zugriff"
+      "team": "Team & Zugriff",
+      "timeline": "Zeitplan"
     }
-  },
-  "team": {
-    "inheritedTitle": "Zugriff über die Gruppe",
-    "inheritedSubtitle": "Mitglieder der besitzenden Gruppe erben deren Rechte für dieses Event.",
-    "inheritedNoDetail": "Die Gruppenzusammensetzung ist nur für die Leitung sichtbar.",
-    "groupMembers": "Mitglieder",
-    "groupRoles": "Rollen-Verteilung",
-    "directTitle": "Direkt für dieses Event freigegeben ({{count}})",
-    "directSubtitle": "Diese Zugriffe gelten nur für dieses Event — unabhängig von Gruppenmitgliedschaften.",
-    "directHint": "Direkte Freigaben eignen sich z. B. für Gastköche oder externe Einkäufer.",
-    "addPlaceholder": "Benutzername oder E-Mail…",
-    "addButton": "Freigeben",
-    "empty": "Noch keine direkten Freigaben.",
-    "revoke": "Freigabe entziehen",
-    "revokeTitle": "Freigabe entziehen",
-    "revokeMessage": "Den Event-Zugriff von {{name}} entfernen?"
   }
 }
