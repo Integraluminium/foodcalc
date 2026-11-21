@@ -31,7 +31,8 @@ pub fn recipes_router() -> Router<MyAppState> {
         .route("/{id}/owner", put(transfer_owner))
         .route("/{id}/ingredients", post(add_ingredient))
         .route(
-            "/{id}/ingredients", put(update_ingredient).delete(remove_ingredient),
+            "/{id}/ingredients",
+            put(update_ingredient).delete(remove_ingredient),
         )
         .route("/{id}/steps", post(add_step))
         .route(
@@ -74,15 +75,18 @@ async fn create_recipe(
     actor: AppCtx,
     Json(payload): Json<RecipeCreateInput>,
 ) -> Response {
-    respond_created(recipes::create_new_recipe(
-        &state,
-        &actor,
-        payload.name,
-        payload.comment,
-        payload.kind,
-        payload.group_id,
-        payload.weighed_in,
-    ).await)
+    respond_created(
+        recipes::create_new_recipe(
+            &state,
+            &actor,
+            payload.name,
+            payload.comment,
+            payload.kind,
+            payload.group_id,
+            payload.weighed_in,
+        )
+        .await,
+    )
 }
 
 async fn update_recipe(
@@ -257,7 +261,5 @@ async fn transfer_owner(
     Path(id): Path<i32>,
     Json(payload): Json<OwnerTransferInput>,
 ) -> Response {
-    respond_no_content(
-        recipes::transfer_owner(&state, &actor, id, payload.group_id).await,
-    )
+    respond_no_content(recipes::transfer_owner(&state, &actor, id, payload.group_id).await)
 }

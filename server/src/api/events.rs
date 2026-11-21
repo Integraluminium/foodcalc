@@ -25,7 +25,6 @@ pub mod shopping;
 // Re-exported so handlers share the input DTOs with the app layer.
 pub use crate::app::events::{EventCreateInput, EventUpdateInput};
 
-
 #[derive(Debug, Deserialize)]
 pub struct OwnerTransferInput {
     pub group_id: i32,
@@ -58,10 +57,7 @@ pub fn events_router() -> Router<MyAppState> {
             "/{id}/tours/{tour_id}",
             put(shopping::update_tour).delete(shopping::delete_tour),
         )
-        .route(
-            "/{id}/tours/{tour_id}/items",
-            post(shopping::add_tour_item),
-        )
+        .route("/{id}/tours/{tour_id}/items", post(shopping::add_tour_item))
         .route(
             "/{id}/tours/{tour_id}/items/{ingredient_id}",
             delete(shopping::remove_tour_item),

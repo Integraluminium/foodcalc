@@ -53,8 +53,8 @@ pub struct AddedEventMember {
 /// resolved for this event (group baseline or direct override).
 async fn ensure_can_manage(state: &MyAppState, ctx: &AuthCtx, event_id: i32) -> Result<Event> {
     let event = state.events().get(event_id).await?;
-    let via_group = ctx
-        .has_group_permission(event.group_id, Permission::Group(GroupPerm::ManageMembers));
+    let via_group =
+        ctx.has_group_permission(event.group_id, Permission::Group(GroupPerm::ManageMembers));
     let via_event = ctx.has_event_permission(
         event_id,
         event.group_id,
@@ -125,7 +125,10 @@ pub async fn add(
         });
     }
 
-    state.events().add_event_member(user.id, event_id, &roles).await?;
+    state
+        .events()
+        .add_event_member(user.id, event_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -168,7 +171,10 @@ pub async fn set_roles(
         });
     }
 
-    state.events().set_event_member_roles(user_id, event_id, &roles).await?;
+    state
+        .events()
+        .set_event_member_roles(user_id, event_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -185,14 +191,12 @@ pub async fn set_roles(
 
 /// `DELETE /api/events/{id}/members/{user_id}` — revokes all event-level
 /// overrides for that user (group access is unaffected).
-pub async fn remove(
-    state: &MyAppState,
-    actor: &AppCtx,
-    event_id: i32,
-    user_id: i64,
-) -> Result<()> {
+pub async fn remove(state: &MyAppState, actor: &AppCtx, event_id: i32, user_id: i64) -> Result<()> {
     ensure_can_manage(state, &actor.ctx, event_id).await?;
-    state.events().remove_event_member(user_id, event_id).await?;
+    state
+        .events()
+        .remove_event_member(user_id, event_id)
+        .await?;
     audit::record(
         state,
         actor,

@@ -34,10 +34,7 @@ pub fn inventories_router() -> Router<MyAppState> {
 }
 
 /// `GET /api/inventories` — inventories of the user's groups (admins: all).
-async fn list_inventories(
-    State(state): State<MyAppState>,
-    actor: AppCtx,
-) -> Response {
+async fn list_inventories(State(state): State<MyAppState>, actor: AppCtx) -> Response {
     respond(inventories::list_inventories(&state, &actor).await)
 }
 

@@ -57,7 +57,10 @@ pub async fn add_meal_to_event(
     input: MealAddInput,
 ) -> Result<i32> {
     // actor.ctx.assert_global(foodlib_new::policy::GlobalPermission::AllowedToCreateNewDomainObjects).await?;
-    actor.ctx.assert_event_action(event_id, EventPerm::Edit).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Edit)
+        .await?;
 
     let start_time = parse_time(&input.start_time)?;
     let end_time = match input.end_time.as_deref() {
@@ -142,14 +145,7 @@ pub async fn update_meal_of_event(
     state
         .meals()
         .update_meal(
-            meal_id,
-            recipe_id,
-            place_id,
-            start_time,
-            end_time,
-            energy,
-            servings,
-            comment,
+            meal_id, recipe_id, place_id, start_time, end_time, energy, servings, comment,
         )
         .await?;
     audit::record(
@@ -167,7 +163,12 @@ pub async fn update_meal_of_event(
 }
 
 /// `DELETE /api/events/{id}/meals/{meal_id}` — unplan the meal.
-pub async fn remove_meal_from_event(state: &MyAppState, actor: &AppCtx, event_id: i32, meal_id: i32) -> Result<()> {
+pub async fn remove_meal_from_event(
+    state: &MyAppState,
+    actor: &AppCtx,
+    event_id: i32,
+    meal_id: i32,
+) -> Result<()> {
     actor
         .ctx
         .assert_event_action(event_id, EventPerm::Edit)
@@ -213,4 +214,3 @@ pub async fn duplicate_meal_within_event(
     .await;
     Ok(new_id)
 }
-

@@ -39,7 +39,10 @@ pub async fn link_inventory(
     event_id: i32,
     inventory_id: i32,
 ) -> Result<EventInventory> {
-    actor.ctx.assert_event_action(event_id, EventPerm::Edit).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Edit)
+        .await?;
     let inventory = state.inventories().get(inventory_id).await?;
     if !actor.ctx.can_access_group(inventory.group_id) {
         return Err(Error::NotFound {
@@ -58,8 +61,14 @@ pub async fn unlink_inventory(
     event_id: i32,
     inventory_id: i32,
 ) -> Result<()> {
-    actor.ctx.assert_event_action(event_id, EventPerm::Edit).await?;
-    state.events().remove_inventory(event_id, inventory_id).await
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Edit)
+        .await?;
+    state
+        .events()
+        .remove_inventory(event_id, inventory_id)
+        .await
 }
 
 /// `GET /api/events/{id}/inventory-coverage` — per-ingredient demand vs. the

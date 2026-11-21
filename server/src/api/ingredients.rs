@@ -45,10 +45,7 @@ pub fn ingredients_router() -> Router<MyAppState> {
             "/{id}/properties",
             get(get_ingredient_properties).post(add_property),
         )
-        .route(
-            "/{id}/properties/{property_id}",
-            delete(delete_property),
-        )
+        .route("/{id}/properties/{property_id}", delete(delete_property))
 }
 
 // ------------------------------------------------------------------ list
