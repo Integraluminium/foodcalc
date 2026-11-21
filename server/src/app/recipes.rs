@@ -51,8 +51,12 @@ pub async fn create_new_recipe(
     weighed_in: Option<bool>,
 ) -> Result<i32> {
     // Permission checks
-    actor.ctx.assert_global(foodlib_new::policy::GlobalPermission::AllowedToCreateNewDomainObjects)?;
-    actor.ctx.assert_group_perm(group_id, Permission::Recipe(RecipePerm::Create))?;
+    actor
+        .ctx
+        .assert_global(foodlib_new::policy::GlobalPermission::AllowedToCreateNewDomainObjects)?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Recipe(RecipePerm::Create))?;
 
     let recipe = Recipe {
         id: 0,
@@ -63,8 +67,10 @@ pub async fn create_new_recipe(
         kind,
     };
 
-
-    let created_recipe = state.recipes().create(recipe).await
+    let created_recipe = state
+        .recipes()
+        .create(recipe)
+        .await
         .map_err(|e| Error::Validation {
             message: format!("failed to create recipe: {e:?}"),
         })?;
@@ -99,7 +105,9 @@ pub async fn update_recipe(
     input: RecipeUpdateInput,
 ) -> Result<()> {
     let current = state.recipes().get(id).await?;
-    actor.ctx.assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Edit))?;
 
     let updated = Recipe {
         id,
@@ -126,13 +134,11 @@ pub async fn update_recipe(
     Ok(())
 }
 
-pub async fn delete_recipe(
-    state: &MyAppState,
-    actor: &AppCtx,
-    id: i32,
-) -> Result<()> {
+pub async fn delete_recipe(state: &MyAppState, actor: &AppCtx, id: i32) -> Result<()> {
     let current = state.recipes().get(id).await?;
-    actor.ctx.assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Delete))?;
+    actor
+        .ctx
+        .assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Delete))?;
 
     state.recipes().delete(id).await?;
 

@@ -169,11 +169,7 @@ pub async fn export_csv(state: &MyAppState, ctx: &AppCtx, query: AuditListQuery)
 
 /// Retention cleanup of entries older than `until`. Requires
 /// `admin:manage_settings`; the purge is audited (`audit.purged`).
-pub async fn purge(
-    state: &MyAppState,
-    ctx: &AppCtx,
-    until: Option<OffsetDateTime>,
-) -> Result<u64> {
+pub async fn purge(state: &MyAppState, ctx: &AppCtx, until: Option<OffsetDateTime>) -> Result<u64> {
     ctx.require_human()?;
     ctx.ctx.assert_global(GlobalPermission::ManageSettings)?;
     let Some(until) = until else {

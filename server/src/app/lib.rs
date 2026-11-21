@@ -20,7 +20,10 @@ pub fn parse_decimal(value: &str, field: &'static str) -> foodlib_new::Result<Bi
 /// Falls back to the first configured place when the client omits `place_id`.
 pub async fn get_default_places_for_event(state: &MyAppState) -> foodlib_new::Result<i32> {
     let places = state.events().get_places().await?;
-    places.first().map(|place| place.id).ok_or(Error::Validation {
-        message: "no places configured".into(),
-    })
+    places
+        .first()
+        .map(|place| place.id)
+        .ok_or(Error::Validation {
+            message: "no places configured".into(),
+        })
 }

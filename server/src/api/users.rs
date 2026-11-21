@@ -19,8 +19,8 @@ use crate::app::tokens::{self, CreateTokenInput};
 // DTOs shared with the app layer.
 pub use crate::app::users::{
     AddMemberInput, AdminSelfGrantInput, GlobalPermissionsInput, GroupCreateInput,
-    GroupDefaultRolesInput, PasswordChangeInput,
-    SetMemberRolesInput, UserListQuery, UserUpdateInput,
+    GroupDefaultRolesInput, PasswordChangeInput, SetMemberRolesInput, UserListQuery,
+    UserUpdateInput,
 };
 
 pub fn users_router() -> Router<MyAppState> {
@@ -82,7 +82,11 @@ async fn update_user(
 
 /// `DELETE /api/users/{id}` — cascade delete; refuses when the user's
 /// personal group still owns entities.
-async fn delete_user(State(state): State<MyAppState>, actor: AppCtx, Path(id): Path<i64>) -> Response {
+async fn delete_user(
+    State(state): State<MyAppState>,
+    actor: AppCtx,
+    Path(id): Path<i64>,
+) -> Response {
     respond_no_content(users::delete_user(&state, &actor, id).await)
 }
 
@@ -217,10 +221,13 @@ pub fn settings_router() -> Router<MyAppState> {
             "/member-defaults",
             get(get_member_defaults).put(put_member_defaults),
         )
+        .route(
+            "/mcp-elicitation",
+            get(get_mcp_elicitation).put(put_mcp_elicitation),
+        )
         .route("/tokens", get(list_my_tokens).post(create_my_token))
         .route("/tokens/{id}", delete(revoke_my_token))
 }
-
 
 async fn list_my_tokens(State(state): State<MyAppState>, actor: AppCtx) -> Response {
     respond(tokens::list_my_tokens(&state, &actor).await)
@@ -257,6 +264,23 @@ async fn put_member_defaults(
     Json(payload): Json<MemberDefaultsInput>,
 ) -> Response {
     respond_no_content(users::set_member_defaults(&state, &actor, payload.roles).await)
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct McpElicitationInput {
+    pub required: bool,
+}
+
+async fn get_mcp_elicitation(State(state): State<MyAppState>, actor: AppCtx) -> Response {
+    respond(users::get_mcp_elicitation(&state, &actor).await)
+}
+
+async fn put_mcp_elicitation(
+    State(state): State<MyAppState>,
+    actor: AppCtx,
+    Json(payload): Json<McpElicitationInput>,
+) -> Response {
+    respond_no_content(users::set_mcp_elicitation(&state, &actor, payload.required).await)
 }
 
 // ------------------------------------------------------ admin self-grant

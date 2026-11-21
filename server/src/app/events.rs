@@ -379,7 +379,10 @@ pub async fn add_tour(
     input: TourInput,
 ) -> Result<ShoppingTour> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingAddTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingAddTour)
+        .await?;
 
     // Create the tour
     let tour = ShoppingTour {
@@ -418,7 +421,10 @@ pub async fn update_tour(
     input: TourInput,
 ) -> Result<ShoppingTour> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
     if tour_is_completed(state, actor, event_id, tour_id).await {
@@ -467,7 +473,10 @@ pub async fn delete_tour(
     tour_id: i32,
 ) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
     if tour_is_completed(state, actor, event_id, tour_id).await {
@@ -504,10 +513,16 @@ pub async fn set_tour_completed(
     completed: bool,
 ) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ManageShopping).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ManageShopping)
+        .await?;
 
     // Update the lifecycle flag
-    state.events().set_shopping_tour_completed(tour_id, completed).await?;
+    state
+        .events()
+        .set_shopping_tour_completed(tour_id, completed)
+        .await?;
 
     // Logging
     audit::record(
@@ -535,7 +550,10 @@ pub async fn add_tour_item(
     ingredient_id: i32,
 ) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
     if tour_is_completed(state, actor, event_id, tour_id).await {
@@ -545,7 +563,10 @@ pub async fn add_tour_item(
     }
 
     // Add the item
-    state.events().add_shopping_tour_item(tour_id, ingredient_id).await?;
+    state
+        .events()
+        .add_shopping_tour_item(tour_id, ingredient_id)
+        .await?;
 
     // Logging
     audit::record(
@@ -573,7 +594,10 @@ pub async fn remove_tour_item(
     ingredient_id: i32,
 ) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
     if tour_is_completed(state, actor, event_id, tour_id).await {
@@ -583,7 +607,10 @@ pub async fn remove_tour_item(
     }
 
     // Remove the item
-    state.events().remove_shopping_tour_item(tour_id, ingredient_id).await?;
+    state
+        .events()
+        .remove_shopping_tour_item(tour_id, ingredient_id)
+        .await?;
 
     // Logging
     audit::record(
@@ -612,10 +639,16 @@ async fn tour_is_completed(
     // Check permissions on the *event* (defense-in-depth: every caller
     // already asserts a shopping permission on the event, but a broken
     // caller must not be able to probe tour state with a wrong id).
-    actor.ctx.assert_event_action(event_id, EventPerm::View).await.ok();
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::View)
+        .await
+        .ok();
 
     // Resolve and respond
-    state.events().is_shopping_tour_completed(tour_id).await
+    state
+        .events()
+        .is_shopping_tour_completed(tour_id)
+        .await
         .unwrap_or(false)
 }
-

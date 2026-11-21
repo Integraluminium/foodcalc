@@ -188,7 +188,9 @@ pub async fn list_filtered_users(
     actor: &AppCtx,
     query: UserListQuery,
 ) -> Result<Vec<UserWithGroups>> {
-    actor.ctx.assert_global(GlobalPermission::ViewUserProfiles)?;
+    actor
+        .ctx
+        .assert_global(GlobalPermission::ViewUserProfiles)?;
     let rows = state.users().list_users_detailed().await?;
 
     let search = query.search.unwrap_or_default().to_lowercase();
@@ -306,7 +308,10 @@ pub async fn change_password(
         }
     }
 
-    state.users().update_password(id, payload.new_password).await?;
+    state
+        .users()
+        .update_password(id, payload.new_password)
+        .await?;
     audit::record(
         state,
         actor,
@@ -336,7 +341,10 @@ pub async fn set_global_permissions(
             message: "you cannot revoke your own admin:manage_users permission".into(),
         });
     }
-    state.users().set_user_global_permissions(id, &payload.permissions).await?;
+    state
+        .users()
+        .set_user_global_permissions(id, &payload.permissions)
+        .await?;
     audit::record(
         state,
         actor,
@@ -358,7 +366,10 @@ pub async fn set_global_permissions(
 /// Every entry carries `roles`, so the SPA can render them without falling
 /// back to `/auth/me`.
 pub async fn list_groups(state: &MyAppState, actor: &AppCtx) -> Result<Vec<ApiGroup>> {
-    let memberships = state.users().get_user_group_memberships(actor.ctx.user.id).await?;
+    let memberships = state
+        .users()
+        .get_user_group_memberships(actor.ctx.user.id)
+        .await?;
     if actor.ctx.can_global(GlobalPermission::ManageUsers) {
         let mut by_id: HashMap<i32, GroupMembership> =
             memberships.into_iter().map(|m| (m.id, m)).collect();
@@ -414,7 +425,10 @@ pub async fn create_group(
 
     // `create_group_with_manager(name, user_id)` creates the group and inserts
     // `(user_id, group_id, "manager")` into `user_group_roles` in one tx.
-    let (group, _creator) = state.users().create_group_with_manager(&name, actor.ctx.user.id).await?;
+    let (group, _creator) = state
+        .users()
+        .create_group_with_manager(&name, actor.ctx.user.id)
+        .await?;
     audit::record(
         state,
         actor,
@@ -432,7 +446,9 @@ pub async fn create_group(
 /// `DELETE /api/groups/{id}` — requires `group:delete` on the group; refuses
 /// personal and non-empty groups.
 pub async fn delete_group(state: &MyAppState, actor: &AppCtx, id: i32) -> Result<()> {
-    actor.ctx.assert_group_perm(id, Permission::Group(GroupPerm::Delete))?;
+    actor
+        .ctx
+        .assert_group_perm(id, Permission::Group(GroupPerm::Delete))?;
     let group = state.users().get_group(id).await?;
     if group.is_personal {
         return Err(Error::Validation {
@@ -510,7 +526,10 @@ pub async fn add_member(
     };
     validate_roles(state, &roles)?;
 
-    state.users().add_user_to_group_with_roles(user.id, group_id, &roles).await?;
+    state
+        .users()
+        .add_user_to_group_with_roles(user.id, group_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -565,7 +584,10 @@ pub async fn set_member_roles(
         });
     }
 
-    state.users().set_member_roles(user_id, group_id, &roles).await?;
+    state
+        .users()
+        .set_member_roles(user_id, group_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -606,7 +628,10 @@ pub async fn remove_member(
         });
     }
 
-    state.users().remove_user_from_group(user_id, group_id).await?;
+    state
+        .users()
+        .remove_user_from_group(user_id, group_id)
+        .await?;
     audit::record(
         state,
         actor,
@@ -629,7 +654,9 @@ pub async fn get_default_roles(
     actor: &AppCtx,
     group_id: i32,
 ) -> Result<GroupDefaultRoles> {
-    actor.ctx.assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
     let roles = state.users().get_group_default_roles(group_id).await?;
     let resolved = state.users().resolve_member_default_roles(group_id).await?;
     Ok(GroupDefaultRoles {
@@ -646,7 +673,9 @@ pub async fn put_default_roles(
     group_id: i32,
     input: GroupDefaultRolesInput,
 ) -> Result<()> {
-    actor.ctx.assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
     let roles = normalize_roles(input.roles);
     if roles.is_empty() {
         return Err(Error::Validation {
@@ -654,7 +683,10 @@ pub async fn put_default_roles(
         });
     }
     validate_roles(state, &roles)?;
-    state.users().set_group_default_roles(group_id, &roles).await?;
+    state
+        .users()
+        .set_group_default_roles(group_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -672,7 +704,9 @@ pub async fn put_default_roles(
 /// `DELETE /api/groups/{id}/default-roles` — reset to "inherit the global
 /// default". Guard `group:manage_settings`.
 pub async fn clear_default_roles(state: &MyAppState, actor: &AppCtx, group_id: i32) -> Result<()> {
-    actor.ctx.assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
     state.users().clear_group_default_roles(group_id).await?;
     audit::record(
         state,
@@ -719,7 +753,10 @@ pub async fn set_member_defaults(
         });
     }
     validate_roles(state, &roles)?;
-    state.users().set_global_member_default_roles(&roles).await?;
+    state
+        .users()
+        .set_global_member_default_roles(&roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -806,7 +843,10 @@ pub async fn admin_self_grant(
     validate_roles(state, &roles)?;
 
     for role in &roles {
-        state.users().grant_membership(ctx.user.id, input.group_id, role).await?;
+        state
+            .users()
+            .grant_membership(ctx.user.id, input.group_id, role)
+            .await?;
     }
     audit::record(
         state,
