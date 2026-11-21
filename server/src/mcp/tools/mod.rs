@@ -70,6 +70,14 @@ pub async fn confirm_or_abort(
     tool_name: &str,
     summary: String,
 ) -> Option<CallToolResult> {
+    // Runtime toggle (`/api/settings/mcp-elicitation`): when the requirement
+    // is switched off, mutating tools proceed without elicitation so clients
+    // without elicitation support (e.g. CLI agents) can still drive the
+    // server. The bypass is audited like a declined confirmation.
+    if !state.mcp_elicitation_required() {
+        audit_elicitation_rejection(state, actor, tool_name, "bypassed").await;
+        return None;
+    }
     match context.peer.elicit::<ConfirmMutation>(summary).await {
         Ok(Some(ConfirmMutation { confirmed: true })) => None,
         Ok(_) => {

@@ -734,6 +734,52 @@ pub async fn set_member_defaults(
     Ok(())
 }
 
+// ------------------------------------------------ MCP elicitation setting
+
+/// GET/PUT /api/settings/mcp-elicitation - toggles whether MCP mutating
+/// tools require elicitation confirmation. Guard admin:manage_settings.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct McpElicitationSetting {
+    pub required: bool,
+}
+
+/// GET /api/settings/mcp-elicitation - guard admin:manage_settings.
+pub async fn get_mcp_elicitation(
+    state: &MyAppState,
+    actor: &AppCtx,
+) -> Result<McpElicitationSetting> {
+    actor.ctx.assert_global(GlobalPermission::ManageSettings)?;
+    Ok(McpElicitationSetting {
+        required: state.mcp_elicitation_required(),
+    })
+}
+
+/// PUT /api/settings/mcp-elicitation - guard admin:manage_settings.
+pub async fn set_mcp_elicitation(
+    state: &MyAppState,
+    actor: &AppCtx,
+    required: bool,
+) -> Result<()> {
+    actor.ctx.assert_global(GlobalPermission::ManageSettings)?;
+    let previous = state.mcp_elicitation_required();
+    state.set_mcp_elicitation_required(required);
+    audit::record(
+        state,
+        actor,
+        action::SETTINGS_MCP_ELICITATION_CHANGED,
+        None,
+        None,
+        None,
+        None,
+        Some(serde_json::json!({
+            "from": previous,
+            "to": required,
+        })),
+    )
+    .await;
+    Ok(())
+}
+
 // -------------------------------------------------------- admin self-grant
 
 /// `PUT /api/admin/me/groups` — a global user-manager may grant
