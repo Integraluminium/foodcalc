@@ -26,6 +26,11 @@ Recipes do not scale linearly from 4 servings to 300. Foodcalc scales production
 Foodcalc provides a JSON REST API backed by a dedicated application layer (`server/src/app/`), exposing events, meals, food prep, shopping tours, recipes, ingredients, inventories, status boards, user/group RBAC management, and audit logs to external tools and modern frontends.
 - Full OpenAPI specification: [`server/foodcalc_rest_specification.yaml`](./server/foodcalc_rest_specification.yaml)
 
+### MCP Server (`/mcp`)
+Foodcalc includes an optional Model Context Protocol (MCP) server over Streamable HTTP (controlled via the `mcp` Cargo feature on `server`), allowing AI assistants and MCP clients (such as Claude Desktop or MCP Inspector) to query events, recipes, and inventory or prepare catering plans.
+- **Authentication:** Personal API tokens (`Authorization: Bearer fc_...`, stored as SHA-256 hashes and managed by human users via `/api/settings/tokens`) or session cookies.
+- **Safety & Governance:** MCP requests run under `Channel::McpAgent` with the user's exact RBAC permissions, block human-only administrative actions, require explicit confirmation for high-impact mutations, and write to the audit log.
+- Technical details & local setup: [`server/src/mcp/README.md`](./server/src/mcp/README.md)
 
 ### Web Frontend
 Currently, Foodcalc provides a server-rendered HTML UI built with `maud` and HTMX/vanilla JS.
