@@ -3,8 +3,8 @@
 //! Use-cases here bundle the permission checks (`AuthCtx`), business
 //! validation, `foodlib_new` orchestration and audit logging that used to
 //! live inline in the `api` handlers. HTTP handlers in `api` stay thin
-//! (extraction + serialization); the future `mcp` transport will call these
-//! functions directly instead of duplicating any of that logic.
+//! (extraction + serialization); the `mcp` transport calls these functions
+//! directly instead of duplicating any of that logic.
 //!
 //! Error type is `foodlib_new::Error` on purpose: it is transport-agnostic
 //! (`api::map_api_error` maps it to HTTP status codes, the frontend's
@@ -14,13 +14,15 @@ pub mod audit;
 pub mod auth;
 pub mod events;
 pub mod ingredients;
-pub mod master;
-pub mod recipes;
-pub mod status_board;
-pub mod users;
-pub mod state;
 pub(crate) mod inventories;
 mod lib;
+pub mod master;
+pub mod recipes;
+pub mod risk;
+pub mod state;
+pub mod status_board;
+pub(crate) mod tokens;
+pub mod users;
 
 pub use foodlib_new::error::{Error, Result};
 pub use state::MyAppState;
@@ -30,8 +32,7 @@ use foodlib_new::policy::Permission;
 
 /// Transport through which a request reached the application layer.
 /// Recorded in the audit log so human and automation actions are
-/// distinguishable. (`McpAgent` is constructed once the MCP transport lands.)
-#[allow(dead_code)]
+/// distinguishable.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Channel {
     /// HTMX/maud frontend.
@@ -52,17 +53,70 @@ impl Channel {
     }
 }
 
-/// An authenticated actor: the resolved `AuthCtx` plus the channel it came
-/// in on.
+/// How the request authenticated. Recorded in the audit trail so human
+/// sessions, API tokens and (future) OAuth identities are distinguishable.
+#[derive(Clone, Debug)]
+pub enum AuthMethod {
+    /// axum-login browser session cookie.
+    SessionCookie,
+    /// Personal API token (`Authorization: Bearer fc_...`), typically used
+    /// by CLI/desktop MCP clients (automation). Carries the token identity
+    /// and its optional capability profile (`None` = unrestricted).
+    PersonalApiToken {
+        token_id: i64,
+        token_name: String,
+        /// Restricted tool risk classes; `None` = all classes permitted.
+        allowed_risk_classes: Option<Vec<String>>,
+    },
+}
+
+/// An authenticated actor: the resolved `AuthCtx`, the channel it came in
+/// on and how it authenticated.
 #[derive(Clone, Debug)]
 pub struct AppCtx {
     pub ctx: AuthCtx,
     pub channel: Channel,
+    pub auth: AuthMethod,
 }
 
 impl AppCtx {
     pub fn new(ctx: AuthCtx, channel: Channel) -> Self {
-        Self { ctx, channel }
+        Self {
+            ctx,
+            channel,
+            auth: AuthMethod::SessionCookie,
+        }
+    }
+
+    /// Sets the authentication method (Bearer-token MCP requests attach the
+    /// token identity and capability profile for audit + tool gating).
+    pub fn with_auth(mut self, auth: AuthMethod) -> Self {
+        self.auth = auth;
+        self
+    }
+
+    /// Whether this actor may execute tools of `risk_class` under its
+    /// capability profile. Session-cookie (human) actors are unrestricted —
+    /// the profile mechanism exists to scope automation credentials.
+    pub fn is_risk_class_allowed(&self, risk_class: &str) -> bool {
+        match &self.auth {
+            AuthMethod::PersonalApiToken {
+                allowed_risk_classes: Some(classes),
+                ..
+            } => classes.iter().any(|c| c == risk_class),
+            _ => true,
+        }
+    }
+
+    /// Human-readable description of the credential for elicitation
+    /// summaries and audit details.
+    pub fn auth_description(&self) -> String {
+        match &self.auth {
+            AuthMethod::SessionCookie => "browser session".into(),
+            AuthMethod::PersonalApiToken { token_name, .. } => {
+                format!("API token '{token_name}'")
+            }
+        }
     }
 
     /// Rejects automation channels (MCP) for sensitive use-cases.
@@ -110,9 +164,7 @@ pub(crate) fn assert_ownership_transfer(
         ));
     }
     ctx.assert_group_perm(target_group_id, perm).map_err(|_| {
-        Error::Forbidden(
-            "transferring ownership requires edit rights on the target group".into(),
-        )
+        Error::Forbidden("transferring ownership requires edit rights on the target group".into())
     })?;
     Ok(())
 }

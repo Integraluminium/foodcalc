@@ -278,7 +278,8 @@ async fn dish_labels_response(
 
     // TODO: Consider caching the renderer in AppState to avoid reinitializing it for every request
     #[cfg(feature = "typst")]
-    let result = pdf_export::DocumentRenderer::new().export_dish_labels(info, DishLabelLayout::Tent);
+    let result =
+        pdf_export::DocumentRenderer::new().export_dish_labels(info, DishLabelLayout::Tent);
     #[cfg(not(feature = "typst"))]
     let result = Err(foodlib_new::Error::Misc(
         "Server compiled without typst support".into(),
@@ -530,9 +531,9 @@ async fn ingredients_per_serving(foodlib: FoodLib, meal_id: Path<i32>) -> MRespo
 }
 
 use bigdecimal::BigDecimal;
-use std::collections::HashMap;
 #[cfg(feature = "typst")]
 use pdf_export::renderer::DishLabelLayout;
+use std::collections::HashMap;
 
 async fn render_ingredients_without_tours(
     foodlib: FoodLib,

@@ -14,7 +14,9 @@ pub async fn list_overrides(
     ctx: &AppCtx,
     event_id: i32,
 ) -> Result<Vec<SourceOverrideView>> {
-    ctx.ctx.assert_event_action(event_id, EventPerm::View).await?;
+    ctx.ctx
+        .assert_event_action(event_id, EventPerm::View)
+        .await?;
     state.events().get_source_overrides(event_id).await
 }
 
@@ -29,7 +31,10 @@ pub async fn add_override(
     ctx.ctx
         .assert_event_action(event_id, EventPerm::ManageShopping)
         .await?;
-    state.events().set_source_override(event_id, source_id).await
+    state
+        .events()
+        .set_source_override(event_id, source_id)
+        .await
 }
 
 /// `DELETE /api/events/{id}/source-overrides/{source_id}` — remove a reroute.
@@ -43,5 +48,8 @@ pub async fn delete_override(
     ctx.ctx
         .assert_event_action(event_id, EventPerm::ManageShopping)
         .await?;
-    state.events().delete_source_override(event_id, source_id).await
+    state
+        .events()
+        .delete_source_override(event_id, source_id)
+        .await
 }

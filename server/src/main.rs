@@ -19,6 +19,8 @@ mod api;
 mod frontend;
 // #[cfg(feature = "legacy-frontend")]
 mod htmx_middleware;
+#[cfg(feature = "mcp")]
+mod mcp;
 
 pub use app::state::{FoodLib, MyAppState};
 
@@ -86,13 +88,23 @@ async fn main() {
     let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
     let lib = foodlib_new::FoodLib::new(pool.clone());
-    let state = MyAppState { db: lib.clone() };
+    // MCP mutating tools require elicitation confirmation by default. The
+    // env var (0/false = off) seeds the initial value; admins can toggle it
+    // at runtime via `GET/PUT /api/settings/mcp-elicitation`.
+    let mcp_elicitation_required = match env::var("FOODCALC_MCP_REQUIRE_ELICITATION") {
+        Ok(v) => !(v == "0" || v.eq_ignore_ascii_case("false")),
+        Err(_) => true,
+    };
+    let state = MyAppState::new(lib.clone(), mcp_elicitation_required);
     let new_lib = lib;
 
     // Combine routes with middleware. The legacy HTMX frontend (and its
     // page-wrapping middleware) is compile-time optional via the
     // `legacy-frontend` feature.
     let router = Router::new().nest("/api", api::api_router());
+
+    #[cfg(feature = "mcp")]
+    let router = router.nest("/mcp", mcp::mcp_router(state.clone()));
 
     // #[cfg(feature = "legacy-frontend")]
     let router = router.merge(frontend::frontend_router());

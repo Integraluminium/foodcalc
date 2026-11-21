@@ -112,8 +112,8 @@ pub async fn register(state: &MyAppState, input: RegisterInput) -> Result<(User,
         });
     }
 
-    let password_hash = bcrypt::hash(&input.password, 12)
-        .map_err(|err| Error::Misc(err.to_string()))?;
+    let password_hash =
+        bcrypt::hash(&input.password, 12).map_err(|err| Error::Misc(err.to_string()))?;
 
     let (user, personal_group) = state
         .users()
@@ -143,7 +143,10 @@ pub async fn register(state: &MyAppState, input: RegisterInput) -> Result<(User,
 /// The authenticated user plus their groups (the `AuthCtx` already carries
 /// the resolved policy; only the memberships are fetched).
 pub async fn current_user(state: &MyAppState, ctx: &AuthCtx) -> Result<ApiUser> {
-    let memberships = state.users().get_user_group_memberships(ctx.user.id).await?;
+    let memberships = state
+        .users()
+        .get_user_group_memberships(ctx.user.id)
+        .await?;
     Ok(ApiUser {
         id: ctx.user.id,
         username: ctx.user.username.clone(),

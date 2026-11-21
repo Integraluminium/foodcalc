@@ -8,7 +8,9 @@ use super::audit;
 use super::{assert_ownership_transfer, AppCtx, Error, MyAppState, Result};
 use bigdecimal::ToPrimitive;
 use foodlib_new::auth_context::AuthCtx;
-use foodlib_new::entities::recipe::{RecipeIngredient, RecipeKind, RecipeListItem, RecipeMetaIngredient, RecipeStep};
+use foodlib_new::entities::recipe::{
+    RecipeIngredient, RecipeKind, RecipeListItem, RecipeMetaIngredient, RecipeStep,
+};
 use foodlib_new::policy::{Permission, RecipePerm};
 use foodlib_new::recipe::Recipe;
 use serde::{Deserialize, Serialize};
@@ -49,8 +51,12 @@ pub async fn create_new_recipe(
     weighed_in: Option<bool>,
 ) -> Result<i32> {
     // Permission checks
-    actor.ctx.assert_global(foodlib_new::policy::GlobalPermission::AllowedToCreateNewDomainObjects)?;
-    actor.ctx.assert_group_perm(group_id, Permission::Recipe(RecipePerm::Create))?;
+    actor
+        .ctx
+        .assert_global(foodlib_new::policy::GlobalPermission::AllowedToCreateNewDomainObjects)?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Recipe(RecipePerm::Create))?;
 
     let recipe = Recipe {
         id: 0,
@@ -61,8 +67,10 @@ pub async fn create_new_recipe(
         kind,
     };
 
-
-    let created_recipe = state.recipes().create(recipe).await
+    let created_recipe = state
+        .recipes()
+        .create(recipe)
+        .await
         .map_err(|e| Error::Validation {
             message: format!("failed to create recipe: {e:?}"),
         })?;
@@ -97,7 +105,9 @@ pub async fn update_recipe(
     input: RecipeUpdateInput,
 ) -> Result<()> {
     let current = state.recipes().get(id).await?;
-    actor.ctx.assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Edit))?;
 
     let updated = Recipe {
         id,
@@ -124,13 +134,11 @@ pub async fn update_recipe(
     Ok(())
 }
 
-pub async fn delete_recipe(
-    state: &MyAppState,
-    actor: &AppCtx,
-    id: i32,
-) -> Result<()> {
+pub async fn delete_recipe(state: &MyAppState, actor: &AppCtx, id: i32) -> Result<()> {
     let current = state.recipes().get(id).await?;
-    actor.ctx.assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Delete))?;
+    actor
+        .ctx
+        .assert_group_perm(current.group_id, Permission::Recipe(RecipePerm::Delete))?;
 
     state.recipes().delete(id).await?;
 
@@ -178,7 +186,11 @@ pub async fn list_recipes(
         .into_iter()
         // Group visibility: members see their groups' recipes, admins see all.
         .filter(|recipe| ctx.group_ids.contains(&recipe.group_id))
-        .filter(|recipe| kind_filter.as_ref().map_or(true, |kind| &recipe.kind == kind))
+        .filter(|recipe| {
+            kind_filter
+                .as_ref()
+                .map_or(true, |kind| &recipe.kind == kind)
+        })
         .filter(|recipe| search.is_empty() || recipe.name.to_lowercase().contains(&search))
         .map(|recipe| to_dto(recipe, &group_name_by_id))
         .collect())
@@ -202,7 +214,6 @@ fn to_dto(recipe: RecipeListItem, group_name_by_id: &HashMap<i32, String>) -> Re
         energy_kj_per_g,
     }
 }
-
 
 // ----------------------------------------------------------------- detail
 
@@ -265,7 +276,10 @@ pub struct RecipeDetailDto {
 }
 
 /// Energy density in kJ/g from a stats row (kg / kJ); `None` for zero weight.
-pub fn energy_kj_per_g(weight_kg: &bigdecimal::BigDecimal, energy_kj: &bigdecimal::BigDecimal) -> Option<f64> {
+pub fn energy_kj_per_g(
+    weight_kg: &bigdecimal::BigDecimal,
+    energy_kj: &bigdecimal::BigDecimal,
+) -> Option<f64> {
     let weight_g = weight_kg.to_f64()? * 1000.0;
     (weight_g > 0.0).then(|| energy_kj.to_f64().unwrap_or(0.0) / weight_g)
 }
@@ -273,7 +287,7 @@ pub fn energy_kj_per_g(weight_kg: &bigdecimal::BigDecimal, energy_kj: &bigdecima
 pub async fn get_recipe(
     state: &MyAppState,
     actor: &AppCtx,
-    recipe_id: i32
+    recipe_id: i32,
 ) -> Result<RecipeDetailDto> {
     let recipe = state.recipes().get(recipe_id).await?;
     // Group-private reads: non-members get a plain 404.
@@ -491,6 +505,83 @@ pub async fn clone_recipe(
 
 // ------------------------------------------------------------- ingredients
 
+// ------------------------------------------------------- textbook import
+
+/// One ingredient line of a recipe draft to import (name-based, agent-authored).
+#[derive(Debug, Deserialize)]
+pub struct RecipeImportIngredient {
+    /// Ingredient name as written in the source text.
+    pub name: String,
+    /// Decimal amount string in `unit` (e.g. `"500"` with unit `"g"`).
+    pub amount: String,
+    /// Unit name as written in the source text (e.g. `"g"`, `"kg"`, `"piece"`).
+    pub unit: String,
+}
+
+/// One preparation step of a recipe draft.
+#[derive(Debug, Deserialize)]
+pub struct RecipeImportStep {
+    /// Ordering key (steps are executed ascending).
+    pub order: f64,
+    pub name: String,
+    pub description: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RecipeImportInput {
+    pub name: String,
+    /// `"meal"` (full dish) or `"component"` (sub-recipe/sauce).
+    pub kind: String,
+    /// Group that will own the recipe (and any draft ingredients).
+    pub group_id: i32,
+    pub comment: Option<String>,
+    pub weighed_in: Option<bool>,
+    pub ingredients: Vec<RecipeImportIngredient>,
+    pub steps: Vec<RecipeImportStep>,
+    /// When `true`, ingredients not found in the catalog are created as
+    /// zero-energy drafts in `group_id` (flagged in the report for review).
+    /// When `false` (default), unknown ingredients abort the import.
+    pub create_missing_ingredients: Option<bool>,
+}
+
+/// Per-line result of the ingredient resolution.
+#[derive(Debug, Serialize)]
+pub struct ResolvedImportIngredient {
+    pub name: String,
+    pub ingredient_id: i32,
+    pub amount: String,
+    pub unit_id: i32,
+    pub unit_name: String,
+    /// `true` when the ingredient was created as a draft during this import.
+    pub created_as_draft: bool,
+}
+
+/// What `import_recipe` did and what a human should review afterwards.
+#[derive(Debug, Serialize)]
+pub struct RecipeImportReport {
+    pub recipe_id: i32,
+    pub recipe_name: String,
+    pub group_id: i32,
+    pub resolved: Vec<ResolvedImportIngredient>,
+    /// Ingredient names that could not be matched nor created.
+    pub unresolved_ingredients: Vec<String>,
+    /// Ingredient names created as zero-energy drafts (need energy + weights).
+    pub drafts_needing_review: Vec<String>,
+    pub steps_added: usize,
+    pub warnings: Vec<String>,
+}
+
+/// Parses `"meal" | "component"` into a `RecipeKind`.
+pub fn parse_recipe_kind(kind: &str) -> Result<RecipeKind> {
+    match kind {
+        "meal" => Ok(RecipeKind::Meal),
+        "component" => Ok(RecipeKind::Component),
+        other => Err(Error::Validation {
+            message: format!("unknown recipe kind: '{other}' (expected \"meal\" or \"component\")"),
+        }),
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct RecipeIngredientInput {
     pub ingredient_id: i32,
@@ -500,10 +591,172 @@ pub struct RecipeIngredientInput {
 
 fn parse_amount(value: &str) -> Result<bigdecimal::BigDecimal> {
     use std::str::FromStr;
-    bigdecimal::BigDecimal::from_str(value)
-        .map_err(|_| Error::Validation {
-            message: format!("invalid decimal amount: {value}"),
-        })
+    bigdecimal::BigDecimal::from_str(value).map_err(|_| Error::Validation {
+        message: format!("invalid decimal amount: {value}"),
+    })
+}
+
+/// `import_recipe` — creates a recipe from a structured draft (typically
+/// extracted from a textbook by an agent): resolves ingredient names against
+/// the catalog, resolves unit names, optionally creates missing ingredients
+/// as zero-energy drafts, then creates the recipe with all lines and steps.
+/// Returns a review report instead of failing silently: everything the human
+/// should check (drafts, unresolved names) is listed explicitly.
+pub async fn import_recipe(
+    state: &MyAppState,
+    actor: &AppCtx,
+    input: RecipeImportInput,
+) -> Result<RecipeImportReport> {
+    let kind = parse_recipe_kind(&input.kind)?;
+    let create_missing = input.create_missing_ingredients.unwrap_or(false);
+    let mut warnings: Vec<String> = Vec::new();
+    let mut drafts_needing_review: Vec<String> = Vec::new();
+    let mut unresolved_ingredients: Vec<String> = Vec::new();
+
+    // Catalog snapshots (small tables) for name resolution.
+    let units = state.units().list().await?;
+    let ingredients = state.ingredients().list_with_sources().await?;
+    let visible_ingredients: Vec<_> = ingredients
+        .into_iter()
+        .filter(|ingredient| actor.ctx.group_ids.contains(&ingredient.group_id))
+        .collect();
+
+    let mut resolved: Vec<ResolvedImportIngredient> = Vec::new();
+    for line in &input.ingredients {
+        // Ingredient resolution: exact (case-insensitive) name match among
+        // visible ingredients; optionally create a draft otherwise.
+        let matched = visible_ingredients
+            .iter()
+            .find(|candidate| candidate.name.to_lowercase() == line.name.trim().to_lowercase());
+        let (ingredient_id, created_as_draft) = match matched {
+            Some(matched) => (matched.id, false),
+            None if create_missing => {
+                let draft = super::ingredients::create_ingredient(
+                    state,
+                    actor,
+                    super::ingredients::IngredientCreateInput {
+                        name: line.name.trim().to_string(),
+                        energy: "0".into(),
+                        comment: Some(
+                            "created by recipe import — needs energy & weights review".into(),
+                        ),
+                        group_id: input.group_id,
+                    },
+                )
+                .await?;
+                drafts_needing_review.push(draft.name.clone());
+                warnings.push(format!(
+                    "ingredient '{}' was not in the catalog and was created as a zero-energy draft",
+                    draft.name
+                ));
+                (draft.id, true)
+            }
+            None => {
+                unresolved_ingredients.push(line.name.clone());
+                continue;
+            }
+        };
+
+        // Unit resolution: exact (case-insensitive) name match.
+        let unit = units
+            .iter()
+            .find(|unit| unit.name.to_lowercase() == line.unit.trim().to_lowercase());
+        let Some(unit) = unit else {
+            warnings.push(format!(
+                "ingredient '{}': unknown unit '{}' — line skipped",
+                line.name, line.unit
+            ));
+            unresolved_ingredients.push(line.name.clone());
+            continue;
+        };
+
+        resolved.push(ResolvedImportIngredient {
+            name: line.name.clone(),
+            ingredient_id,
+            amount: line.amount.clone(),
+            unit_id: unit.id,
+            unit_name: unit.name.clone(),
+            created_as_draft,
+        });
+    }
+
+    // Create the recipe, then its lines and steps (each call re-checks the
+    // recipe edit permission and audits individually).
+    let recipe_id = create_new_recipe(
+        state,
+        actor,
+        input.name.clone(),
+        input.comment.clone(),
+        kind,
+        input.group_id,
+        input.weighed_in,
+    )
+    .await?;
+
+    for line in &resolved {
+        add_ingredient(
+            state,
+            actor,
+            recipe_id,
+            RecipeIngredientInput {
+                ingredient_id: line.ingredient_id,
+                amount: line.amount.clone(),
+                unit_id: line.unit_id,
+            },
+        )
+        .await?;
+    }
+    for step in &input.steps {
+        add_step(
+            state,
+            actor,
+            recipe_id,
+            RecipeStepInput {
+                order: step.order,
+                name: step.name.clone(),
+                description: step.description.clone(),
+                fixed_duration_seconds: 0,
+                duration_per_kg_seconds: 0,
+                is_haccp: false,
+            },
+        )
+        .await?;
+    }
+
+    if !unresolved_ingredients.is_empty() {
+        warnings.push(format!(
+            "{} ingredient line(s) skipped — resolve them with add_recipe_ingredient after review",
+            unresolved_ingredients.len()
+        ));
+    }
+
+    audit::record(
+        state,
+        actor,
+        audit::action::ENTITY_CREATED,
+        Some("recipe"),
+        Some(recipe_id),
+        Some(input.group_id),
+        None,
+        Some(json!({
+            "imported": true,
+            "resolved": resolved.len(),
+            "drafts": drafts_needing_review.len(),
+            "unresolved": unresolved_ingredients.len(),
+        })),
+    )
+    .await;
+
+    Ok(RecipeImportReport {
+        recipe_id,
+        recipe_name: input.name,
+        group_id: input.group_id,
+        resolved,
+        unresolved_ingredients,
+        drafts_needing_review,
+        steps_added: input.steps.len(),
+        warnings,
+    })
 }
 
 /// `POST /api/recipes/{id}/ingredients` — add an ingredient line.
@@ -557,7 +810,12 @@ pub async fn update_ingredient(
 }
 
 /// `DELETE /api/recipes/{id}/ingredients/{ingredient_id}` — remove the line.
-pub async fn remove_ingredient(state: &MyAppState, actor: &AppCtx, id: i32, ingredient_id: i32) -> Result<()> {
+pub async fn remove_ingredient(
+    state: &MyAppState,
+    actor: &AppCtx,
+    id: i32,
+    ingredient_id: i32,
+) -> Result<()> {
     actor.ctx.assert_recipe_perm(id, RecipePerm::Edit).await?;
     state.recipes().delete_ingredient(id, ingredient_id).await?;
     Ok(())
@@ -711,7 +969,12 @@ pub async fn update_sub_recipe(
 }
 
 /// `DELETE /api/recipes/{id}/sub-recipes/{child_id}` — remove the reference.
-pub async fn remove_sub_recipe(state: &MyAppState, actor: &AppCtx, id: i32, child_id: i32) -> Result<()> {
+pub async fn remove_sub_recipe(
+    state: &MyAppState,
+    actor: &AppCtx,
+    id: i32,
+    child_id: i32,
+) -> Result<()> {
     actor.ctx.assert_recipe_perm(id, RecipePerm::Edit).await?;
     state.recipes().delete_meta_ingredient(id, child_id).await?;
     Ok(())

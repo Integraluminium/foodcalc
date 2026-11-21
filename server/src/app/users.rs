@@ -188,7 +188,9 @@ pub async fn list_filtered_users(
     actor: &AppCtx,
     query: UserListQuery,
 ) -> Result<Vec<UserWithGroups>> {
-    actor.ctx.assert_global(GlobalPermission::ViewUserProfiles)?;
+    actor
+        .ctx
+        .assert_global(GlobalPermission::ViewUserProfiles)?;
     let rows = state.users().list_users_detailed().await?;
 
     let search = query.search.unwrap_or_default().to_lowercase();
@@ -258,8 +260,17 @@ pub async fn delete_user(state: &MyAppState, actor: &AppCtx, id: i64) -> Result<
         });
     }
     state.users().delete_user_cascade(id).await?;
-    audit::record(state, actor, action::USER_DELETED, None, None, None, None, Some(serde_json::json!({})))
-        .await;
+    audit::record(
+        state,
+        actor,
+        action::USER_DELETED,
+        None,
+        None,
+        None,
+        None,
+        Some(serde_json::json!({})),
+    )
+    .await;
     Ok(())
 }
 
@@ -282,9 +293,12 @@ pub async fn change_password(
         });
     }
     if is_self {
-        let current_password = payload.current_password.as_deref().ok_or(Error::Validation {
-            message: "current_password is required to change your own password".into(),
-        })?;
+        let current_password = payload
+            .current_password
+            .as_deref()
+            .ok_or(Error::Validation {
+                message: "current_password is required to change your own password".into(),
+            })?;
         if !current_password.is_empty()
             && !bcrypt::verify(current_password, &actor.ctx.user.password_hash).unwrap_or(false)
         {
@@ -294,7 +308,10 @@ pub async fn change_password(
         }
     }
 
-    state.users().update_password(id, payload.new_password).await?;
+    state
+        .users()
+        .update_password(id, payload.new_password)
+        .await?;
     audit::record(
         state,
         actor,
@@ -324,7 +341,10 @@ pub async fn set_global_permissions(
             message: "you cannot revoke your own admin:manage_users permission".into(),
         });
     }
-    state.users().set_user_global_permissions(id, &payload.permissions).await?;
+    state
+        .users()
+        .set_user_global_permissions(id, &payload.permissions)
+        .await?;
     audit::record(
         state,
         actor,
@@ -346,7 +366,10 @@ pub async fn set_global_permissions(
 /// Every entry carries `roles`, so the SPA can render them without falling
 /// back to `/auth/me`.
 pub async fn list_groups(state: &MyAppState, actor: &AppCtx) -> Result<Vec<ApiGroup>> {
-    let memberships = state.users().get_user_group_memberships(actor.ctx.user.id).await?;
+    let memberships = state
+        .users()
+        .get_user_group_memberships(actor.ctx.user.id)
+        .await?;
     if actor.ctx.can_global(GlobalPermission::ManageUsers) {
         let mut by_id: HashMap<i32, GroupMembership> =
             memberships.into_iter().map(|m| (m.id, m)).collect();
@@ -402,7 +425,10 @@ pub async fn create_group(
 
     // `create_group_with_manager(name, user_id)` creates the group and inserts
     // `(user_id, group_id, "manager")` into `user_group_roles` in one tx.
-    let (group, _creator) = state.users().create_group_with_manager(&name, actor.ctx.user.id).await?;
+    let (group, _creator) = state
+        .users()
+        .create_group_with_manager(&name, actor.ctx.user.id)
+        .await?;
     audit::record(
         state,
         actor,
@@ -420,7 +446,9 @@ pub async fn create_group(
 /// `DELETE /api/groups/{id}` — requires `group:delete` on the group; refuses
 /// personal and non-empty groups.
 pub async fn delete_group(state: &MyAppState, actor: &AppCtx, id: i32) -> Result<()> {
-    actor.ctx.assert_group_perm(id, Permission::Group(GroupPerm::Delete))?;
+    actor
+        .ctx
+        .assert_group_perm(id, Permission::Group(GroupPerm::Delete))?;
     let group = state.users().get_group(id).await?;
     if group.is_personal {
         return Err(Error::Validation {
@@ -459,7 +487,9 @@ pub async fn list_members(
 ) -> Result<Vec<MemberWithRoles>> {
     if !actor.ctx.can_global(GlobalPermission::ManageUsers) && !actor.ctx.can_access_group(group_id)
     {
-        return Err(Error::Forbidden("you are not a member of this group".into()));
+        return Err(Error::Forbidden(
+            "you are not a member of this group".into(),
+        ));
     }
     let members = state.users().get_group_members_with_roles(group_id).await?;
     Ok(members
@@ -496,7 +526,10 @@ pub async fn add_member(
     };
     validate_roles(state, &roles)?;
 
-    state.users().add_user_to_group_with_roles(user.id, group_id, &roles).await?;
+    state
+        .users()
+        .add_user_to_group_with_roles(user.id, group_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -551,7 +584,10 @@ pub async fn set_member_roles(
         });
     }
 
-    state.users().set_member_roles(user_id, group_id, &roles).await?;
+    state
+        .users()
+        .set_member_roles(user_id, group_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -592,7 +628,10 @@ pub async fn remove_member(
         });
     }
 
-    state.users().remove_user_from_group(user_id, group_id).await?;
+    state
+        .users()
+        .remove_user_from_group(user_id, group_id)
+        .await?;
     audit::record(
         state,
         actor,
@@ -615,7 +654,9 @@ pub async fn get_default_roles(
     actor: &AppCtx,
     group_id: i32,
 ) -> Result<GroupDefaultRoles> {
-    actor.ctx.assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
     let roles = state.users().get_group_default_roles(group_id).await?;
     let resolved = state.users().resolve_member_default_roles(group_id).await?;
     Ok(GroupDefaultRoles {
@@ -632,7 +673,9 @@ pub async fn put_default_roles(
     group_id: i32,
     input: GroupDefaultRolesInput,
 ) -> Result<()> {
-    actor.ctx.assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
     let roles = normalize_roles(input.roles);
     if roles.is_empty() {
         return Err(Error::Validation {
@@ -640,7 +683,10 @@ pub async fn put_default_roles(
         });
     }
     validate_roles(state, &roles)?;
-    state.users().set_group_default_roles(group_id, &roles).await?;
+    state
+        .users()
+        .set_group_default_roles(group_id, &roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -658,7 +704,9 @@ pub async fn put_default_roles(
 /// `DELETE /api/groups/{id}/default-roles` — reset to "inherit the global
 /// default". Guard `group:manage_settings`.
 pub async fn clear_default_roles(state: &MyAppState, actor: &AppCtx, group_id: i32) -> Result<()> {
-    actor.ctx.assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
+    actor
+        .ctx
+        .assert_group_perm(group_id, Permission::Group(GroupPerm::ManageSettings))?;
     state.users().clear_group_default_roles(group_id).await?;
     audit::record(
         state,
@@ -705,7 +753,10 @@ pub async fn set_member_defaults(
         });
     }
     validate_roles(state, &roles)?;
-    state.users().set_global_member_default_roles(&roles).await?;
+    state
+        .users()
+        .set_global_member_default_roles(&roles)
+        .await?;
     audit::record(
         state,
         actor,
@@ -715,6 +766,52 @@ pub async fn set_member_defaults(
         None,
         None,
         Some(serde_json::json!({ "roles": roles })),
+    )
+    .await;
+    Ok(())
+}
+
+// ------------------------------------------------ MCP elicitation setting
+
+/// GET/PUT /api/settings/mcp-elicitation - toggles whether MCP mutating
+/// tools require elicitation confirmation. Guard admin:manage_settings.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct McpElicitationSetting {
+    pub required: bool,
+}
+
+/// GET /api/settings/mcp-elicitation - guard admin:manage_settings.
+pub async fn get_mcp_elicitation(
+    state: &MyAppState,
+    actor: &AppCtx,
+) -> Result<McpElicitationSetting> {
+    actor.ctx.assert_global(GlobalPermission::ManageSettings)?;
+    Ok(McpElicitationSetting {
+        required: state.mcp_elicitation_required(),
+    })
+}
+
+/// PUT /api/settings/mcp-elicitation - guard admin:manage_settings.
+pub async fn set_mcp_elicitation(
+    state: &MyAppState,
+    actor: &AppCtx,
+    required: bool,
+) -> Result<()> {
+    actor.ctx.assert_global(GlobalPermission::ManageSettings)?;
+    let previous = state.mcp_elicitation_required();
+    state.set_mcp_elicitation_required(required);
+    audit::record(
+        state,
+        actor,
+        action::SETTINGS_MCP_ELICITATION_CHANGED,
+        None,
+        None,
+        None,
+        None,
+        Some(serde_json::json!({
+            "from": previous,
+            "to": required,
+        })),
     )
     .await;
     Ok(())
@@ -746,7 +843,10 @@ pub async fn admin_self_grant(
     validate_roles(state, &roles)?;
 
     for role in &roles {
-        state.users().grant_membership(ctx.user.id, input.group_id, role).await?;
+        state
+            .users()
+            .grant_membership(ctx.user.id, input.group_id, role)
+            .await?;
     }
     audit::record(
         state,

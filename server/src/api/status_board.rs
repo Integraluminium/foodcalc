@@ -31,7 +31,10 @@ pub fn status_board_router() -> Router<MyAppState> {
     Router::new()
         .route("/{id}/status-board", get(get_board))
         .route("/{id}/reorders", post(post_reorder))
-        .route("/{id}/reorders/{reorder_id}/status", put(put_reorder_status))
+        .route(
+            "/{id}/reorders/{reorder_id}/status",
+            put(put_reorder_status),
+        )
         .route("/{id}/meals/{meal_id}/availability", put(put_availability))
 }
 

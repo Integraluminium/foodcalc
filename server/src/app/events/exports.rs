@@ -7,7 +7,9 @@
 use bigdecimal::ToPrimitive;
 
 use foodlib_new::entities::event::ShoppingTour;
-use foodlib_new::ops::export::{EventAllergenInfo, EventOverviewInfo, EventOverviewMeal, EventOverviewPrep, EventOverviewTour};
+use foodlib_new::ops::export::{
+    EventAllergenInfo, EventOverviewInfo, EventOverviewMeal, EventOverviewPrep, EventOverviewTour,
+};
 use foodlib_new::policy::EventPerm;
 
 #[cfg(feature = "typst")]
@@ -27,9 +29,7 @@ pub struct ExportedFile {
 // TODO: Use a single Typst engine for all recipes instead of creating a new one per request.
 // (Without the `typst` feature the parameters are intentionally unused.)
 #[allow(unused_variables)]
-pub(crate) fn render_recipes(
-    infos: Vec<foodlib_new::ops::export::RecipeInfo>,
-) -> Result<Vec<u8>> {
+pub(crate) fn render_recipes(infos: Vec<foodlib_new::ops::export::RecipeInfo>) -> Result<Vec<u8>> {
     #[cfg(feature = "typst")]
     let result = {
         let renderer = pdf_export::DocumentRenderer::new();
@@ -80,8 +80,14 @@ fn render_export_dish_labels(info: EventAllergenInfo) -> Result<Vec<u8>> {
 /// `GET …/exports/overview` — management summary PDF: frame data with budget
 /// status, planned meals with planner numbers, shopping tours and food-prep
 /// tasks. Requires `events:export`.
-pub async fn export_summary_pdf(state: &MyAppState, ctx: &AppCtx, event_id: i32) -> Result<ExportedFile> {
-    ctx.ctx.assert_event_action(event_id, EventPerm::Export).await?;
+pub async fn export_summary_pdf(
+    state: &MyAppState,
+    ctx: &AppCtx,
+    event_id: i32,
+) -> Result<ExportedFile> {
+    ctx.ctx
+        .assert_event_action(event_id, EventPerm::Export)
+        .await?;
     let event = state.events().get(event_id).await?;
     let total_cost = state.events().get_total_cost(event_id).await?;
     let meals = state.meals().get_event_meals_planner(event_id).await?;
@@ -103,8 +109,7 @@ pub async fn export_summary_pdf(state: &MyAppState, ctx: &AppCtx, event_id: i32)
                 place: meal.place.clone(),
                 start_time: meal.start_time,
                 servings: meal.servings,
-                weight_kg: (meal.weight.to_f64().unwrap_or(0.0) > 0.0)
-                    .then(|| meal.weight.clone()),
+                weight_kg: (meal.weight.to_f64().unwrap_or(0.0) > 0.0).then(|| meal.weight.clone()),
                 energy_per_portion_kj: meal.energy_per_serving.clone(),
                 price: meal.price.clone(),
             })
@@ -141,8 +146,9 @@ pub async fn export_summary_pdf(state: &MyAppState, ctx: &AppCtx, event_id: i32)
     let filename = format!("{}_uebersicht", sanitize(&event.name));
 
     // TODO: implement appropriate Typst export function for event overview
-    let bytes: Result<Vec<u8>> =
-        Err(Error::Misc("Typst export for event overview not implemented".into()));
+    let bytes: Result<Vec<u8>> = Err(Error::Misc(
+        "Typst export for event overview not implemented".into(),
+    ));
 
     bytes.map(|bytes| ExportedFile {
         filename,
@@ -158,7 +164,10 @@ pub async fn export_all_recipes_for_one_event(
     actor: &AppCtx,
     event_id: i32,
 ) -> Result<ExportedFile> {
-    actor.ctx.assert_event_action(event_id, EventPerm::Edit).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Edit)
+        .await?;
     let event = state.events().get(event_id).await?;
     let infos = state.export().fetch_event_combined(event_id).await?;
     let bytes = render_recipes(infos)?;
@@ -177,7 +186,10 @@ pub async fn export_recipe_for_meal(
     event_id: i32,
     meal_id: i32,
 ) -> Result<ExportedFile> {
-    actor.ctx.assert_event_action(event_id, EventPerm::Export).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Export)
+        .await?;
     let info = state.export().fetch_meal_recipe(meal_id).await?;
     let title = info.name.to_owned();
     let bytes = render_recipes(vec![info])?;
@@ -195,7 +207,10 @@ pub async fn export_allergen_list_for_event(
     actor: &AppCtx,
     event_id: i32,
 ) -> Result<ExportedFile> {
-    actor.ctx.assert_event_action(event_id, EventPerm::Export).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Export)
+        .await?;
     let info = state.export().fetch_event_allergens(event_id).await?;
     let filename = format!("{}_allergene", sanitize(&info.event_name));
 
@@ -208,7 +223,6 @@ pub async fn export_allergen_list_for_event(
     })
 }
 
-
 /// `GET …/exports/labels` — tent-card dish labels PDF with the allergen
 /// summary per dish. Requires `events:export`.
 pub async fn export_dish_labels(
@@ -216,7 +230,10 @@ pub async fn export_dish_labels(
     actor: &AppCtx,
     event_id: i32,
 ) -> Result<ExportedFile> {
-    actor.ctx.assert_event_action(event_id, EventPerm::Export).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Export)
+        .await?;
     let info = state.export().fetch_event_allergens(event_id).await?;
     let filename = format!("{}_dish_labels_tent", sanitize(&info.event_name));
 
@@ -228,7 +245,6 @@ pub async fn export_dish_labels(
     })
 }
 
-
 pub async fn export_shopping_tour_list(
     state: &MyAppState,
     actor: &AppCtx,
@@ -236,7 +252,10 @@ pub async fn export_shopping_tour_list(
     tour_id: i32,
 ) -> Result<ExportedFile> {
     // Permission check
-    actor.ctx.assert_event_action(event_id, EventPerm::Export).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::Export)
+        .await?;
 
     let tour: ShoppingTour = state.events().get_shopping_tour(tour_id).await?;
     let items = state

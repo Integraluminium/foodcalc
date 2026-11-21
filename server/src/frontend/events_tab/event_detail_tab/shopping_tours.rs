@@ -449,10 +449,7 @@ async fn export_plain(
             Some(weight) => {
                 let status = if inv_amount > *weight { "x" } else { " " };
                 let to_buy = (weight.clone() - &inv_amount).max(BigDecimal::zero());
-                let new_price = item
-                    .price
-                    .as_ref()
-                    .map(|p| (p / weight) * &to_buy);
+                let new_price = item.price.as_ref().map(|p| (p / weight) * &to_buy);
                 (status, to_buy, format!("{:.2} kg", weight), new_price)
             }
             None => ("?", BigDecimal::zero(), "? kg".to_string(), None),

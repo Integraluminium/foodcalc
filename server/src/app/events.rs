@@ -73,7 +73,11 @@ pub struct EventCreateInput {
 }
 
 /// `POST /api/events` — create an event owned by one of the user's groups.
-pub async fn create_new_event(state: &MyAppState, actor: &AppCtx, input: EventCreateInput) -> Result<Event> {
+pub async fn create_new_event(
+    state: &MyAppState,
+    actor: &AppCtx,
+    input: EventCreateInput,
+) -> Result<Event> {
     let ctx = &actor.ctx;
     ctx.assert_global(GlobalPermission::AllowedToCreateNewDomainObjects)?;
     ctx.assert_group_perm(input.group_id, Permission::Event(EventPerm::Create))?;
@@ -257,7 +261,11 @@ pub struct TourSummaryDto {
 /// ingredients that are not covered by any tour yet. Manually pinned items
 /// (`shopping_tour_items`) override the view-derived assignment: their
 /// ingredient is forced onto its tour and never appears as "without tour".
-pub async fn get_shopping_list(state: &MyAppState, ctx: &AuthCtx, id: i32) -> Result<ShoppingListDto> {
+pub async fn get_shopping_list(
+    state: &MyAppState,
+    ctx: &AuthCtx,
+    id: i32,
+) -> Result<ShoppingListDto> {
     // Check Permissions
     ctx.assert_event_action(id, EventPerm::View).await?;
 
@@ -298,14 +306,14 @@ pub async fn get_shopping_list(state: &MyAppState, ctx: &AuthCtx, id: i32) -> Re
         .into_iter()
         .map(|tour| {
             let items = grouped.remove(&tour.id).unwrap_or_default();
-            let total_price = items.iter().try_fold(
-                BigDecimal::from(0),
-                |sum, item| match &item.price {
-                    Some(price) => Some(sum + price),
-                    // Missing price on any item → no reliable tour total.
-                    None => None,
-                },
-            );
+            let total_price =
+                items
+                    .iter()
+                    .try_fold(BigDecimal::from(0), |sum, item| match &item.price {
+                        Some(price) => Some(sum + price),
+                        // Missing price on any item → no reliable tour total.
+                        None => None,
+                    });
             TourWithItems {
                 completed: completed_ids.contains(&tour.id),
                 tour,
@@ -332,7 +340,7 @@ pub async fn get_shopping_list(state: &MyAppState, ctx: &AuthCtx, id: i32) -> Re
 pub async fn list_shopping_tours_for_event(
     state: &MyAppState,
     ctx: &AuthCtx,
-    event_id: i32
+    event_id: i32,
 ) -> Result<Vec<TourSummaryDto>> {
     ctx.assert_event_action(event_id, EventPerm::View).await?;
     let tours = state.events().get_shopping_tours(event_id).await?;
@@ -371,7 +379,10 @@ pub async fn add_tour(
     input: TourInput,
 ) -> Result<ShoppingTour> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingAddTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingAddTour)
+        .await?;
 
     // Create the tour
     let tour = ShoppingTour {
@@ -410,10 +421,13 @@ pub async fn update_tour(
     input: TourInput,
 ) -> Result<ShoppingTour> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
-    if tour_is_completed(state, actor, tour_id).await {
+    if tour_is_completed(state, actor, event_id, tour_id).await {
         return Err(Error::Validation {
             message: "tour is completed — reopen it first".into(),
         });
@@ -452,12 +466,20 @@ pub async fn update_tour(
 
 /// `DELETE /api/events/{id}/tours/{tour_id}` — remove the tour. Its items
 /// fall back to "without tour". Rejected for completed tours.
-pub async fn delete_tour(state: &MyAppState, actor: &AppCtx, event_id: i32, tour_id: i32) -> Result<()> {
+pub async fn delete_tour(
+    state: &MyAppState,
+    actor: &AppCtx,
+    event_id: i32,
+    tour_id: i32,
+) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
-    if tour_is_completed(state, actor, tour_id).await {
+    if tour_is_completed(state, actor, event_id, tour_id).await {
         return Err(Error::Validation {
             message: "tour is completed — reopen it first".into(),
         });
@@ -491,10 +513,16 @@ pub async fn set_tour_completed(
     completed: bool,
 ) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ManageShopping).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ManageShopping)
+        .await?;
 
     // Update the lifecycle flag
-    state.events().set_shopping_tour_completed(tour_id, completed).await?;
+    state
+        .events()
+        .set_shopping_tour_completed(tour_id, completed)
+        .await?;
 
     // Logging
     audit::record(
@@ -522,17 +550,23 @@ pub async fn add_tour_item(
     ingredient_id: i32,
 ) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
-    if tour_is_completed(state, actor, tour_id).await {
+    if tour_is_completed(state, actor, event_id, tour_id).await {
         return Err(Error::Validation {
             message: "tour is completed — reopen it first".into(),
         });
     }
 
     // Add the item
-    state.events().add_shopping_tour_item(tour_id, ingredient_id).await?;
+    state
+        .events()
+        .add_shopping_tour_item(tour_id, ingredient_id)
+        .await?;
 
     // Logging
     audit::record(
@@ -560,17 +594,23 @@ pub async fn remove_tour_item(
     ingredient_id: i32,
 ) -> Result<()> {
     // Check permissions
-    actor.ctx.assert_event_action(event_id, EventPerm::ShoppingEditTour).await?;
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::ShoppingEditTour)
+        .await?;
 
     // Check lifecycle
-    if tour_is_completed(state, actor, tour_id).await {
+    if tour_is_completed(state, actor, event_id, tour_id).await {
         return Err(Error::Validation {
             message: "tour is completed — reopen it first".into(),
         });
     }
 
     // Remove the item
-    state.events().remove_shopping_tour_item(tour_id, ingredient_id).await?;
+    state
+        .events()
+        .remove_shopping_tour_item(tour_id, ingredient_id)
+        .await?;
 
     // Logging
     audit::record(
@@ -593,13 +633,22 @@ pub async fn remove_tour_item(
 async fn tour_is_completed(
     state: &MyAppState,
     actor: &AppCtx,
-    tour_id: i32
+    event_id: i32,
+    tour_id: i32,
 ) -> bool {
-    // Check permissions
-    actor.ctx.assert_event_action(tour_id, EventPerm::View).await.ok();
+    // Check permissions on the *event* (defense-in-depth: every caller
+    // already asserts a shopping permission on the event, but a broken
+    // caller must not be able to probe tour state with a wrong id).
+    actor
+        .ctx
+        .assert_event_action(event_id, EventPerm::View)
+        .await
+        .ok();
 
     // Resolve and respond
-    state.events().is_shopping_tour_completed(tour_id).await
+    state
+        .events()
+        .is_shopping_tour_completed(tour_id)
+        .await
         .unwrap_or(false)
 }
-

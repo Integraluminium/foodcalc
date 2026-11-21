@@ -260,7 +260,14 @@ where
             .await
             .map_err(|_| Error::Misc("FoodLib extension missing".into()))?;
 
-        // Single repository call loads global_permissions, group_permissions, and event_overrides
+        Self::from_user(&foodlib, user).await
+    }
+}
+
+impl AuthCtx {
+    /// Builds an [`AuthCtx`] by loading the user's global permissions, group
+    /// memberships, and per-event role overrides.
+    pub async fn from_user(foodlib: &FoodLib, user: User) -> Result<Self> {
         let policy = foodlib.users().get_user_policy(user.id).await?;
         let group_ids = policy.group_permissions.keys().copied().collect();
 

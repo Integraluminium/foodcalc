@@ -21,7 +21,9 @@ pub fn inventories_router() -> Router<MyAppState> {
         .route("/", get(list_inventories).post(create_inventory))
         .route(
             "/{id}",
-            get(get_inventory).put(update_inventory).delete(delete_inventory),
+            get(get_inventory)
+                .put(update_inventory)
+                .delete(delete_inventory),
         )
         .route("/{id}/owner", put(transfer_owner))
         .route("/{id}/items", get(list_items).post(add_item))
@@ -32,10 +34,7 @@ pub fn inventories_router() -> Router<MyAppState> {
 }
 
 /// `GET /api/inventories` — inventories of the user's groups (admins: all).
-async fn list_inventories(
-    State(state): State<MyAppState>,
-    actor: AppCtx,
-) -> Response {
+async fn list_inventories(State(state): State<MyAppState>, actor: AppCtx) -> Response {
     respond(inventories::list_inventories(&state, &actor).await)
 }
 

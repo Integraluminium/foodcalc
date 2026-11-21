@@ -35,7 +35,12 @@ pub async fn list_ingredients(
     // Property filter: resolve the matching ids once, then intersect —
     // keeps the list query untouched and the properties table is tiny.
     let property_ids = match query.property_id {
-        Some(property_id) => Some(state.ingredients().ingredient_ids_for_property(property_id).await?),
+        Some(property_id) => Some(
+            state
+                .ingredients()
+                .ingredient_ids_for_property(property_id)
+                .await?,
+        ),
         None => None,
     };
 
@@ -62,7 +67,6 @@ pub async fn usages(state: &MyAppState, ctx: &AuthCtx, id: i32) -> Result<Vec<Re
         .filter(|recipe| ctx.group_ids.contains(&recipe.group_id))
         .collect())
 }
-
 
 #[derive(Debug, Deserialize)]
 pub struct IngredientCreateInput {
@@ -97,16 +101,19 @@ pub async fn create_ingredient(
     payload: IngredientCreateInput,
 ) -> Result<Ingredient> {
     // Check user is blocked
-    actor.ctx.assert_global(GlobalPermission::AllowedToCreateNewDomainObjects)?;
+    actor
+        .ctx
+        .assert_global(GlobalPermission::AllowedToCreateNewDomainObjects)?;
     // Check user has permission to create ingredients in the target group
-    actor.ctx.assert_group_perm(payload.group_id, Permission::Ingredient(IngredientPerm::Create))?;
+    actor.ctx.assert_group_perm(
+        payload.group_id,
+        Permission::Ingredient(IngredientPerm::Create),
+    )?;
 
-    let energy: BigDecimal = BigDecimal::from_str(&payload.energy)
-        .map_err(|_| 
-            foodlib_new::Error::InvalidInput {
-                message: format!("invalid energy value: {}", payload.energy)
-            }
-        )?;
+    let energy: BigDecimal =
+        BigDecimal::from_str(&payload.energy).map_err(|_| foodlib_new::Error::InvalidInput {
+            message: format!("invalid energy value: {}", payload.energy),
+        })?;
 
     let ingredient = Ingredient {
         id: 0,
@@ -125,11 +132,18 @@ pub async fn get_ingredient(
     id: i32,
 ) -> Result<IngredientDetailDto> {
     let ingredient = state.ingredients().get(id).await?;
-    actor.ctx.assert_group_perm(ingredient.group_id, Permission::Ingredient(IngredientPerm::View))?;
+    actor.ctx.assert_group_perm(
+        ingredient.group_id,
+        Permission::Ingredient(IngredientPerm::View),
+    )?;
 
     let sources = state.ingredients().get_sources(id).await?;
     let weights = state.ingredients().get_weights(id).await?;
-    let properties = state.properties().get_ingredient_properties(id).await?.properties;
+    let properties = state
+        .properties()
+        .get_ingredient_properties(id)
+        .await?
+        .properties;
 
     Ok(IngredientDetailDto {
         ingredient,
@@ -139,7 +153,6 @@ pub async fn get_ingredient(
     })
 }
 
-
 pub async fn update_ingredient(
     state: &MyAppState,
     actor: &AppCtx,
@@ -147,15 +160,17 @@ pub async fn update_ingredient(
     payload: &IngredientUpdateInput,
 ) -> Result<Ingredient> {
     let current = state.ingredients().get(id).await?;
-    actor.ctx.assert_group_perm(current.group_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor.ctx.assert_group_perm(
+        current.group_id,
+        Permission::Ingredient(IngredientPerm::Edit),
+    )?;
 
     let energy = match &payload.energy {
-        Some(energy_str) => Some(BigDecimal::from_str(energy_str)
-            .map_err(|_| 
-                foodlib_new::Error::InvalidInput {
-                    message: format!("invalid energy value: {}", energy_str)
-                }
-            )?),
+        Some(energy_str) => Some(BigDecimal::from_str(energy_str).map_err(|_| {
+            foodlib_new::Error::InvalidInput {
+                message: format!("invalid energy value: {}", energy_str),
+            }
+        })?),
         None => None,
     };
 
@@ -178,25 +193,27 @@ pub async fn update_ingredient(
         None,
         Some(json!(result)),
     )
-        .await;
-
+    .await;
 
     Ok(result)
 }
 
-pub async fn delete_ingredient(
-    state: &MyAppState,
-    actor: &AppCtx,
-    id: i32,
-) -> Result<()> {
+pub async fn delete_ingredient(state: &MyAppState, actor: &AppCtx, id: i32) -> Result<()> {
     let current = state.ingredients().get(id).await?;
-    actor.ctx.assert_group_perm(current.group_id, Permission::Ingredient(IngredientPerm::Delete))?;
+    actor.ctx.assert_group_perm(
+        current.group_id,
+        Permission::Ingredient(IngredientPerm::Delete),
+    )?;
 
     // Check for usages in recipes
     let usages = state.ingredients().usages(id).await?;
     if !usages.is_empty() {
         return Err(foodlib_new::Error::InvalidInput {
-            message: format!("cannot delete ingredient {}: it is used in {} recipe(s)", id, usages.len()),
+            message: format!(
+                "cannot delete ingredient {}: it is used in {} recipe(s)",
+                id,
+                usages.len()
+            ),
         });
     }
 
@@ -211,10 +228,9 @@ pub async fn delete_ingredient(
         None,
         None,
     )
-        .await;
+    .await;
     Ok(())
 }
-
 
 // --------------------------------------------------------------- sources
 pub async fn list_sources(
@@ -222,12 +238,13 @@ pub async fn list_sources(
     actor: &AppCtx,
     id: i32,
 ) -> Result<Vec<IngredientSource>> {
-    actor.ctx.assert_group_perm(id, Permission::Ingredient(IngredientPerm::View))?;
+    actor
+        .ctx
+        .assert_group_perm(id, Permission::Ingredient(IngredientPerm::View))?;
 
     let sources = state.ingredients().list_sources(Option::from(id)).await?;
     Ok(sources) // filtering by group is not needed here, as sources are tied to ingredients,
 }
-
 
 #[derive(Debug, Deserialize)]
 pub struct IngredientSourceInput {
@@ -245,17 +262,19 @@ pub async fn add_source(
     input: IngredientSourceInput,
 ) -> Result<IngredientSource> {
     // Asserts
-    actor.ctx.assert_group_perm(id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Validate numeric fields
-    let package_size: BigDecimal = BigDecimal::from_str(&input.package_size)
-        .map_err(|_|             foodlib_new::Error::InvalidInput {
-                message: format!("invalid package_size value: {}", input.package_size)
-            }
-        )?;
-    let price: BigDecimal = BigDecimal::from_str(&input.price)
-        .map_err(|_| foodlib_new::Error::InvalidInput {
-            message: format!("invalid price value: {}", input.price)
+    let package_size: BigDecimal = BigDecimal::from_str(&input.package_size).map_err(|_| {
+        foodlib_new::Error::InvalidInput {
+            message: format!("invalid package_size value: {}", input.package_size),
+        }
+    })?;
+    let price: BigDecimal =
+        BigDecimal::from_str(&input.price).map_err(|_| foodlib_new::Error::InvalidInput {
+            message: format!("invalid price value: {}", input.price),
         })?;
 
     let source = IngredientSource {
@@ -282,7 +301,7 @@ pub async fn add_source(
         None,
         Some(json!(added_source)),
     )
-        .await;
+    .await;
     // Return
     Ok(added_source)
 }
@@ -295,21 +314,20 @@ pub async fn update_source(
     input: IngredientSourceInput,
 ) -> Result<IngredientSource> {
     // Asserts
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Validate numeric fields
-    let package_size: BigDecimal = BigDecimal::from_str(&input.package_size)
-        .map_err(|_| 
-            foodlib_new::Error::InvalidInput {
-                message: format!("invalid package_size value: {}", input.package_size)
-            }
-        )?;
-    let price: BigDecimal = BigDecimal::from_str(&input.price)
-        .map_err(|_| 
-            foodlib_new::Error::InvalidInput {
-                message: format!("invalid price value: {}", input.price)
-            }
-        )?;
+    let package_size: BigDecimal = BigDecimal::from_str(&input.package_size).map_err(|_| {
+        foodlib_new::Error::InvalidInput {
+            message: format!("invalid package_size value: {}", input.package_size),
+        }
+    })?;
+    let price: BigDecimal =
+        BigDecimal::from_str(&input.price).map_err(|_| foodlib_new::Error::InvalidInput {
+            message: format!("invalid price value: {}", input.price),
+        })?;
 
     let source = IngredientSource {
         id: source_id,
@@ -335,7 +353,7 @@ pub async fn update_source(
         None,
         Some(json!(updated_source)),
     )
-        .await;
+    .await;
     // Return
     Ok(updated_source)
 }
@@ -347,7 +365,9 @@ pub async fn delete_source(
     source_id: i32,
 ) -> Result<()> {
     // Asserts
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Action
     state.ingredients().delete_source(source_id).await?;
@@ -362,7 +382,7 @@ pub async fn delete_source(
         None,
         Some(json!({ "deleted_source_id": source_id })),
     )
-        .await;
+    .await;
     // Return
     Ok(())
 }
@@ -383,17 +403,17 @@ pub struct IngredientWeightUpdateInput {
     pub weight: String,
 }
 
-
 pub async fn list_weights(
     state: &MyAppState,
     actor: &AppCtx,
     ingredient_id: i32,
 ) -> Result<Vec<IngredientWeight>> {
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::View))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::View))?;
     let weights = state.ingredients().get_weights(ingredient_id).await?;
     Ok(weights)
 }
-
 
 pub async fn add_weight(
     state: &MyAppState,
@@ -402,15 +422,15 @@ pub async fn add_weight(
     input: IngredientWeightInput,
 ) -> Result<IngredientWeight> {
     // Asserts
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Parse strings
-    let weight: BigDecimal = BigDecimal::from_str(&input.weight)
-        .map_err(|_| 
-            foodlib_new::Error::InvalidInput {
-                message: format!("invalid weight value: {}", input.weight)
-            }
-        )?;
+    let weight: BigDecimal =
+        BigDecimal::from_str(&input.weight).map_err(|_| foodlib_new::Error::InvalidInput {
+            message: format!("invalid weight value: {}", input.weight),
+        })?;
 
     // Action
     let new_weight = IngredientWeight {
@@ -430,7 +450,7 @@ pub async fn add_weight(
         None,
         Some(json!(added_weight)),
     )
-        .await;
+    .await;
     // Return
     Ok(added_weight)
 }
@@ -443,15 +463,15 @@ pub async fn update_weight(
     input: IngredientWeightUpdateInput,
 ) -> Result<IngredientWeight> {
     // Asserts
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Parse strings
-    let weight: BigDecimal = BigDecimal::from_str(&input.weight)
-        .map_err(|_| 
-            foodlib_new::Error::InvalidInput {
-                message: format!("invalid weight value: {}", input.weight)
-            }
-        )?;
+    let weight: BigDecimal =
+        BigDecimal::from_str(&input.weight).map_err(|_| foodlib_new::Error::InvalidInput {
+            message: format!("invalid weight value: {}", input.weight),
+        })?;
 
     // Action
     let updated_weight = IngredientWeight {
@@ -471,7 +491,7 @@ pub async fn update_weight(
         None,
         Some(json!(result)),
     )
-        .await;
+    .await;
     // Return
     Ok(result)
 }
@@ -483,10 +503,15 @@ pub async fn delete_weight(
     unit_id: i32,
 ) -> Result<()> {
     // Asserts
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Action
-    state.ingredients().delete_weight(ingredient_id, unit_id).await?;
+    state
+        .ingredients()
+        .delete_weight(ingredient_id, unit_id)
+        .await?;
     // Logging
     audit::record(
         state,
@@ -498,7 +523,7 @@ pub async fn delete_weight(
         None,
         Some(json!({ "deleted_unit_id": unit_id })),
     )
-        .await;
+    .await;
     // Return
     Ok(())
 }
@@ -515,8 +540,13 @@ pub async fn list_ingredient_properties(
     actor: &AppCtx,
     ingredient_id: i32,
 ) -> Result<IngredientProperties> {
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::View))?;
-    let properties = state.properties().get_ingredient_properties(ingredient_id).await?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::View))?;
+    let properties = state
+        .properties()
+        .get_ingredient_properties(ingredient_id)
+        .await?;
     Ok(properties)
 }
 
@@ -527,10 +557,15 @@ pub async fn add_property(
     input: IngredientPropertyInput,
 ) -> Result<()> {
     // Asserts
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Action
-    state.properties().assign_to_ingredient(ingredient_id, input.property_id).await?;
+    state
+        .properties()
+        .assign_to_ingredient(ingredient_id, input.property_id)
+        .await?;
     // Logging
     audit::record(
         state,
@@ -542,7 +577,7 @@ pub async fn add_property(
         None,
         Some(json!({ "added_property_id": input.property_id })),
     )
-        .await;
+    .await;
     // Return
     Ok(())
 }
@@ -554,10 +589,15 @@ pub async fn delete_property(
     property_id: i32,
 ) -> Result<()> {
     // Asserts
-    actor.ctx.assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
+    actor
+        .ctx
+        .assert_group_perm(ingredient_id, Permission::Ingredient(IngredientPerm::Edit))?;
 
     // Action
-    state.properties().remove_from_ingredient(ingredient_id, property_id).await?;
+    state
+        .properties()
+        .remove_from_ingredient(ingredient_id, property_id)
+        .await?;
     // Logging
     audit::record(
         state,
@@ -569,11 +609,10 @@ pub async fn delete_property(
         None,
         Some(json!({ "deleted_property_id": property_id })),
     )
-        .await;
+    .await;
     // Return
     Ok(())
 }
-
 
 // --------------------------------------------------------------- ownership
 
@@ -603,6 +642,6 @@ pub async fn transfer_owner(
         None,
         Some(json!({ "from_group_id": current.group_id })),
     )
-        .await;
+    .await;
     Ok(())
 }
