@@ -73,6 +73,28 @@ pub struct UpdateShoppingTourParams {
     pub store_id: i32,
 }
 
+/// Parameters for `create_shopping_tour` (requires human-in-the-loop elicitation confirmation).
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct CreateShoppingTourParams {
+    /// Numeric ID of the event the tour belongs to.
+    pub event_id: i32,
+    /// Shopping tour timestamp in RFC 3339 format (e.g. `"2026-10-14T09:00:00Z"`).
+    pub tour_date: String,
+    /// Numeric ID of the store for this shopping tour.
+    pub store_id: i32,
+}
+
+/// Parameters for `add_shopping_tour_item` (requires human-in-the-loop elicitation confirmation).
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct AddShoppingTourItemParams {
+    /// Numeric ID of the event owning the shopping tour.
+    pub event_id: i32,
+    /// Numeric ID of the shopping tour to pin the ingredient onto.
+    pub tour_id: i32,
+    /// Numeric ID of the ingredient to pin onto this tour.
+    pub ingredient_id: i32,
+}
+
 /// Parameters for `create_event` (requires human-in-the-loop elicitation confirmation).
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct CreateEventParams {
@@ -445,6 +467,127 @@ impl FoodcalcMcpServer {
 
         map_tool_result(
             events::update_tour(&self.state, &actor, params.event_id, params.tour_id, input).await,
+        )
+    }
+
+    /// Schedules a new shopping tour for an event after obtaining explicit
+    /// user confirmation via MCP elicitation.
+    #[tool(
+        name = "create_shopping_tour",
+        description = "Schedule a new shopping tour for an event at a store; ingredients sourced from that store with a matching buy-by window are assigned automatically (requires human confirmation via elicitation before saving)."
+    )]
+    pub async fn create_shopping_tour(
+        &self,
+        Parameters(params): Parameters<CreateShoppingTourParams>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, McpError> {
+        let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "create_shopping_tour") {
+            return Ok(denied);
+        }
+
+        // Pre-validate event visibility before eliciting confirmation.
+        let event_details =
+            match events::get_event_details(&self.state, &actor.ctx, params.event_id).await {
+                Ok(d) => d,
+                Err(err) => return map_app_error_to_tool(err),
+            };
+
+        let summary = format!(
+            "{}\nConfirm creating a shopping tour for event '{}' (ID {}):\n\
+             - Date: {}\n\
+             - Store ID: {}",
+            actor_attribution(&actor),
+            event_details.event.name,
+            params.event_id,
+            params.tour_date,
+            params.store_id,
+        );
+
+        if let Some(aborted) = confirm_or_abort(
+            &self.state,
+            &actor,
+            &context,
+            "create_shopping_tour",
+            summary,
+        )
+        .await
+        {
+            return Ok(aborted);
+        }
+
+        let input = TourInput {
+            tour_date: params.tour_date,
+            store_id: params.store_id,
+        };
+        map_tool_result(events::add_tour(&self.state, &actor, params.event_id, input).await)
+    }
+
+    /// Pins an ingredient onto a shopping tour after obtaining explicit user
+    /// confirmation via MCP elicitation.
+    #[tool(
+        name = "add_shopping_tour_item",
+        description = "Pin an ingredient onto a shopping tour, overriding the automatic store/date-window assignment (requires human confirmation via elicitation before saving)."
+    )]
+    pub async fn add_shopping_tour_item(
+        &self,
+        Parameters(params): Parameters<AddShoppingTourItemParams>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, McpError> {
+        let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "add_shopping_tour_item") {
+            return Ok(denied);
+        }
+
+        // Pre-validate event & tour visibility before eliciting confirmation.
+        match events::get_event_details(&self.state, &actor.ctx, params.event_id).await {
+            Ok(_) => {}
+            Err(err) => return map_app_error_to_tool(err),
+        }
+        let current_tour = match self.state.events().get_shopping_tour(params.tour_id).await {
+            Ok(t) => t,
+            Err(err) => return map_app_error_to_tool(err),
+        };
+        if current_tour.event_id != params.event_id {
+            return map_app_error_to_tool(AppError::Validation {
+                message: format!(
+                    "tour {tour} does not belong to event {event}",
+                    tour = params.tour_id,
+                    event = params.event_id,
+                ),
+            });
+        }
+
+        let summary = format!(
+            "{}\nConfirm pinning ingredient #{} onto shopping tour #{} of event '{}' (ID {}):",
+            actor_attribution(&actor),
+            params.ingredient_id,
+            params.tour_id,
+            current_tour.tour_date,
+            params.event_id,
+        );
+
+        if let Some(aborted) = confirm_or_abort(
+            &self.state,
+            &actor,
+            &context,
+            "add_shopping_tour_item",
+            summary,
+        )
+        .await
+        {
+            return Ok(aborted);
+        }
+
+        map_tool_result(
+            events::add_tour_item(
+                &self.state,
+                &actor,
+                params.event_id,
+                params.tour_id,
+                params.ingredient_id,
+            )
+            .await,
         )
     }
 

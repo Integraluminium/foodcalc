@@ -3,6 +3,7 @@
 pub mod events;
 pub mod inventory;
 pub mod recipes;
+pub mod master;
 
 use rmcp::{
     handler::server::router::tool::ToolRouter,
@@ -19,6 +20,7 @@ pub fn combined_tool_router() -> ToolRouter<FoodcalcMcpServer> {
     FoodcalcMcpServer::events_tool_router()
         + FoodcalcMcpServer::recipes_tool_router()
         + FoodcalcMcpServer::inventory_tool_router()
+        + FoodcalcMcpServer::master_tool_router()
 }
 
 /// Capability gate for MCP tools: resolves the tool's risk class and checks
