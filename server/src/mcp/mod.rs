@@ -88,11 +88,14 @@ impl ServerHandler for FoodcalcMcpServer {
         .with_protocol_version(ProtocolVersion::LATEST)
         .with_server_info(Implementation::from_build_env())
         .with_instructions(
-            "Foodcalc event-catering & recipe-scaling MCP server. Use tools to inspect \
-             events, recipes, ingredients, and inventories. Mutating operations require \
-             explicit user confirmation via MCP elicitation. The acting API token may be \
-             restricted to tool risk classes ('read', 'plan'); on PermissionDenied, inform \
-             the user which class is missing and how to grant it in the settings UI.",
+            "Foodcalc event-catering, recipe-scaling & recipe-authoring MCP server. \
+             Use tools to inspect events, recipes, ingredients, and inventories; author and \
+             import recipes (`import_recipe` for structured drafts, e.g. from textbooks); and \
+             plan events (`replace_event_meals` applies a whole plan with one diff-confirmation). \
+             Mutating operations require explicit user confirmation via MCP elicitation. The \
+             acting API token may be restricted to tool risk classes ('read', 'plan', \
+             'authoring', 'manage'); on PermissionDenied, inform the user which class is \
+             missing and how to grant it in the settings UI.",
         )
     }
 

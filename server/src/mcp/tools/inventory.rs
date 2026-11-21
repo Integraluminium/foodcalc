@@ -34,6 +34,13 @@ pub struct GetInventoryOverviewParams {
     pub inventory_id: Option<i32>,
 }
 
+/// Parameters for `get_ingredient`.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct GetIngredientParams {
+    /// Numeric ID of the ingredient to fetch.
+    pub ingredient_id: i32,
+}
+
 #[tool_router(router = inventory_tool_router, vis = "pub")]
 impl FoodcalcMcpServer {
     /// Searches ingredients visible to the user's groups, including supplier sources and pricing.
@@ -113,5 +120,26 @@ impl FoodcalcMcpServer {
             "inventory_count": overview.len(),
             "inventories": overview,
         }))
+    }
+
+    /// Fetches an ingredient's composed detail: sources, unit weights and
+    /// allergen/dietary properties — the data needed for import review and
+    /// sensible source/unit choices.
+    #[tool(
+        name = "get_ingredient",
+        description = "Get an ingredient's detail: supplier sources (stores, package sizes, prices), per-unit gram weights, and allergen/dietary properties."
+    )]
+    pub async fn get_ingredient(
+        &self,
+        Parameters(params): Parameters<GetIngredientParams>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, McpError> {
+        let actor = extract_actor(&context)?;
+        if let Some(denied) = super::check_tool_allowed(&actor, "get_ingredient") {
+            return Ok(denied);
+        }
+        map_tool_result(
+            ingredients::get_ingredient(&self.state, &actor, params.ingredient_id).await,
+        )
     }
 }
