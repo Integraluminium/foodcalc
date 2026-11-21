@@ -12,7 +12,7 @@ Recipes do not scale linearly from 4 servings to 300. Foodcalc scales production
 
 ## Core Features
 
-- **Events** — Budget tracking, multi-day meal schedules, Gantt-style timeline (meals, shopping tours, food prep with drag & drop), and event cloning from templates.
+- **Events** — Budget tracking, multi-day meal schedules, Gantt-style timeline (meals, shopping tours, food prep with drag & drop), live kitchen status board, and event cloning from templates.
 - **Recipes** — Classified as full meals or reusable sub-components, with ingredients, nested components, and preparation steps (fixed + quantity-dependent prep times, HACCP control points). Includes search/filtering and inline creation of missing ingredients.
 - **Ingredients** — Energy density, multi-tag properties (spices, vegan, allergens — powering filters and allergen matrices), unit weights for conversions, suppliers, and pricing (including automated Metro price synchronization).
 - **Inventories** — Group-level stock tracking with reconciliation, event-scoped inventories, and auditable stock bookings.
@@ -26,15 +26,12 @@ Recipes do not scale linearly from 4 servings to 300. Foodcalc scales production
 Foodcalc provides a JSON REST API backed by a dedicated application layer (`server/src/app/`), exposing events, meals, food prep, shopping tours, recipes, ingredients, inventories, status boards, user/group RBAC management, and audit logs to external tools and modern frontends.
 - Full OpenAPI specification: [`server/foodcalc_rest_specification.yaml`](./server/foodcalc_rest_specification.yaml)
 
-
-### Web Frontend
-Currently, Foodcalc provides a server-rendered HTML UI built with `maud` and HTMX/vanilla JS.
-It is available at `/`.
-> Note: It is planned to be complemented and eventually replaced by a Single Page Application (SPA) via the REST-API
+### Web Frontend (SPA & Legacy UI)
+- **Single Page Application (`frontend/spa-frontend/`)**: React + TypeScript + Vite frontend consuming `/api/*` via TanStack Query, featuring CSS Modules styling, role-aware UI gating, and full English/German localization (`en_US` / `de_DE`). See [`frontend/spa-frontend/README.md`](./frontend/spa-frontend/README.md) for frontend architecture and conventions.
+- **Legacy Server-Rendered UI (`/`)**: Built with `maud` and HTMX/vanilla JS inside `server/src/frontend/`, still served alongside the API while remaining edge features are migrated to the SPA.
 
 ### Planned & Upcoming Features
 - **OAuth2 / OIDC Login** *(planned on a dedicated branch)* — Optional single sign-on alongside local password authentication.
-- **Single Page Application (SPA)** *(planned on a dedicated branch)* — React + TypeScript + Vite frontend with full REST API coverage, including event planning, recipe management, and inventory tracking.
 - **External Food Database Integration (USDA FDC)** *(planned on a dedicated branch)* — Automated ingredient nutrition and allergen lookup.
 - **SPA Feature Parity & Enhancements** — Piece-based targets for non-energy-scalable items, cost calculation tab (cost per meal/portion/tour vs. budget), standalone allergen PDFs, global document management, and reorder/availability tracking (see [`REQUIREMENTS.md`](./REQUIREMENTS.md)).
 
@@ -42,16 +39,14 @@ It is available at `/`.
 
 ```text
 foodcalc/
-├── server/                 # Axum web server: JSON REST API (/api/*), MCP server (/mcp),
-│                           # and legacy server-rendered UI (maud)
+├── server/                 # Axum web server: JSON REST API (/api/*) and legacy server-rendered UI (maud)
 ├── pdf_export/             # Typst templating and PDF rendering engine
 ├── foodlib_new/            # Core domain library: ops, entities, RBAC policy, SQLx migrations
 ├── metro-scrape/           # Metro supplier catalog & price synchronization
-├── frontend/spa-frontend/  # React + TypeScript + Vite SPA (on feat/spa-frontend)
+├── frontend/spa-frontend/  # React + TypeScript + Vite Single Page Application
 ├── foodlib/                # Legacy data layer (being phased out)
 └── cli-client/             # Legacy CLI client (being phased out)
-``` 
-
+```
 
 ## Development
 
@@ -60,8 +55,11 @@ foodcalc/
 * Rust toolchain (stable)
 * PostgreSQL
 * `sqlx-cli` (for running database migrations)
+* Node.js & npm (for the SPA frontend)
 
 ### Setup & Run
+
+**1. Backend:**
 
 ```sh
 # Configure DATABASE_URL (PostgreSQL) in foodlib_new/.env, then apply migrations:
@@ -77,11 +75,24 @@ cargo build -p server --no-default-features
 
 ```
 
+**2. SPA Frontend:**
+
+```sh
+cd frontend/spa-frontend
+npm ci
+npm run dev   # Starts Vite dev server with /api proxy to the backend
+
+```
+
 ### Quality Gates
 
 ```sh
+# Backend
 cargo check --workspace
 cargo test -p foodlib_new
+
+# Frontend
+cd frontend/spa-frontend && npm run build && npm run lint && npm test
 
 ```
 
@@ -89,3 +100,4 @@ cargo test -p foodlib_new
 
 * [`REQUIREMENTS.md`](./REQUIREMENTS.md) — MoSCoW requirements and user stories with implementation status
 * [`server/foodcalc_rest_specification.yaml`](./server/foodcalc_rest_specification.yaml) — OpenAPI REST specification
+* [`frontend/spa-frontend/README.md`](./frontend/spa-frontend/README.md) — SPA frontend architecture, component structure, and development conventions
